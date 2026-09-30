@@ -1,0 +1,87 @@
+saramed/
+├── public/
+│   ├── images/
+│   │   ├── logo.svg
+│   │   ├── hero-bg.jpg
+│   │   ├── branches/
+│   │   └── instructors/
+│   └── fonts/
+│       └── Vazirmatn/
+│
+├── src/
+│   ├── app/
+│   │   ├── layout.tsx
+│   │   ├── page.tsx
+│   │   ├── globals.css
+│   │   │
+│   │   ├── (auth)/
+│   │   │   ├── login/page.tsx
+│   │   │   └── register/page.tsx
+│   │   │
+│   │   ├── courses/
+│   │   │   ├── page.tsx
+│   │   │   ├── online/page.tsx
+│   │   │   ├── in-person/page.tsx
+│   │   │   ├── hybrid/page.tsx
+│   │   │   └── [slug]/page.tsx
+│   │   │
+│   │   ├── exams/
+│   │   ├── shop/
+│   │   ├── live/
+│   │   ├── instructors/
+│   │   ├── branches/
+│   │   ├── blog/
+│   │   ├── about/
+│   │   ├── contact/
+│   │   ├── faq/
+│   │   ├── dashboard/
+│   │   ├── teacher/
+│   │   └── admin/
+│   │
+│   ├── components/
+│   │   ├── ui/              # کامپوننت‌های پایه (shadcn)
+│   │   ├── layout/
+│   │   │   ├── Header.tsx
+│   │   │   ├── Footer.tsx
+│   │   │   └── MobileMenu.tsx
+│   │   ├── home/
+│   │   │   ├── Hero.tsx
+│   │   │   ├── SkillsCategories.tsx
+│   │   │   ├── LearningModes.tsx
+│   │   │   ├── PopularCourses.tsx
+│   │   │   ├── LiveClasses.tsx
+│   │   │   ├── OnlineExams.tsx
+│   │   │   ├── ShopSection.tsx
+│   │   │   ├── Branches.tsx
+│   │   │   ├── Instructors.tsx
+│   │   │   ├── Testimonials.tsx
+│   │   │   ├── Stats.tsx
+│   │   │   ├── BlogSection.tsx
+│   │   │   └── CTA.tsx
+│   │   └── shared/
+│   │       ├── CourseCard.tsx
+│   │       ├── InstructorCard.tsx
+│   │       ├── TestimonialCard.tsx
+│   │       └── SectionTitle.tsx
+│   │
+│   ├── lib/
+│   │   ├── utils.ts
+│   │   ├── constants.ts
+│   │   └── api.ts
+│   │
+│   ├── hooks/
+│   │   ├── useScroll.ts
+│   │   └── useMediaQuery.ts
+│   │
+│   └── types/
+│       └── index.ts
+│
+├── .env.local
+├── .env.example
+├── .gitignore
+├── next.config.js
+├── tailwind.config.ts
+├── tsconfig.json
+├── postcss.config.js
+├── package.json
+└── README.md

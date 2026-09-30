@@ -1,0 +1,63 @@
+🌐 saramed.ir
+│
+├── 🏠 / (صفحه اصلی)
+│
+├── 🎓 /courses (دوره‌ها)
+│   ├── /courses/online (آنلاین)
+│   ├── /courses/in-person (حضوری)
+│   ├── /courses/hybrid (ترکیبی)
+│   └── /courses/[slug] (جزئیات دوره + خرید)
+│
+├── 📝 /exams (آزمون آنلاین)
+│   ├── /exams/free (آزمون‌های رایگان)
+│   ├── /exams/paid (آزمون‌های ویژه)
+│   └── /exams/[id] (صفحه آزمون)
+│
+├── 🛒 /shop (فروشگاه)
+│   ├── /shop/questions (فروش سوالات)
+│   ├── /shop/resources (منابع آموزشی)
+│   └── /shop/[id] (جزئیات محصول)
+│
+├── 🎥 /live (کلاس‌های آنلاین)
+│   ├── /live/upcoming (کلاس‌های پیش‌رو)
+│   └── /live/[id] (ورود به کلاس)
+│
+├── 👨‍🏫 /instructors (اساتید)
+│   └── /instructors/[id] (پروفایل استاد)
+│
+├── 🏢 /branches (شعبه‌ها)
+│   └── /branches/main (شعبه مرکزی + نقشه)
+│
+├── 📰 /blog (وبلاگ)
+│   └── /blog/[slug]
+│
+├── ℹ️ /about (درباره ما)
+├── 📞 /contact (تماس با ما)
+├── ❓ /faq (سوالات متداول)
+│
+├── 🔐 احراز هویت
+│   ├── /login
+│   ├── /register
+│   └── /forgot-password
+│
+├── 👤 /dashboard (پنل دانشجو)
+│   ├── /dashboard/courses (دوره‌های من)
+│   ├── /dashboard/exams (آزمون‌های من)
+│   ├── /dashboard/orders (سفارش‌ها)
+│   ├── /dashboard/certificates (مدارک)
+│   └── /dashboard/profile (پروفایل)
+│
+├── 👨‍🏫 /teacher (پنل استاد)
+│   ├── /teacher/courses
+│   ├── /teacher/students
+│   ├── /teacher/exams
+│   └── /teacher/live (مدیریت کلاس زنده)
+│
+└── 🛡️ /admin (پنل مدیر)
+    ├── /admin/users
+    ├── /admin/courses
+    ├── /admin/orders
+    ├── /admin/exams
+    ├── /admin/blog
+    ├── /admin/live
+    └── /admin/reports

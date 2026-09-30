@@ -1,0 +1,4 @@
+قدم ۱: به‌روزرسانی metadata اصلی در layout.tsx
+قدم ۲: ساخت robots.txt (خودکار Next.js)
+قدم ۳: ساخت sitemap.xml (خودکار Next.js)
+قدم ۴: اضافه کردن metadata به صفحات مهم

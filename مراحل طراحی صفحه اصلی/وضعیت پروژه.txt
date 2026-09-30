@@ -1,0 +1,10 @@
+📁 saramed/
+├── ✅ ساختار پروژه (مرحله ۱)
+├── ✅ فایل‌های تنظیمات (مرحله ۱)
+├── ✅ Header + Footer + کامپوننت پایه (مرحله ۲)
+├── ✅ Mock Data (مرحله ۳)
+├── ✅ CourseCard + InstructorCard + TestimonialCard + Hero (مرحله ۴)
+├── ✅ SkillsCategories + LearningModes + PopularCourses + Instructors (مرحله ۵)
+├── ✅ LiveClasses + OnlineExams + ShopSection + Branches (مرحله ۶)
+├── ✅ Testimonials + BlogSection + StatsSection + CTA (مرحله ۷)
+└── ✅ صفحه اصلی نهایی (مرحله ۸)

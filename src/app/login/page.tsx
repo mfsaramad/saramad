@@ -1,0 +1,272 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowLeft,
+  CheckCircle2,
+  User,
+  GraduationCap,
+  Award,
+  Video,
+} from 'lucide-react';
+
+export default function LoginPage() {
+  const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    remember: false,
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    alert('ورود با موفقیت انجام شد! (نمونه)');
+  };
+
+  const benefits = [
+    {
+      icon: GraduationCap,
+      title: 'دسترسی به دوره‌ها',
+      description: 'به همه دوره‌های خریداری‌شده دسترسی داشته باش',
+    },
+    {
+      icon: Video,
+      title: 'کلاس‌های آنلاین',
+      description: 'در کلاس‌های زنده و ضبط‌شده شرکت کن',
+    },
+    {
+      icon: Award,
+      title: 'مدارک و گواهی‌نامه',
+      description: 'مدارک خود را دریافت و مدیریت کن',
+    },
+    {
+      icon: CheckCircle2,
+      title: 'پیگیری پیشرفت',
+      description: 'پیشرفت تحصیلی خود را پیگیری کن',
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-slate-50 pt-20">
+      <div className="grid lg:grid-cols-2 min-h-[calc(100vh-5rem)]">
+        {/* ===== فرم ورود ===== */}
+        <div className="flex items-center justify-center p-6 lg:p-12">
+          <div className="w-full max-w-md">
+            {/* لوگو */}
+            <Link
+              href="/"
+              className="flex items-center gap-3 mb-8 justify-center"
+            >
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#1e3a8a] to-[#0d9488] flex items-center justify-center shadow-lg">
+                <svg
+                  className="w-7 h-7 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                  />
+                </svg>
+              </div>
+              <div>
+                <div className="text-2xl font-black text-brand-800">
+                  سرآمد
+                </div>
+                <div className="text-xs text-slate-500">
+                  مجتمع آموزش فنی و حرفه‌ای
+                </div>
+              </div>
+            </Link>
+
+            {/* عنوان */}
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-black text-slate-800 mb-2">
+                خوش آمدید 👋
+              </h1>
+              <p className="text-slate-600">
+                برای دسترسی به پنل کاربری، وارد شوید
+              </p>
+            </div>
+
+            {/* فرم */}
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* ایمیل */}
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">
+                  ایمیل یا شماره تماس
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    required
+                    value={formData.email}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
+                    placeholder="example@email.com"
+                    className="w-full pr-12 pl-4 py-3.5 bg-white border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 transition"
+                  />
+                  <Mail className="w-5 h-5 text-slate-400 absolute top-1/2 right-4 -translate-y-1/2" />
+                </div>
+              </div>
+
+              {/* رمز عبور */}
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">
+                  رمز عبور
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={formData.password}
+                    onChange={(e) =>
+                      setFormData({ ...formData, password: e.target.value })
+                    }
+                    placeholder="••••••••"
+                    className="w-full pr-12 pl-12 py-3.5 bg-white border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 transition"
+                  />
+                  <Lock className="w-5 h-5 text-slate-400 absolute top-1/2 right-4 -translate-y-1/2" />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute top-1/2 left-4 -translate-y-1/2 text-slate-400 hover:text-brand-800 transition"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* گزینه‌ها */}
+              <div className="flex items-center justify-between text-sm">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.remember}
+                    onChange={(e) =>
+                      setFormData({ ...formData, remember: e.target.checked })
+                    }
+                    className="w-4 h-4 text-brand-800 rounded focus:ring-brand-500"
+                  />
+                  <span className="text-slate-700">مرا به خاطر بسپار</span>
+                </label>
+
+                <Link
+                  href="/forgot-password"
+                  className="text-brand-800 font-bold hover:underline"
+                >
+                  فراموشی رمز؟
+                </Link>
+              </div>
+
+              {/* دکمه ورود */}
+              <button
+                type="submit"
+                className="w-full flex items-center justify-center gap-2 py-4 bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white rounded-xl font-black hover:shadow-xl transition-all hover:scale-[1.02]"
+              >
+                ورود به حساب
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+
+              {/* جداکننده */}
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-slate-200" />
+                </div>
+                <div className="relative flex justify-center text-xs">
+                  <span className="px-4 bg-slate-50 text-slate-500">
+                    یا
+                  </span>
+                </div>
+              </div>
+
+              {/* ثبت‌نام */}
+              <p className="text-center text-slate-600 text-sm">
+                حساب کاربری ندارید؟{' '}
+                <Link
+                  href="/register"
+                  className="text-brand-800 font-black hover:underline"
+                >
+                  ثبت‌نام کنید
+                </Link>
+              </p>
+            </form>
+          </div>
+        </div>
+
+        {/* ===== بخش تبلیغاتی ===== */}
+        <div className="hidden lg:flex items-center justify-center p-12 bg-gradient-to-br from-[#1e3a8a] via-[#1e40af] to-[#0d9488] relative overflow-hidden">
+          <div
+            className="absolute inset-0 opacity-[0.07]"
+            style={{
+              backgroundImage:
+                'radial-gradient(circle, white 1px, transparent 1px)',
+              backgroundSize: '30px 30px',
+            }}
+          />
+
+          <div className="relative text-white max-w-md">
+            <h2 className="text-3xl font-black mb-4 leading-tight">
+              به جمع هزاران دانشجوی سرآمد بپیوند
+            </h2>
+            <p className="text-blue-100 leading-relaxed mb-10">
+              با ورود به پنل کاربری، به همه امکانات آموزشی سرآمد دسترسی پیدا
+              می‌کنید.
+            </p>
+
+            <div className="space-y-5">
+              {benefits.map((benefit, index) => {
+                const Icon = benefit.icon;
+                return (
+                  <div
+                    key={index}
+                    className="flex items-start gap-4 p-4 bg-white/10 backdrop-blur border border-white/20 rounded-2xl"
+                  >
+                    <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+                      <Icon className="w-5 h-5 text-teal-300" />
+                    </div>
+                    <div>
+                      <h3 className="font-black mb-1">{benefit.title}</h3>
+                      <p className="text-xs text-blue-100">
+                        {benefit.description}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* آمار */}
+            <div className="grid grid-cols-3 gap-4 mt-10 pt-10 border-t border-white/20">
+              <div className="text-center">
+                <div className="text-3xl font-black">۵۰۰۰+</div>
+                <div className="text-xs text-blue-200 mt-1">دانشجو</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-black">۸۰+</div>
+                <div className="text-xs text-blue-200 mt-1">دوره</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-black">۱۵+</div>
+                <div className="text-xs text-blue-200 mt-1">سال تجربه</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

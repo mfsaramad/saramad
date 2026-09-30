@@ -1,0 +1,12 @@
+src/app/courses/
+├── page.tsx              ← صفحه اصلی دوره‌ها
+└── loading.tsx           ← صفحه لودینگ
+
+src/components/courses/
+├── CourseFilters.tsx     ← فیلترها (کنار یا بالای صفحه)
+├── CourseSearch.tsx      ← نوار جستجو
+├── CourseSort.tsx        ← مرتب‌سازی
+└── CourseGrid.tsx        ← شبکه دوره‌ها
+
+src/components/shared/
+└── CourseCard.tsx        ← قبلاً ساختیم ✅
