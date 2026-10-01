@@ -27,6 +27,13 @@ import {
 } from '@/lib/format';
 import CourseCard from '@/components/shared/CourseCard';
 
+// ✅ اضافه شده برای Static Export
+export function generateStaticParams() {
+  return courses.map((course) => ({
+    slug: course.slug,
+  }));
+}
+
 interface CourseDetailPageProps {
   params: Promise<{ slug: string }>;
 }

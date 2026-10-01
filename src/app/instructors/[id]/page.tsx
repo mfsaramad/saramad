@@ -10,12 +10,18 @@ import {
   Phone,
   Send,
   CheckCircle2,
-  Briefcase,
   GraduationCap,
 } from 'lucide-react';
 import { instructors, courses } from '@/lib/data';
 import { toPersianNumber } from '@/lib/format';
 import CourseCard from '@/components/shared/CourseCard';
+
+// ✅ اضافه شده برای Static Export
+export function generateStaticParams() {
+  return instructors.map((instructor) => ({
+    id: instructor.id,
+  }));
+}
 
 interface InstructorProfilePageProps {
   params: Promise<{ id: string }>;
@@ -31,14 +37,12 @@ export default async function InstructorProfilePage({
     notFound();
   }
 
-  // دوره‌های این استاد
   const instructorCourses = courses.filter(
     (c) => c.instructor.id === instructor.id
   );
 
   return (
     <div className="bg-slate-50 min-h-screen">
-      {/* ===== Hero استاد ===== */}
       <section className="relative pt-32 pb-16 bg-gradient-to-br from-[#1e3a8a] via-[#1e40af] to-[#0d9488] overflow-hidden">
         <div
           className="absolute inset-0 opacity-[0.07]"
@@ -50,16 +54,12 @@ export default async function InstructorProfilePage({
         />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-sm text-blue-100 mb-8">
             <Link href="/" className="hover:text-white transition">
               خانه
             </Link>
             <span>/</span>
-            <Link
-              href="/instructors"
-              className="hover:text-white transition"
-            >
+            <Link href="/instructors" className="hover:text-white transition">
               اساتید
             </Link>
             <span>/</span>
@@ -67,7 +67,6 @@ export default async function InstructorProfilePage({
           </div>
 
           <div className="grid lg:grid-cols-3 gap-8 items-center">
-            {/* آواتار */}
             <div className="lg:col-span-1 flex justify-center lg:justify-start">
               <div className="relative">
                 <div className="w-40 h-40 lg:w-52 lg:h-52 rounded-full bg-gradient-to-br from-teal-400 via-brand-500 to-orange-500 p-1.5 shadow-2xl">
@@ -83,7 +82,6 @@ export default async function InstructorProfilePage({
               </div>
             </div>
 
-            {/* اطلاعات */}
             <div className="lg:col-span-2 text-white text-center lg:text-right">
               <h1 className="text-3xl lg:text-5xl font-black mb-3">
                 {instructor.name}
@@ -97,7 +95,6 @@ export default async function InstructorProfilePage({
                 {instructor.bio}
               </p>
 
-              {/* آمار */}
               <div className="grid grid-cols-3 gap-4 max-w-lg lg:mx-0 mx-auto">
                 <div className="bg-white/10 backdrop-blur border border-white/20 rounded-2xl p-4">
                   <div className="flex items-center justify-center gap-1.5 text-2xl font-black text-white mb-1">
@@ -126,13 +123,10 @@ export default async function InstructorProfilePage({
         </div>
       </section>
 
-      {/* ===== محتوای اصلی ===== */}
       <section className="py-12 lg:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-3 gap-8">
-            {/* ستون چپ - محتوای اصلی */}
             <div className="lg:col-span-2 space-y-6">
-              {/* درباره استاد */}
               <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8">
                 <div className="flex items-center gap-3 mb-5">
                   <div className="w-11 h-11 rounded-xl bg-brand-100 flex items-center justify-center">
@@ -147,7 +141,6 @@ export default async function InstructorProfilePage({
                 </p>
               </div>
 
-              {/* تخصص‌ها */}
               <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8">
                 <div className="flex items-center gap-3 mb-5">
                   <div className="w-11 h-11 rounded-xl bg-teal-100 flex items-center justify-center">
@@ -169,7 +162,6 @@ export default async function InstructorProfilePage({
                 </div>
               </div>
 
-              {/* دوره‌های استاد */}
               {instructorCourses.length > 0 && (
                 <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8">
                   <div className="flex items-center justify-between mb-6">
@@ -197,9 +189,7 @@ export default async function InstructorProfilePage({
               )}
             </div>
 
-            {/* ستون راست - اطلاعات جانبی */}
             <div className="space-y-6">
-              {/* کارت اطلاعات */}
               <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 sticky top-24">
                 <h3 className="text-lg font-black text-slate-800 mb-5 pb-4 border-b border-slate-100">
                   اطلاعات تماس
@@ -211,9 +201,7 @@ export default async function InstructorProfilePage({
                       <Mail className="w-5 h-5 text-brand-800" />
                     </div>
                     <div>
-                      <div className="text-xs text-slate-500 mb-1">
-                        ایمیل
-                      </div>
+                      <div className="text-xs text-slate-500 mb-1">ایمیل</div>
                       <div className="text-sm font-bold text-slate-800">
                         info@saramad.ir
                       </div>
@@ -225,11 +213,9 @@ export default async function InstructorProfilePage({
                       <Phone className="w-5 h-5 text-teal-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-slate-500 mb-1">
-                        تلفن
-                      </div>
+                      <div className="text-xs text-slate-500 mb-1">تلفن</div>
                       <div className="text-sm font-bold text-slate-800">
-                        ۰۲۱-۱۲۳۴۵۶۷۸
+                        ۰۹۳۶۲۸۴۷۹۲۲
                       </div>
                     </div>
                   </div>
@@ -239,9 +225,7 @@ export default async function InstructorProfilePage({
                       <Send className="w-5 h-5 text-orange-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-slate-500 mb-1">
-                        تلگرام
-                      </div>
+                      <div className="text-xs text-slate-500 mb-1">تلگرام</div>
                       <div className="text-sm font-bold text-slate-800">
                         @saramad
                       </div>
@@ -257,7 +241,6 @@ export default async function InstructorProfilePage({
                 </div>
               </div>
 
-              {/* افتخارات */}
               <div className="bg-gradient-to-br from-brand-800 to-brand-900 rounded-3xl shadow-lg p-6 text-white">
                 <div className="flex items-center gap-3 mb-5">
                   <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center">
@@ -269,14 +252,13 @@ export default async function InstructorProfilePage({
                 <div className="space-y-3 text-sm">
                   <div className="flex items-start gap-2">
                     <CheckCircle2 className="w-5 h-5 text-teal-400 flex-shrink-0 mt-0.5" />
-                    <span className="text-blue-100">
-                      مدرس برتر سال ۱۴۰۳
-                    </span>
+                    <span className="text-blue-100">مدرس برتر سال ۱۴۰۳</span>
                   </div>
                   <div className="flex items-start gap-2">
                     <CheckCircle2 className="w-5 h-5 text-teal-400 flex-shrink-0 mt-0.5" />
                     <span className="text-blue-100">
-                      بیش از {toPersianNumber(instructor.studentsCount)} دانشجوی موفق
+                      بیش از {toPersianNumber(instructor.studentsCount)} دانشجوی
+                      موفق
                     </span>
                   </div>
                   <div className="flex items-start gap-2">
@@ -294,7 +276,6 @@ export default async function InstructorProfilePage({
                 </div>
               </div>
 
-              {/* بازگشت */}
               <Link
                 href="/instructors"
                 className="flex items-center justify-center gap-2 w-full py-3.5 border-2 border-brand-800 text-brand-800 rounded-xl font-bold hover:bg-brand-800 hover:text-white transition"
