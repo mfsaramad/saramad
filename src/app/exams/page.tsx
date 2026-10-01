@@ -1,13 +1,11 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import Link from 'next/link';
 import {
   Clock,
   Award,
   Users,
   CheckCircle2,
-  ArrowLeft,
   Target,
   FileText,
   Zap,
@@ -22,7 +20,8 @@ const exams = [
   {
     id: '1',
     title: 'آزمون تعیین سطح برنامه‌نویسی',
-    description: 'سطح دانش خود را در برنامه‌نویسی بسنجید و مسیر یادگیری مناسب را انتخاب کنید',
+    description:
+      'سطح دانش خود را در برنامه‌نویسی بسنجید و مسیر یادگیری مناسب را انتخاب کنید',
     type: 'level',
     typeLabel: 'تعیین سطح',
     icon: Target,
@@ -161,15 +160,6 @@ export default function ExamsPage() {
         />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Breadcrumb */}
-          <div className="flex items-center gap-2 text-sm text-blue-100 mb-8 justify-center">
-            <Link href="/" className="hover:text-white transition">
-              خانه
-            </Link>
-            <span>/</span>
-            <span className="text-white font-bold">آزمون آنلاین</span>
-          </div>
-
           <div className="text-center">
             <div className="inline-block px-4 py-1.5 bg-white/10 backdrop-blur border border-white/20 rounded-full text-white text-sm font-bold mb-5">
               📝 آزمون‌های آنلاین سرآمد
@@ -320,13 +310,12 @@ export default function ExamsPage() {
                         </div>
                       </div>
 
-                      <Link
-                        href={`/exams/${exam.id}`}
+                      <button
                         className={`flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-white bg-gradient-to-l ${colors.gradient} hover:shadow-lg transition-all`}
                       >
                         <CheckCircle2 className="w-4 h-4" />
                         شرکت در آزمون
-                      </Link>
+                      </button>
                     </div>
                   </div>
                 );
@@ -338,9 +327,7 @@ export default function ExamsPage() {
               <h3 className="text-xl font-black text-slate-800 mb-2">
                 آزمونی یافت نشد
               </h3>
-              <p className="text-slate-500 mb-6">
-                فیلتر دیگری را انتخاب کنید
-              </p>
+              <p className="text-slate-500 mb-6">فیلتر دیگری را انتخاب کنید</p>
               <button
                 onClick={() => setActiveTab('all')}
                 className="px-6 py-3 bg-brand-800 text-white rounded-xl font-bold hover:bg-brand-900 transition"

@@ -1,0 +1,8 @@
+User-Agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /api/
+
+Host: https://saramad.ir
+Sitemap: https://saramad.ir/sitemap.xml
