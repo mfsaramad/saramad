@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ArrowLeft, Sparkles, Phone, MessageCircle } from 'lucide-react';
+import { SITE_CONFIG } from '@/lib/constants';
 
 export default function CTA() {
   return (
@@ -9,12 +10,13 @@ export default function CTA() {
           {/* افکت‌های تزئینی */}
           <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500/20 rounded-full blur-3xl" />
           <div className="absolute bottom-0 left-0 w-96 h-96 bg-orange-500/20 rounded-full blur-3xl" />
-          
+
           {/* الگوی نقطه‌ای */}
           <div
             className="absolute inset-0 opacity-[0.07]"
             style={{
-              backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)',
+              backgroundImage:
+                'radial-gradient(circle, white 1px, transparent 1px)',
               backgroundSize: '24px 24px',
             }}
           />
@@ -49,7 +51,7 @@ export default function CTA() {
                 </Link>
 
                 <a
-                  href="tel:02112345678"
+                  href={`tel:${SITE_CONFIG.phone}`}
                   className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl glass text-white font-bold hover:bg-white/20 transition"
                 >
                   <Phone className="w-4 h-4" />
@@ -66,9 +68,7 @@ export default function CTA() {
                     <MessageCircle className="w-7 h-7 text-teal-300" />
                   </div>
                   <div>
-                    <div className="font-black text-lg">
-                      مشاوره رایگان
-                    </div>
+                    <div className="font-black text-lg">مشاوره رایگان</div>
                     <div className="text-xs text-blue-200">
                       پاسخ در کمتر از ۵ دقیقه
                     </div>
@@ -82,20 +82,24 @@ export default function CTA() {
 
                 <div className="space-y-3">
                   <a
-                    href="tel:02112345678"
+                    href={`tel:${SITE_CONFIG.phone}`}
                     className="flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 rounded-xl transition border border-white/10"
                   >
                     <div className="w-9 h-9 rounded-lg bg-orange-500/20 flex items-center justify-center">
                       <Phone className="w-4 h-4 text-orange-300" />
                     </div>
                     <div className="text-right">
-                      <div className="text-[10px] text-blue-200">تماس تلفنی</div>
-                      <div className="text-sm font-bold">۰۲۱-۱۲۳۴۵۶۷۸</div>
+                      <div className="text-[10px] text-blue-200">
+                        تماس تلفنی
+                      </div>
+                      <div className="text-sm font-bold">
+                        {SITE_CONFIG.phone}
+                      </div>
                     </div>
                   </a>
 
                   <a
-                    href="https://wa.me/989121234567"
+                    href="https://wa.me/989362847922"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 rounded-xl transition border border-white/10"
@@ -104,8 +108,10 @@ export default function CTA() {
                       <MessageCircle className="w-4 h-4 text-teal-300" />
                     </div>
                     <div className="text-right">
-                      <div className="text-[10px] text-blue-200">واتس‌اپ</div>
-                      <div className="text-sm font-bold">۰۹۱۲۱۲۳۴۵۶۷</div>
+                      <div className="text-[10px] text-blue-200">واتساپ</div>
+                      <div className="text-sm font-bold">
+                        {SITE_CONFIG.phone}
+                      </div>
                     </div>
                   </a>
                 </div>

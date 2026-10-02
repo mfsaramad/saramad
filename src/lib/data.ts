@@ -14,9 +14,9 @@ export const instructors: Instructor[] = [
     id: '1',
     name: 'دکتر علی محمدی',
     title: 'متخصص برنامه‌نویسی و هوش مصنوعی',
-    bio: 'دکترای هوش مصنوعی از دانشگاه تهران با بیش از ۱۲ سال سابقه تدریس و همکاری با شرکت‌های بزرگ فناوری.',
+    bio: 'دکترای هوش مصنوعی از دانشگاه تهران با بیش از ۱۲ سال سابقه تدریس.',
     avatar: '/images/instructors/ali-mohammadi.jpg',
-    specialties: ['Python', 'Machine Learning', 'Deep Learning', 'Data Science'],
+    specialties: ['Python', 'Machine Learning', 'Data Science'],
     coursesCount: 15,
     studentsCount: 3240,
     rating: 4.9,
@@ -25,7 +25,7 @@ export const instructors: Instructor[] = [
     id: '2',
     name: 'مهندس سارا احمدی',
     title: 'متخصص طراحی و گرافیک',
-    bio: 'کارشناس ارشد گرافیک با ۱۰ سال تجربه در طراحی برند و UI/UX. همکار با استارتاپ‌های موفق ایرانی.',
+    bio: 'کارشناس ارشد گرافیک با ۱۰ سال تجربه در طراحی برند و UI/UX.',
     avatar: '/images/instructors/sara-ahmadi.jpg',
     specialties: ['Photoshop', 'Illustrator', 'Figma', 'UI/UX'],
     coursesCount: 12,
@@ -36,9 +36,9 @@ export const instructors: Instructor[] = [
     id: '3',
     name: 'استاد رضا کریمی',
     title: 'مدرس حسابداری و مالی',
-    bio: 'حسابدار رسمی و مدرس با ۱۵ سال تجربه تدریس. مشاور مالی چند شرکت تولیدی و بازرگانی.',
+    bio: 'حسابدار رسمی و مدرس با ۱۵ سال تجربه تدریس.',
     avatar: '/images/instructors/reza-karimi.jpg',
-    specialties: ['حسابداری مالی', 'نرم‌افزار هلو', 'اکسل پیشرفته', 'مالیات'],
+    specialties: ['حسابداری مالی', 'نرم‌افزار هلو', 'اکسل پیشرفته'],
     coursesCount: 10,
     studentsCount: 2150,
     rating: 4.7,
@@ -47,9 +47,9 @@ export const instructors: Instructor[] = [
     id: '4',
     name: 'خانم مریم رضایی',
     title: 'مدرس زبان انگلیسی',
-    bio: 'مدرس بین‌المللی زبان انگلیسی با مدرک CELTA از کمبریج. متخصص آموزش مکالمه و آیلتس.',
+    bio: 'مدرس بین‌المللی زبان انگلیسی با مدرک CELTA از کمبریج.',
     avatar: '/images/instructors/maryam-rezaei.jpg',
-    specialties: ['مکالمه', 'IELTS', 'TOEFL', 'Business English'],
+    specialties: ['مکالمه', 'IELTS', 'Business English'],
     coursesCount: 18,
     studentsCount: 4120,
     rating: 4.9,
@@ -58,9 +58,9 @@ export const instructors: Instructor[] = [
     id: '5',
     name: 'استاد حسین نوری',
     title: 'متخصص موسیقی',
-    bio: 'آهنگساز و نوازنده حرفه‌ای با ۲۰ سال تجربه. مدرس گیتار، پیانو و تئوری موسیقی.',
+    bio: 'آهنگساز و نوازنده حرفه‌ای با ۲۰ سال تجربه.',
     avatar: '/images/instructors/hossein-nouri.jpg',
-    specialties: ['گیتار', 'پیانو', 'تئوری موسیقی', 'آهنگسازی'],
+    specialties: ['گیتار', 'پیانو', 'تئوری موسیقی'],
     coursesCount: 8,
     studentsCount: 1680,
     rating: 4.8,
@@ -69,9 +69,9 @@ export const instructors: Instructor[] = [
     id: '6',
     name: 'دکتر فاطمه صادقی',
     title: 'متخصص کسب‌وکار و دیجیتال مارکتینگ',
-    bio: 'دکترای مدیریت کسب‌وکار و مشاور برندینگ. متخصص بازاریابی دیجیتال و رشد استارتاپ.',
+    bio: 'دکترای مدیریت کسب‌وکار و مشاور برندینگ.',
     avatar: '/images/instructors/fatemeh-sadeghi.jpg',
-    specialties: ['دیجیتال مارکتینگ', 'برندینگ', 'کسب‌وکار آنلاین', 'سئو'],
+    specialties: ['دیجیتال مارکتینگ', 'برندینگ', 'سئو'],
     coursesCount: 11,
     studentsCount: 2450,
     rating: 4.8,
@@ -87,7 +87,7 @@ export const courses: Course[] = [
     slug: 'python-programming',
     title: 'برنامه‌نویسی پایتون از صفر تا پیشرفته',
     description:
-      'دوره جامع آموزش پایتون برای ورود به دنیای برنامه‌نویسی، علم داده و هوش مصنوعی. از مفاهیم پایه تا پروژه‌های واقعی.',
+      'دوره جامع آموزش پایتون برای ورود به دنیای برنامه‌نویسی، علم داده و هوش مصنوعی.',
     shortDescription: 'از صفر تا پیشرفته، آماده ورود به بازار کار',
     mode: 'online',
     level: 'beginner',
@@ -104,18 +104,18 @@ export const courses: Course[] = [
     studentsCount: 1240,
     capacity: 30,
     remainingCapacity: 5,
-    startDate: '1404/08/15',
+    startDate: '۱۴۰۴/۰۸/۱۵',
     schedule: 'شنبه و دوشنبه ۱۸:۰۰ - ۲۰:۰۰',
     prerequisites: ['آشنایی مقدماتی با کامپیوتر'],
     certificate: true,
-    tags: ['پایتون', 'برنامه‌نویسی', 'هوش مصنوعی', 'دیتا ساینس'],
+    tags: ['پایتون', 'برنامه‌نویسی', 'هوش مصنوعی'],
   },
   {
     id: '2',
     slug: 'web-design',
     title: 'طراحی سایت با HTML, CSS و JavaScript',
     description:
-      'آموزش کامل طراحی وب‌سایت از پایه تا پیشرفته. ساخت پروژه‌های واقعی و آماده‌سازی برای ورود به بازار کار.',
+      'آموزش کامل طراحی وب‌سایت از پایه تا پیشرفته با پروژه‌های واقعی.',
     shortDescription: 'طراحی وب مدرن با پروژه‌های واقعی',
     mode: 'hybrid',
     level: 'beginner',
@@ -132,7 +132,7 @@ export const courses: Course[] = [
     studentsCount: 980,
     capacity: 25,
     remainingCapacity: 3,
-    startDate: '1404/08/20',
+    startDate: '۱۴۰۴/۰۸/۲۰',
     schedule: 'یکشنبه و سه‌شنبه ۱۷:۰۰ - ۱۹:۰۰',
     prerequisites: ['آشنایی با کامپیوتر'],
     certificate: true,
@@ -143,7 +143,7 @@ export const courses: Course[] = [
     slug: 'graphic-design',
     title: 'طراحی گرافیک با Photoshop و Illustrator',
     description:
-      'یادگیری حرفه‌ای نرم‌افزارهای گرافیکی و اصول طراحی. مناسب برای علاقه‌مندان به طراحی برند و تبلیغات.',
+      'یادگیری حرفه‌ای نرم‌افزارهای گرافیکی و اصول طراحی برند و تبلیغات.',
     shortDescription: 'طراحی حرفه‌ای گرافیک و برند',
     mode: 'in-person',
     level: 'beginner',
@@ -159,18 +159,18 @@ export const courses: Course[] = [
     studentsCount: 1120,
     capacity: 20,
     remainingCapacity: 8,
-    startDate: '1404/08/12',
+    startDate: '۱۴۰۴/۰۸/۱۲',
     schedule: 'دوشنبه و چهارشنبه ۱۶:۰۰ - ۱۸:۰۰',
     prerequisites: ['آشنایی با کامپیوتر'],
     certificate: true,
-    tags: ['گرافیک', 'فتوشاپ', 'ایلاستریتور', 'طراحی'],
+    tags: ['گرافیک', 'فتوشاپ', 'طراحی'],
   },
   {
     id: '4',
     slug: 'accounting-basics',
     title: 'حسابداری مقدماتی تا پیشرفته',
     description:
-      'آموزش کامل اصول حسابداری، نرم‌افزار هلو و قوانین مالیاتی. مناسب برای ورود به بازار کار حسابداری.',
+      'آموزش کامل اصول حسابداری، نرم‌افزار هلو و قوانین مالیاتی.',
     shortDescription: 'حسابداری حرفه‌ای + نرم‌افزار هلو',
     mode: 'in-person',
     level: 'beginner',
@@ -187,18 +187,18 @@ export const courses: Course[] = [
     studentsCount: 890,
     capacity: 25,
     remainingCapacity: 10,
-    startDate: '1404/08/18',
+    startDate: '۱۴۰۴/۰۸/۱۸',
     schedule: 'شنبه تا چهارشنبه ۱۸:۳۰ - ۲۰:۳۰',
     prerequisites: ['آشنایی با ریاضیات پایه'],
     certificate: true,
-    tags: ['حسابداری', 'هلو', 'مالیات', 'اکسل'],
+    tags: ['حسابداری', 'هلو', 'مالیات'],
   },
   {
     id: '5',
     slug: 'english-conversation',
     title: 'مکالمه زبان انگلیسی فشرده',
     description:
-      'دوره فشرده مکالمه انگلیسی برای همه سطوح. با تمرکز بر مکالمه روزمره و موقعیت‌های واقعی.',
+      'دوره فشرده مکالمه انگلیسی برای همه سطوح با تمرکز بر مکالمه روزمره.',
     shortDescription: 'مکالمه روان در ۳ ماه',
     mode: 'online',
     level: 'intermediate',
@@ -214,7 +214,7 @@ export const courses: Course[] = [
     studentsCount: 1560,
     capacity: 15,
     remainingCapacity: 2,
-    startDate: '1404/08/10',
+    startDate: '۱۴۰۴/۰۸/۱۰',
     schedule: 'یکشنبه و سه‌شنبه ۱۹:۰۰ - ۲۱:۰۰',
     prerequisites: ['سطح مبتدی زبان انگلیسی'],
     certificate: true,
@@ -241,18 +241,18 @@ export const courses: Course[] = [
     studentsCount: 720,
     capacity: 30,
     remainingCapacity: 12,
-    startDate: '1404/08/25',
+    startDate: '۱۴۰۴/۰۸/۲۵',
     schedule: 'دوشنبه و چهارشنبه ۲۰:۰۰ - ۲۲:۰۰',
-    prerequisites: ['آشنایی با اینترنت و شبکه‌های اجتماعی'],
+    prerequisites: ['آشنایی با اینترنت'],
     certificate: true,
-    tags: ['دیجیتال مارکتینگ', 'سئو', 'کسب‌وکار', 'برندینگ'],
+    tags: ['دیجیتال مارکتینگ', 'سئو', 'کسب‌وکار'],
   },
   {
     id: '7',
     slug: 'guitar-basics',
     title: 'آموزش گیتار از مبتدی تا پیشرفته',
     description:
-      'یادگیری گیتار از صفر. شامل تئوری موسیقی، آکوردها، ریتم و نوازندگی حرفه‌ای.',
+      'یادگیری گیتار از صفر شامل تئوری موسیقی، آکوردها، ریتم و نوازندگی حرفه‌ای.',
     shortDescription: 'گیتار حرفه‌ای از صفر',
     mode: 'in-person',
     level: 'beginner',
@@ -268,7 +268,7 @@ export const courses: Course[] = [
     studentsCount: 540,
     capacity: 10,
     remainingCapacity: 4,
-    startDate: '1404/08/14',
+    startDate: '۱۴۰۴/۰۸/۱۴',
     schedule: 'پنجشنبه ۱۶:۰۰ - ۱۸:۰۰',
     prerequisites: ['علاقه به موسیقی'],
     certificate: true,
@@ -296,7 +296,7 @@ export const courses: Course[] = [
     studentsCount: 1340,
     capacity: 30,
     remainingCapacity: 6,
-    startDate: '1404/08/16',
+    startDate: '۱۴۰۴/۰۸/۱۶',
     schedule: 'شنبه و دوشنبه ۱۹:۰۰ - ۲۱:۰۰',
     prerequisites: ['آشنایی مقدماتی با اکسل'],
     certificate: true,
@@ -315,8 +315,8 @@ export const testimonials: Testimonial[] = [
     course: 'برنامه‌نویسی پایتون',
     rating: 5,
     comment:
-      'بهترین تصمیمی که گرفتم ثبت‌نام در آموزشگاه سرآمد بود. استاد علی محمدی فوق‌العاده تدریس می‌کنند و پشتیبانی کلاس آنلاین هم عالی بود. الان به عنوان برنامه‌نویس پایتون مشغول کارم.',
-    date: '1404/07/15',
+      'بهترین تصمیمی که گرفتم ثبت‌نام در آموزشگاه سرآمد بود. استاد فوق‌العاده تدریس می‌کنند و پشتیبانی کلاس آنلاین هم عالی بود.',
+    date: '۱۴۰۴/۰۷/۱۵',
   },
   {
     id: '2',
@@ -325,8 +325,8 @@ export const testimonials: Testimonial[] = [
     course: 'طراحی گرافیک',
     rating: 5,
     comment:
-      'کلاس حضوری باعث شد خیلی سریع‌تر یاد بگیرم. محیط آموزشگاه فوق‌العاده حرفه‌ای و دوستانه است. خانم احمدی واقعاً استاد خوبی هستن.',
-    date: '1404/06/28',
+      'کلاس حضوری باعث شد خیلی سریع‌تر یاد بگیرم. محیط آموزشگاه فوق‌العاده حرفه‌ای و دوستانه است.',
+    date: '۱۴۰۴/۰۶/۲۸',
   },
   {
     id: '3',
@@ -335,8 +335,8 @@ export const testimonials: Testimonial[] = [
     course: 'دیجیتال مارکتینگ',
     rating: 5,
     comment:
-      'دوره آنلاین دیجیتال مارکتینگ خیلی کاربردی بود. الان کسب‌وکار خودم رو راه انداختم و درآمدم چند برابر شده. ممنون از تیم سرآمد.',
-    date: '1404/07/02',
+      'دوره آنلاین دیجیتال مارکتینگ خیلی کاربردی بود. الان کسب‌وکار خودم رو راه انداختم و درآمدم چند برابر شده.',
+    date: '۱۴۰۴/۰۷/۰۲',
   },
   {
     id: '4',
@@ -345,8 +345,8 @@ export const testimonials: Testimonial[] = [
     course: 'مکالمه انگلیسی',
     rating: 5,
     comment:
-      'من از شهرستان در کلاس آنلاین شرکت کردم. کیفیت تصویر و صدا عالی بود و خانم رضایی خیلی صبورانه تدریس می‌کنند. الان راحت انگلیسی صحبت می‌کنم.',
-    date: '1404/05/20',
+      'من از شهرستان در کلاس آنلاین شرکت کردم. کیفیت تصویر و صدا عالی بود. الان راحت انگلیسی صحبت می‌کنم.',
+    date: '۱۴۰۴/۰۵/۲۰',
   },
   {
     id: '5',
@@ -355,8 +355,8 @@ export const testimonials: Testimonial[] = [
     course: 'حسابداری',
     rating: 4,
     comment:
-      'دوره حسابداری خیلی کامل و کاربردی بود. فقط کاش تعداد جلسات بیشتری داشت. در کل از کیفیت آموزش راضی هستم.',
-    date: '1404/06/10',
+      'دوره حسابداری خیلی کامل و کاربردی بود. فقط کاش تعداد جلسات بیشتری داشت. در کل راضی هستم.',
+    date: '۱۴۰۴/۰۶/۱۰',
   },
   {
     id: '6',
@@ -365,8 +365,8 @@ export const testimonials: Testimonial[] = [
     course: 'اکسل پیشرفته',
     rating: 5,
     comment:
-      'دوره ترکیبی اکسل برام عالی بود. بخش حضوری برای رفع اشکال و بخش آنلاین برای مرور. الان در شرکتم به عنوان کارشناس تحلیل داده مشغولم.',
-    date: '1404/07/18',
+      'دوره ترکیبی اکسل برام عالی بود. الان در شرکتم به عنوان کارشناس تحلیل داده مشغولم.',
+    date: '۱۴۰۴/۰۷/۱۸',
   },
 ];
 
@@ -383,7 +383,7 @@ export const blogPosts: BlogPost[] = [
     cover: '/images/blog/python.jpg',
     category: 'برنامه‌نویسی',
     author: 'دکتر علی محمدی',
-    date: '1404/07/20',
+    date: '۱۴۰۴/۰۷/۲۰',
     readTime: 8,
   },
   {
@@ -395,7 +395,7 @@ export const blogPosts: BlogPost[] = [
     cover: '/images/blog/ui-ux.jpg',
     category: 'طراحی',
     author: 'مهندس سارا احمدی',
-    date: '1404/07/15',
+    date: '۱۴۰۴/۰۷/۱۵',
     readTime: 6,
   },
   {
@@ -407,7 +407,7 @@ export const blogPosts: BlogPost[] = [
     cover: '/images/blog/digital-marketing.jpg',
     category: 'کسب‌وکار',
     author: 'دکتر فاطمه صادقی',
-    date: '1404/07/10',
+    date: '۱۴۰۴/۰۷/۱۰',
     readTime: 10,
   },
 ];
@@ -419,9 +419,9 @@ export const branches: Branch[] = [
   {
     id: '1',
     name: 'شعبه مرکزی سرآمد',
-    address: 'تهران، خیابان ولیعصر، بالاتر از میدان ونک، پلاک ۱۲۳، طبقه ۳',
-    phone: '۰۲۱-۱۲۳۴۵۶۷۸',
-    mapUrl: 'https://maps.google.com/?q=35.7575,51.4100',
+    address: 'تبریز، خیابان بهار، روبروی تعاون روستایی',
+    phone: '۰۹۳۶۲۸۴۷۹۲۲',
+    mapUrl: 'https://maps.google.com/?q=38.0800,46.2919',
     image: '/images/branches/main.jpg',
     isActive: true,
   },
@@ -492,34 +492,28 @@ export const skillCategories = [
 ];
 
 /* ============================================================
-   🎯 توابع کمکی برای Mock Data
+   🎯 توابع کمکی
    ============================================================ */
-
-// دریافت دوره‌های محبوب
 export function getPopularCourses(limit = 6): Course[] {
   return [...courses]
     .sort((a, b) => b.studentsCount - a.studentsCount)
     .slice(0, limit);
 }
 
-// دریافت دوره‌ها بر اساس نوع
 export function getCoursesByMode(
   mode: 'online' | 'in-person' | 'hybrid'
 ): Course[] {
   return courses.filter((c) => c.mode === mode);
 }
 
-// دریافت دوره بر اساس slug
 export function getCourseBySlug(slug: string): Course | undefined {
   return courses.find((c) => c.slug === slug);
 }
 
-// دریافت دوره‌های یک استاد
 export function getCoursesByInstructor(instructorId: string): Course[] {
   return courses.filter((c) => c.instructor.id === instructorId);
 }
 
-// دریافت ۳ مقاله آخر
 export function getLatestPosts(limit = 3): BlogPost[] {
   return blogPosts.slice(0, limit);
 }
