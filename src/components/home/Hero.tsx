@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { ArrowLeft, PlayCircle, Sparkles } from 'lucide-react';
 import { stats } from '@/lib/data';
 import { toPersianNumber } from '@/lib/format';
@@ -41,54 +42,88 @@ export default function Hero() {
           {/* متن هیرو */}
           <div className="text-white">
             {/* برچسب */}
-            <div
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
               className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-6 text-sm border border-white/20"
               style={{ background: 'rgba(255, 255, 255, 0.1)' }}
             >
               <span className="w-2 h-2 bg-teal-400 rounded-full animate-pulse" />
               <Sparkles className="w-4 h-4 text-orange-300" />
               <span>ثبت‌نام ترم جدید آغاز شد</span>
-            </div>
+            </motion.div>
 
             {/* تیتر */}
-            <h1 className="text-4xl lg:text-6xl font-black leading-tight mb-6">
+            <motion.h1
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.1 }}
+              className="text-4xl lg:text-6xl font-black leading-tight mb-6"
+            >
               مسیر <span className="text-teal-400">حرفه‌ای</span> شدن
               <br />
               از <span className="text-orange-400">سرآمد</span> شروع می‌شود
-            </h1>
+            </motion.h1>
 
             {/* توضیح */}
-            <p className="text-lg lg:text-xl text-blue-100 leading-relaxed mb-8 max-w-xl">
+            <motion.p
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+              className="text-lg lg:text-xl text-blue-100 leading-relaxed mb-8 max-w-xl"
+            >
               مجتمع آموزش فنی و حرفه‌ای سرآمد با برگزاری دوره‌های{' '}
               <strong className="text-white">حضوری، آنلاین و ترکیبی</strong>،
               شما را برای ورود به بازار کار آماده می‌کند.
-            </p>
+            </motion.p>
 
             {/* دکمه‌ها */}
-            <div className="flex flex-wrap gap-3 mb-10">
-              <Link
-                href="/courses"
-                className="group inline-flex items-center gap-2 px-7 py-3.5 rounded-xl text-white font-bold shadow-xl shadow-orange-500/30 hover:scale-105 transition-transform"
-                style={{
-                  background:
-                    'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
-                }}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.3 }}
+              className="flex flex-wrap gap-3 mb-10"
+            >
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                مشاهده دوره‌ها
-                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-              </Link>
-              <Link
-                href="/live"
-                className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl text-white font-bold hover:bg-white/20 transition border border-white/20"
-                style={{ background: 'rgba(255, 255, 255, 0.1)' }}
+                <Link
+                  href="/courses"
+                  className="group inline-flex items-center gap-2 px-7 py-3.5 rounded-xl text-white font-bold shadow-xl shadow-orange-500/30 transition-transform"
+                  style={{
+                    background:
+                      'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+                  }}
+                >
+                  مشاهده دوره‌ها
+                  <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                </Link>
+              </motion.div>
+
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                <PlayCircle className="w-5 h-5" />
-                کلاس‌های آنلاین
-              </Link>
-            </div>
+                <Link
+                  href="/live"
+                  className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl text-white font-bold hover:bg-white/20 transition border border-white/20"
+                  style={{ background: 'rgba(255, 255, 255, 0.1)' }}
+                >
+                  <PlayCircle className="w-5 h-5" />
+                  کلاس‌های آنلاین
+                </Link>
+              </motion.div>
+            </motion.div>
 
             {/* آمار */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.4 }}
+              className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl"
+            >
               {stats.map((stat, index) => (
                 <div key={index} className="text-center sm:text-right">
                   <div className="text-2xl lg:text-3xl font-black text-white">
@@ -98,68 +133,82 @@ export default function Hero() {
                   <div className="text-xs text-blue-200 mt-1">{stat.label}</div>
                 </div>
               ))}
-            </div>
+            </motion.div>
           </div>
 
           {/* کارت‌های شناور */}
           <div className="relative hidden lg:block h-[560px]">
-            <div
-              className="absolute top-0 right-4 w-72 bg-white rounded-3xl shadow-2xl p-6 animate-float"
-              style={{ animationDelay: '0s' }}
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              className="absolute top-0 right-4 w-72 bg-white dark:bg-slate-800 rounded-3xl shadow-2xl p-6 animate-float"
             >
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center text-2xl">
+                <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-950/50 flex items-center justify-center text-2xl">
                   🏢
                 </div>
                 <div>
-                  <div className="font-black text-slate-800">کلاس حضوری</div>
-                  <div className="text-xs text-slate-500">
+                  <div className="font-black text-slate-800 dark:text-slate-100">
+                    کلاس حضوری
+                  </div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
                     تجربه واقعی یادگیری
                   </div>
                 </div>
               </div>
-              <p className="text-sm text-slate-600 leading-relaxed">
+              <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                 تعامل چهره‌به‌چهره با استاد و هم‌کلاسی‌ها در محیط آموزشی مجهز
               </p>
-            </div>
+            </motion.div>
 
-            <div
-              className="absolute top-44 left-0 w-72 bg-white rounded-3xl shadow-2xl p-6 animate-float"
-              style={{ animationDelay: '1s' }}
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.5 }}
+              className="absolute top-44 left-0 w-72 bg-white dark:bg-slate-800 rounded-3xl shadow-2xl p-6 animate-float"
             >
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 rounded-xl bg-teal-100 flex items-center justify-center text-2xl">
+                <div className="w-12 h-12 rounded-xl bg-teal-100 dark:bg-teal-950/50 flex items-center justify-center text-2xl">
                   💻
                 </div>
                 <div>
-                  <div className="font-black text-slate-800">کلاس آنلاین</div>
-                  <div className="text-xs text-slate-500">از هر جای ایران</div>
+                  <div className="font-black text-slate-800 dark:text-slate-100">
+                    کلاس آنلاین
+                  </div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                    از هر جای ایران
+                  </div>
                 </div>
               </div>
-              <p className="text-sm text-slate-600 leading-relaxed">
+              <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                 کلاس‌های زنده با کیفیت HD، ضبط جلسات و پشتیبانی آنلاین
               </p>
-            </div>
+            </motion.div>
 
-            <div
-              className="absolute bottom-4 right-10 w-72 bg-white rounded-3xl shadow-2xl p-6 animate-float"
-              style={{ animationDelay: '2s' }}
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.7 }}
+              className="absolute bottom-4 right-10 w-72 bg-white dark:bg-slate-800 rounded-3xl shadow-2xl p-6 animate-float"
             >
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center text-2xl">
+                <div className="w-12 h-12 rounded-xl bg-orange-100 dark:bg-orange-950/50 flex items-center justify-center text-2xl">
                   🔄
                 </div>
                 <div>
-                  <div className="font-black text-slate-800">دوره ترکیبی</div>
-                  <div className="text-xs text-slate-500">
+                  <div className="font-black text-slate-800 dark:text-slate-100">
+                    دوره ترکیبی
+                  </div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
                     بهترین هر دو دنیا
                   </div>
                 </div>
               </div>
-              <p className="text-sm text-slate-600 leading-relaxed">
+              <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                 ترکیبی از مزایای حضوری و آنلاین برای یادگیری بهتر
               </p>
-            </div>
+            </motion.div>
 
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-teal-500/20 rounded-full blur-3xl -z-10" />
             <div className="absolute top-10 right-0 w-40 h-40 bg-orange-500/20 rounded-full blur-3xl -z-10" />

@@ -1,663 +1,562 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
 import {
+  Radio,
+  Calendar,
   Clock,
-  ClipboardList,
-  CheckCircle2,
-  XCircle,
+  Users,
+  PlayCircle,
   ArrowLeft,
-  ArrowRight,
-  Award,
-  Target,
-  AlertCircle,
-  RotateCcw,
-  Home,
+  Zap,
+  Bell,
+  Video,
+  CheckCircle2,
+  Sparkles,
 } from 'lucide-react';
 import { toPersianNumber } from '@/lib/format';
+import FadeIn from '@/components/animations/FadeIn';
+import { cn } from '@/lib/utils';
 
-interface ExamQuestion {
-  id: number;
-  question: string;
-  options: string[];
-  correctAnswer: number;
-}
+type FilterType = 'all' | 'live' | 'upcoming';
 
-interface ExamData {
-  id: string;
-  title: string;
-  description: string;
-  questions: ExamQuestion[];
-  duration: number;
-  level: string;
-  icon: string;
-}
-
-const examsData: Record<string, ExamData> = {
-  '1': {
+const liveClasses = [
+  {
     id: '1',
-    title: 'آزمون تعیین سطح برنامه‌نویسی',
-    description: 'سطح دانش خود را در برنامه‌نویسی بسنجید',
-    duration: 45,
-    level: 'مقدماتی تا پیشرفته',
-    icon: '💻',
-    questions: [
-      {
-        id: 1,
-        question: 'زبان پایتون در چه سالی معرفی شد؟',
-        options: ['۱۹۸۹', '۱۹۹۱', '۱۹۹۵', '۲۰۰۰'],
-        correctAnswer: 1,
-      },
-      {
-        id: 2,
-        question: 'کدام یک از موارد زیر یک نوع داده در پایتون نیست؟',
-        options: ['List', 'Tuple', 'Array', 'Dictionary'],
-        correctAnswer: 2,
-      },
-      {
-        id: 3,
-        question: 'خروجی دستور print(2 ** 3) چیست؟',
-        options: ['6', '8', '9', '23'],
-        correctAnswer: 1,
-      },
-      {
-        id: 4,
-        question: 'در جاوااسکریپت، کدام کلمه کلیدی برای تعریف متغیر با قابلیت تغییر استفاده می‌شود؟',
-        options: ['const', 'let', 'final', 'static'],
-        correctAnswer: 1,
-      },
-      {
-        id: 5,
-        question: 'HTML مخفف چیست؟',
-        options: [
-          'Hyper Text Markup Language',
-          'High Tech Modern Language',
-          'Hyper Transfer Markup Language',
-          'Home Tool Markup Language',
-        ],
-        correctAnswer: 0,
-      },
-    ],
-  },
-  '2': {
-    id: '2',
-    title: 'آزمون آزمایشی فنی و حرفه‌ای',
-    description: 'خودت را در شرایط واقعی آزمون قرار بده',
-    duration: 90,
+    title: 'کارگاه زنده: هوش مصنوعی و ChatGPT',
+    instructor: 'دکتر علی محمدی',
+    date: '۱۴۰۴/۰۸/۲۰',
+    time: '۱۸:۰۰ - ۲۰:۰۰',
+    capacity: 200,
+    registered: 156,
+    isLive: true,
+    isFree: true,
+    color: 'brand' as const,
+    day: 'شنبه',
     level: 'متوسط',
-    icon: '📋',
-    questions: [
-      {
-        id: 1,
-        question: 'کدام یک از موارد زیر یک سیستم‌عامل نیست؟',
-        options: ['Windows', 'Linux', 'macOS', 'Photoshop'],
-        correctAnswer: 3,
-      },
-      {
-        id: 2,
-        question: 'واحد اندازه‌گیری سرعت اینترنت چیست؟',
-        options: ['مگابایت', 'مگابیت', 'گیگابایت', 'کیلوبایت'],
-        correctAnswer: 1,
-      },
-      {
-        id: 3,
-        question: 'کدام یک از موارد زیر نرم‌افزار گرافیکی است؟',
-        options: ['Excel', 'Word', 'Photoshop', 'PowerPoint'],
-        correctAnswer: 2,
-      },
-    ],
   },
-};
+  {
+    id: '2',
+    title: 'مکالمه انگلیسی - جلسه پرسش و پاسخ',
+    instructor: 'خانم مریم رضایی',
+    date: '۱۴۰۴/۰۸/۲۲',
+    time: '۱۹:۰۰ - ۲۰:۳۰',
+    capacity: 150,
+    registered: 98,
+    isLive: false,
+    isFree: true,
+    color: 'teal' as const,
+    day: 'دوشنبه',
+    level: 'مقدماتی',
+  },
+  {
+    id: '3',
+    title: 'کارگاه عملی طراحی UI/UX',
+    instructor: 'مهندس سارا احمدی',
+    date: '۱۴۰۴/۰۸/۲۵',
+    time: '۱۶:۰۰ - ۱۸:۰۰',
+    capacity: 100,
+    registered: 87,
+    isLive: false,
+    isFree: false,
+    color: 'accent' as const,
+    day: 'چهارشنبه',
+    level: 'پیشرفته',
+  },
+  {
+    id: '4',
+    title: 'حل تمرین‌های برنامه‌نویسی پایتون',
+    instructor: 'دکتر علی محمدی',
+    date: '۱۴۰۴/۰۸/۲۸',
+    time: '۱۷:۰۰ - ۱۹:۰۰',
+    capacity: 120,
+    registered: 65,
+    isLive: false,
+    isFree: true,
+    color: 'brand' as const,
+    day: 'شنبه',
+    level: 'متوسط',
+  },
+  {
+    id: '5',
+    title: 'کارگاه دیجیتال مارکتینگ',
+    instructor: 'دکتر فاطمه صادقی',
+    date: '۱۴۰۴/۰۹/۰۱',
+    time: '۲۰:۰۰ - ۲۲:۰۰',
+    capacity: 180,
+    registered: 112,
+    isLive: false,
+    isFree: false,
+    color: 'teal' as const,
+    day: 'دوشنبه',
+    level: 'پیشرفته',
+  },
+  {
+    id: '6',
+    title: 'کلاس زنده: تحلیل داده با اکسل',
+    instructor: 'استاد رضا کریمی',
+    date: '۱۴۰۴/۰۹/۰۵',
+    time: '۱۹:۰۰ - ۲۱:۰۰',
+    capacity: 150,
+    registered: 73,
+    isLive: false,
+    isFree: false,
+    color: 'accent' as const,
+    day: 'پنجشنبه',
+    level: 'متوسط',
+  },
+];
 
-interface ExamPageProps {
-  params: Promise<{ id: string }>;
-}
+const weeklySchedule = [
+  { day: 'شنبه', count: 2, color: 'brand' },
+  { day: 'یکشنبه', count: 1, color: 'teal' },
+  { day: 'دوشنبه', count: 3, color: 'accent' },
+  { day: 'سه‌شنبه', count: 1, color: 'brand' },
+  { day: 'چهارشنبه', count: 2, color: 'teal' },
+  { day: 'پنجشنبه', count: 2, color: 'accent' },
+  { day: 'جمعه', count: 0, color: 'brand' },
+];
 
-export default function ExamPage({ params }: ExamPageProps) {
-  const { id } = use(params);
-  const exam = examsData[id];
+export default function LivePage() {
+  const [activeTab, setActiveTab] = useState<FilterType>('all');
 
-  const [status, setStatus] = useState<'intro' | 'taking' | 'result'>('intro');
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers, setAnswers] = useState<number[]>([]);
-  const [timeLeft, setTimeLeft] = useState(0);
+  const filteredClasses = useMemo(() => {
+    if (activeTab === 'all') return liveClasses;
+    if (activeTab === 'live') return liveClasses.filter((c) => c.isLive);
+    return liveClasses.filter((c) => !c.isLive);
+  }, [activeTab]);
 
-  useEffect(() => {
-    if (exam) {
-      setAnswers(new Array(exam.questions.length).fill(-1));
-      setTimeLeft(exam.duration * 60);
-    }
-  }, [exam]);
+  const tabs = [
+    { id: 'all' as FilterType, label: 'همه کلاس‌ها', icon: '🎥' },
+    { id: 'live' as FilterType, label: 'در حال پخش', icon: '🔴' },
+    { id: 'upcoming' as FilterType, label: 'پیش‌رو', icon: '📅' },
+  ];
 
-  // تایمر
-  useEffect(() => {
-    if (status !== 'taking') return;
-    if (timeLeft <= 0) {
-      setStatus('result');
-      return;
-    }
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [status, timeLeft]);
-
-  if (!exam) {
-    notFound();
-  }
-
-  const handleStart = () => {
-    setStatus('taking');
-    setCurrentQuestion(0);
-    setAnswers(new Array(exam.questions.length).fill(-1));
-    setTimeLeft(exam.duration * 60);
+  const colorMap = {
+    brand: {
+      bg: 'bg-blue-100 dark:bg-blue-950/50',
+      icon: 'text-blue-800 dark:text-blue-300',
+      gradient: 'from-[#1e3a8a] to-[#1e40af]',
+      shadow: 'shadow-blue-900/30',
+      ring: 'ring-blue-500/30',
+    },
+    teal: {
+      bg: 'bg-teal-100 dark:bg-teal-950/50',
+      icon: 'text-teal-600 dark:text-teal-300',
+      gradient: 'from-teal-500 to-teal-700',
+      shadow: 'shadow-teal-500/30',
+      ring: 'ring-teal-500/30',
+    },
+    accent: {
+      bg: 'bg-orange-100 dark:bg-orange-950/50',
+      icon: 'text-orange-600 dark:text-orange-300',
+      gradient: 'from-orange-500 to-orange-700',
+      shadow: 'shadow-orange-500/30',
+      ring: 'ring-orange-500/30',
+    },
   };
 
-  const handleSelectAnswer = (optionIndex: number) => {
-    const newAnswers = [...answers];
-    newAnswers[currentQuestion] = optionIndex;
-    setAnswers(newAnswers);
-  };
+  const liveCount = liveClasses.filter((c) => c.isLive).length;
+  const upcomingCount = liveClasses.filter((c) => !c.isLive).length;
 
-  const handleNext = () => {
-    if (currentQuestion < exam.questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
-    }
-  };
+  return (
+    <div className="bg-slate-50 dark:bg-slate-950 min-h-screen">
+      {/* ===== هدر صفحه ===== */}
+      <section className="relative pt-32 pb-16 bg-slate-900 overflow-hidden">
+        {/* الگوی نقطه‌ای */}
+        <div
+          className="absolute inset-0 opacity-[0.07]"
+          style={{
+            backgroundImage:
+              'radial-gradient(circle, white 1px, transparent 1px)',
+            backgroundSize: '30px 30px',
+          }}
+        />
 
-  const handlePrev = () => {
-    if (currentQuestion > 0) {
-      setCurrentQuestion(currentQuestion - 1);
-    }
-  };
+        {/* افکت‌های تزئینی */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500/20 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-orange-500/20 rounded-full blur-3xl" />
 
-  const handleFinish = () => {
-    setStatus('result');
-  };
+        {/* خطوط نورانی */}
+        <div className="absolute top-1/2 left-1/4 w-96 h-px bg-gradient-to-r from-transparent via-teal-500/50 to-transparent" />
+        <div className="absolute top-1/3 right-1/4 w-96 h-px bg-gradient-to-r from-transparent via-orange-500/50 to-transparent" />
 
-  const handleRetry = () => {
-    handleStart();
-  };
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${toPersianNumber(mins.toString().padStart(2, '0'))}:${toPersianNumber(
-      secs.toString().padStart(2, '0')
-    )}`;
-  };
-
-  // محاسبه نتیجه
-  const correctCount = answers.filter(
-    (ans, idx) => ans === exam.questions[idx].correctAnswer
-  ).length;
-  const wrongCount = answers.filter(
-    (ans, idx) => ans !== -1 && ans !== exam.questions[idx].correctAnswer
-  ).length;
-  const unansweredCount = answers.filter((ans) => ans === -1).length;
-  const score = Math.round((correctCount / exam.questions.length) * 100);
-
-  /* ===== صفحه معرفی ===== */
-  if (status === 'intro') {
-    return (
-      <div className="bg-slate-50 min-h-screen">
-        <section className="relative pt-32 pb-16 bg-gradient-to-br from-[#1e3a8a] via-[#1e40af] to-[#0d9488] overflow-hidden">
-          <div
-            className="absolute inset-0 opacity-[0.07]"
-            style={{
-              backgroundImage:
-                'radial-gradient(circle, white 1px, transparent 1px)',
-              backgroundSize: '30px 30px',
-            }}
-          />
-
-          <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-2 text-sm text-blue-100 mb-8 justify-center">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Breadcrumb */}
+          <FadeIn>
+            <div className="flex items-center gap-2 text-sm text-slate-300 mb-8 justify-center">
               <Link href="/" className="hover:text-white transition">
                 خانه
               </Link>
               <span>/</span>
-              <Link href="/exams" className="hover:text-white transition">
-                آزمون‌ها
-              </Link>
-              <span>/</span>
-              <span className="text-white font-bold line-clamp-1">
-                {exam.title}
-              </span>
+              <span className="text-white font-bold">کلاس‌های آنلاین</span>
             </div>
+          </FadeIn>
 
+          <FadeIn delay={0.1}>
             <div className="text-center">
-              <div className="text-6xl mb-6">{exam.icon}</div>
-              <h1 className="text-3xl lg:text-5xl font-black text-white mb-4">
-                {exam.title}
-              </h1>
-              <p className="text-lg text-blue-100 max-w-2xl mx-auto leading-relaxed mb-8">
-                {exam.description}
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <section className="py-12 -mt-10">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 p-8 lg:p-10">
-              <h2 className="text-2xl font-black text-slate-800 mb-6">
-                اطلاعات آزمون
-              </h2>
-
-              <div className="grid sm:grid-cols-3 gap-4 mb-8">
-                <div className="bg-slate-50 rounded-2xl p-5 text-center">
-                  <ClipboardList className="w-8 h-8 text-brand-800 mx-auto mb-3" />
-                  <div className="text-2xl font-black text-slate-800 mb-1">
-                    {toPersianNumber(exam.questions.length)}
-                  </div>
-                  <div className="text-xs text-slate-500">سوال</div>
-                </div>
-                <div className="bg-slate-50 rounded-2xl p-5 text-center">
-                  <Clock className="w-8 h-8 text-brand-800 mx-auto mb-3" />
-                  <div className="text-2xl font-black text-slate-800 mb-1">
-                    {toPersianNumber(exam.duration)}
-                  </div>
-                  <div className="text-xs text-slate-500">دقیقه</div>
-                </div>
-                <div className="bg-slate-50 rounded-2xl p-5 text-center">
-                  <Target className="w-8 h-8 text-brand-800 mx-auto mb-3" />
-                  <div className="text-lg font-black text-slate-800 mb-1">
-                    {exam.level}
-                  </div>
-                  <div className="text-xs text-slate-500">سطح</div>
-                </div>
-              </div>
-
-              <div className="bg-orange-50 border-r-4 border-orange-500 rounded-2xl p-5 mb-8">
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="w-6 h-6 text-orange-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <h3 className="font-black text-orange-900 mb-2">
-                      نکات مهم قبل از شروع
-                    </h3>
-                    <ul className="text-sm text-orange-800 space-y-1.5">
-                      <li>• پس از شروع، تایمر به‌صورت خودکار آغاز می‌شود</li>
-                      <li>• می‌توانید بین سوالات جابجا شوید</li>
-                      <li>• پس از اتمام زمان، آزمون به‌طور خودکار پایان می‌یابد</li>
-                      <li>• در پایان، پاسخ‌های صحیح نمایش داده می‌شوند</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                onClick={handleStart}
-                className="w-full flex items-center justify-center gap-2 py-4 bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white rounded-xl font-black text-lg hover:shadow-xl transition-all hover:scale-[1.02]"
-              >
-                <CheckCircle2 className="w-6 h-6" />
-                شروع آزمون
-              </button>
-
-              <div className="text-center mt-6">
-                <Link
-                  href="/exams"
-                  className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-brand-800 transition"
-                >
-                  <ArrowRight className="w-4 h-4" />
-                  بازگشت به لیست آزمون‌ها
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
-    );
-  }
-
-  /* ===== صفحه آزمون ===== */
-  if (status === 'taking') {
-    const question = exam.questions[currentQuestion];
-    const selectedAnswer = answers[currentQuestion];
-    const progress = ((currentQuestion + 1) / exam.questions.length) * 100;
-
-    return (
-      <div className="bg-slate-50 min-h-screen pt-24 pb-12">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* هدر آزمون */}
-          <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-5 mb-6">
-            <div className="flex items-center justify-between gap-4 flex-wrap">
-              <div>
-                <div className="text-xs text-slate-500 mb-1">آزمون</div>
-                <h1 className="font-black text-slate-800">{exam.title}</h1>
-              </div>
-
-              <div
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-black ${
-                  timeLeft < 60
-                    ? 'bg-red-100 text-red-700 animate-pulse'
-                    : 'bg-teal-100 text-teal-700'
-                }`}
-              >
-                <Clock className="w-5 h-5" />
-                {formatTime(timeLeft)}
-              </div>
-            </div>
-          </div>
-
-          {/* نوار پیشرفت */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 mb-6">
-            <div className="flex items-center justify-between text-sm mb-2">
-              <span className="font-bold text-slate-700">
-                سوال {toPersianNumber(currentQuestion + 1)} از{' '}
-                {toPersianNumber(exam.questions.length)}
-              </span>
-              <span className="text-slate-500">
-                {toPersianNumber(Math.round(progress))}٪
-              </span>
-            </div>
-            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] rounded-full transition-all duration-300"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-          </div>
-
-          {/* سوال */}
-          <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8 mb-6">
-            <div className="flex items-start gap-4 mb-8">
-              <div className="w-12 h-12 rounded-xl bg-brand-100 flex items-center justify-center flex-shrink-0">
-                <span className="text-xl font-black text-brand-800">
-                  {toPersianNumber(currentQuestion + 1)}
+              {/* برچسب زنده */}
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur border border-white/20 rounded-full text-white text-sm font-bold mb-5">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
                 </span>
-              </div>
-              <h2 className="text-xl font-black text-slate-800 leading-relaxed pt-2">
-                {question.question}
-              </h2>
-            </div>
-
-            <div className="space-y-3">
-              {question.options.map((option, index) => {
-                const isSelected = selectedAnswer === index;
-                return (
-                  <button
-                    key={index}
-                    onClick={() => handleSelectAnswer(index)}
-                    className={`w-full flex items-center gap-4 p-5 rounded-2xl border-2 transition-all text-right ${
-                      isSelected
-                        ? 'bg-gradient-to-l from-brand-50 to-teal-50 border-brand-800 shadow-md'
-                        : 'bg-slate-50 border-slate-100 hover:border-brand-200 hover:bg-white'
-                    }`}
-                  >
-                    <div
-                      className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 font-black transition ${
-                        isSelected
-                          ? 'bg-brand-800 text-white'
-                          : 'bg-white text-slate-600 border border-slate-200'
-                      }`}
-                    >
-                      {['الف', 'ب', 'ج', 'د'][index]}
-                    </div>
-                    <span
-                      className={`flex-1 text-right ${
-                        isSelected
-                          ? 'text-brand-800 font-bold'
-                          : 'text-slate-700'
-                      }`}
-                    >
-                      {option}
-                    </span>
-                    {isSelected && (
-                      <CheckCircle2 className="w-6 h-6 text-brand-800 flex-shrink-0" />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* دکمه‌های ناوبری */}
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <button
-              onClick={handlePrev}
-              disabled={currentQuestion === 0}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition ${
-                currentQuestion === 0
-                  ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                  : 'bg-white border-2 border-slate-200 text-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              <ArrowRight className="w-4 h-4" />
-              سوال قبلی
-            </button>
-
-            {/* نشانگر سوالات */}
-            <div className="flex items-center gap-1.5 order-3 sm:order-2 w-full sm:w-auto justify-center">
-              {exam.questions.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setCurrentQuestion(idx)}
-                  className={`w-8 h-8 rounded-lg text-xs font-black transition ${
-                    idx === currentQuestion
-                      ? 'bg-brand-800 text-white scale-110'
-                      : answers[idx] !== -1
-                      ? 'bg-teal-100 text-teal-700'
-                      : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                  }`}
-                >
-                  {toPersianNumber(idx + 1)}
-                </button>
-              ))}
-            </div>
-
-            {currentQuestion === exam.questions.length - 1 ? (
-              <button
-                onClick={handleFinish}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold bg-orange-500 text-white hover:bg-orange-600 transition"
-              >
-                <Award className="w-4 h-4" />
-                پایان آزمون
-              </button>
-            ) : (
-              <button
-                onClick={handleNext}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white hover:shadow-lg transition order-2 sm:order-3"
-              >
-                سوال بعدی
-                <ArrowLeft className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-
-          {/* دکمه پایان سریع */}
-          {currentQuestion !== exam.questions.length - 1 && (
-            <div className="text-center mt-6">
-              <button
-                onClick={handleFinish}
-                className="text-sm text-slate-500 hover:text-orange-600 transition"
-              >
-                یا پایان آزمون و مشاهده نتیجه؟
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  /* ===== صفحه نتیجه ===== */
-  const isPassed = score >= 60;
-
-  return (
-    <div className="bg-slate-50 min-h-screen pt-24 pb-12">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden">
-          {/* هدر نتیجه */}
-          <div
-            className={`relative p-10 text-center text-white overflow-hidden ${
-              isPassed
-                ? 'bg-gradient-to-br from-teal-500 to-teal-700'
-                : 'bg-gradient-to-br from-orange-500 to-orange-700'
-            }`}
-          >
-            <div
-              className="absolute inset-0 opacity-[0.07]"
-              style={{
-                backgroundImage:
-                  'radial-gradient(circle, white 1px, transparent 1px)',
-                backgroundSize: '20px 20px',
-              }}
-            />
-
-            <div className="relative">
-              <div className="w-24 h-24 mx-auto rounded-3xl bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center mb-5">
-                {isPassed ? (
-                  <Award className="w-12 h-12" />
-                ) : (
-                  <AlertCircle className="w-12 h-12" />
-                )}
+                <span>کلاس‌های آنلاین زنده</span>
               </div>
 
-              <h1 className="text-3xl font-black mb-2">
-                {isPassed ? '🎉 تبریک! قبول شدی' : 'متأسفانه قبول نشدی'}
+              {/* تیتر */}
+              <h1 className="text-4xl lg:text-5xl font-black text-white mb-4">
+                کلاس‌های زنده و کارگاه‌های آنلاین
               </h1>
-              <p className="text-white/90">
-                {isPassed
-                  ? 'شما در این آزمون موفق شدید'
-                  : 'نگران نباش، می‌تونی دوباره تلاش کنی'}
+
+              <p className="text-lg text-blue-100 max-w-2xl mx-auto leading-relaxed mb-8">
+                در کلاس‌های زنده سرآمد شرکت کن، سؤال بپرس و از هر جای ایران یاد
+                بگیر
               </p>
+            </div>
+          </FadeIn>
 
-              {/* امتیاز */}
-              <div className="mt-8 inline-block px-8 py-5 bg-white/20 backdrop-blur rounded-3xl border border-white/30">
-                <div className="text-6xl font-black">
-                  {toPersianNumber(score)}
+          {/* آمار */}
+          <FadeIn delay={0.2}>
+            <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto">
+              <div className="group bg-white/10 backdrop-blur border border-white/20 rounded-2xl p-4 lg:p-5 hover:bg-white/15 hover:-translate-y-1 transition-all duration-300">
+                <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-teal-500/20 border border-teal-500/30 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                  <Video className="w-5 h-5 lg:w-6 lg:h-6 text-teal-400" />
                 </div>
-                <div className="text-sm mt-1 opacity-90">امتیاز از ۱۰۰</div>
+                <div className="text-2xl lg:text-3xl font-black text-white">
+                  {toPersianNumber(liveClasses.length)}
+                </div>
+                <div className="text-xs text-blue-200 mt-1">کلاس فعال</div>
+              </div>
+
+              <div className="group bg-white/10 backdrop-blur border border-white/20 rounded-2xl p-4 lg:p-5 hover:bg-white/15 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
+                {liveCount > 0 && (
+                  <div className="absolute inset-0 bg-red-500/10 animate-pulse" />
+                )}
+                <div className="relative">
+                  <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-red-500/20 border border-red-500/30 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                    <Radio className="w-5 h-5 lg:w-6 lg:h-6 text-red-400" />
+                  </div>
+                  <div className="text-2xl lg:text-3xl font-black text-white">
+                    {toPersianNumber(liveCount)}
+                  </div>
+                  <div className="text-xs text-blue-200 mt-1">در حال پخش</div>
+                </div>
+              </div>
+
+              <div className="group bg-white/10 backdrop-blur border border-white/20 rounded-2xl p-4 lg:p-5 hover:bg-white/15 hover:-translate-y-1 transition-all duration-300">
+                <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                  <Bell className="w-5 h-5 lg:w-6 lg:h-6 text-orange-400" />
+                </div>
+                <div className="text-2xl lg:text-3xl font-black text-white">
+                  {toPersianNumber(upcomingCount)}
+                </div>
+                <div className="text-xs text-blue-200 mt-1">پیش‌رو</div>
               </div>
             </div>
-          </div>
+          </FadeIn>
+        </div>
+      </section>
 
-          {/* آمار نتیجه */}
-          <div className="p-8 lg:p-10">
-            <div className="grid grid-cols-3 gap-4 mb-8">
-              <div className="bg-teal-50 rounded-2xl p-5 text-center border border-teal-100">
-                <CheckCircle2 className="w-8 h-8 text-teal-600 mx-auto mb-2" />
-                <div className="text-2xl font-black text-teal-700">
-                  {toPersianNumber(correctCount)}
-                </div>
-                <div className="text-xs text-teal-600">پاسخ صحیح</div>
-              </div>
-              <div className="bg-red-50 rounded-2xl p-5 text-center border border-red-100">
-                <XCircle className="w-8 h-8 text-red-600 mx-auto mb-2" />
-                <div className="text-2xl font-black text-red-700">
-                  {toPersianNumber(wrongCount)}
-                </div>
-                <div className="text-xs text-red-600">پاسخ غلط</div>
-              </div>
-              <div className="bg-slate-50 rounded-2xl p-5 text-center border border-slate-200">
-                <AlertCircle className="w-8 h-8 text-slate-500 mx-auto mb-2" />
-                <div className="text-2xl font-black text-slate-600">
-                  {toPersianNumber(unansweredCount)}
-                </div>
-                <div className="text-xs text-slate-500">بدون پاسخ</div>
+      {/* ===== محتوای اصلی ===== */}
+      <section className="py-12 lg:py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* تب‌ها */}
+          <FadeIn>
+            <div className="flex justify-center mb-10">
+              <div className="inline-flex items-center gap-1 p-1.5 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-x-auto no-scrollbar max-w-full">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={cn(
+                      'flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all',
+                      activeTab === tab.id
+                        ? 'bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white shadow-md'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-brand-800 dark:hover:text-brand-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                    )}
+                  >
+                    <span>{tab.icon}</span>
+                    {tab.label}
+                  </button>
+                ))}
               </div>
             </div>
+          </FadeIn>
 
-            {/* بازبینی پاسخ‌ها */}
-            <div className="mb-8">
-              <h2 className="text-xl font-black text-slate-800 mb-5">
-                بازبینی پاسخ‌ها
-              </h2>
+          {/* شبکه کلاس‌ها */}
+          {filteredClasses.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredClasses.map((cls, index) => {
+                const colors = colorMap[cls.color];
+                const percentage = (cls.registered / cls.capacity) * 100;
+                const isAlmostFull = percentage > 80;
 
-              <div className="space-y-3">
-                {exam.questions.map((q, idx) => {
-                  const userAnswer = answers[idx];
-                  const isCorrect = userAnswer === q.correctAnswer;
-                  const isUnanswered = userAnswer === -1;
+                return (
+                  <FadeIn
+                    key={cls.id}
+                    delay={index * 0.1}
+                    direction="up"
+                    className="h-full"
+                  >
+                    <div className="group relative h-full bg-white dark:bg-slate-900 rounded-3xl border-2 border-slate-100 dark:border-slate-800 hover:border-brand-200 dark:hover:border-brand-800 hover:shadow-2xl hover:-translate-y-3 transition-all duration-500 overflow-hidden">
+                      {/* بخش بالا */}
+                      <div className="relative p-6">
+                        {/* افکت زنده */}
+                        {cls.isLive && (
+                          <div className="absolute -top-10 -right-10 w-40 h-40 bg-red-500/20 rounded-full blur-3xl animate-pulse" />
+                        )}
 
-                  return (
-                    <div
-                      key={q.id}
-                      className={`rounded-2xl border-2 p-4 ${
-                        isCorrect
-                          ? 'bg-teal-50 border-teal-200'
-                          : isUnanswered
-                          ? 'bg-slate-50 border-slate-200'
-                          : 'bg-red-50 border-red-200'
-                      }`}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div
-                          className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-white font-black ${
-                            isCorrect
-                              ? 'bg-teal-500'
-                              : isUnanswered
-                              ? 'bg-slate-400'
-                              : 'bg-red-500'
-                          }`}
-                        >
-                          {toPersianNumber(idx + 1)}
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-bold text-slate-800 mb-2 text-sm">
-                            {q.question}
-                          </p>
-                          <div className="space-y-1 text-xs">
-                            {isUnanswered ? (
-                              <p className="text-slate-500">
-                                ⚠️ بدون پاسخ
-                              </p>
-                            ) : (
-                              <>
-                                <p
-                                  className={
-                                    isCorrect
-                                      ? 'text-teal-700'
-                                      : 'text-red-700'
-                                  }
-                                >
-                                  پاسخ شما:{' '}
-                                  <strong>
-                                    {q.options[userAnswer]}
-                                  </strong>
-                                </p>
-                                {!isCorrect && (
-                                  <p className="text-teal-700">
-                                    پاسخ صحیح:{' '}
-                                    <strong>
-                                      {q.options[q.correctAnswer]}
-                                    </strong>
-                                  </p>
-                                )}
-                              </>
+                        {/* برچسب‌ها */}
+                        <div className="flex items-start justify-between mb-5 relative">
+                          <div
+                            className={cn(
+                              'w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:rotate-6',
+                              colors.bg
                             )}
+                          >
+                            <Radio className={cn('w-7 h-7', colors.icon)} />
+                          </div>
+
+                          {cls.isLive ? (
+                            <div className="flex items-center gap-2 px-3 py-1 bg-red-500 rounded-full text-xs font-black text-white shadow-lg shadow-red-500/30">
+                              <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
+                              </span>
+                              در حال پخش
+                            </div>
+                          ) : cls.isFree ? (
+                            <div className="px-3 py-1 bg-teal-500 rounded-full text-xs font-black text-white shadow-lg shadow-teal-500/30">
+                              🎁 رایگان
+                            </div>
+                          ) : null}
+                        </div>
+
+                        {/* روز و تاریخ */}
+                        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-4 relative">
+                          <Calendar className="w-3.5 h-3.5" />
+                          <span className="font-bold">{cls.day}</span>
+                          <span>|</span>
+                          <span>{cls.date}</span>
+                        </div>
+
+                        {/* عنوان */}
+                        <h3 className="text-lg font-black text-slate-800 dark:text-slate-100 leading-snug mb-4 min-h-[3.5rem] relative group-hover:text-brand-800 dark:group-hover:text-brand-300 transition">
+                          {cls.title}
+                        </h3>
+
+                        {/* استاد */}
+                        <div className="flex items-center gap-2 mb-5 pb-5 border-b border-slate-100 dark:border-slate-800 relative">
+                          <div
+                            className={cn(
+                              'w-8 h-8 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-xs font-black',
+                              colors.gradient
+                            )}
+                          >
+                            {cls.instructor.charAt(0)}
+                          </div>
+                          <span className="text-sm text-slate-600 dark:text-slate-400">
+                            {cls.instructor}
+                          </span>
+                        </div>
+
+                        {/* اطلاعات */}
+                        <div className="space-y-2.5 mb-5 text-sm text-slate-600 dark:text-slate-400 relative">
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-brand-700 dark:text-brand-300" />
+                            <span>{cls.time}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Users className="w-4 h-4 text-brand-700 dark:text-brand-300" />
+                            <span>
+                              {toPersianNumber(cls.registered)} از{' '}
+                              {toPersianNumber(cls.capacity)} نفر
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* نوار ظرفیت */}
+                        <div className="mb-2 relative">
+                          <div className="flex items-center justify-between text-xs mb-2">
+                            <span className="text-slate-500 dark:text-slate-400">
+                              ظرفیت
+                            </span>
+                            <span
+                              className={cn(
+                                'font-bold',
+                                isAlmostFull
+                                  ? 'text-orange-600 dark:text-orange-400'
+                                  : 'text-teal-600 dark:text-teal-400'
+                              )}
+                            >
+                              {toPersianNumber(Math.round(percentage))}٪
+                            </span>
+                          </div>
+                          <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                            <div
+                              className={cn(
+                                'h-full rounded-full transition-all',
+                                isAlmostFull
+                                  ? 'bg-gradient-to-l from-orange-500 to-orange-600'
+                                  : 'bg-gradient-to-l from-teal-400 to-teal-500'
+                              )}
+                              style={{ width: `${percentage}%` }}
+                            />
                           </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
 
-            {/* دکمه‌ها */}
-            <div className="flex flex-wrap gap-3">
-              <button
-                onClick={handleRetry}
-                className="flex-1 flex items-center justify-center gap-2 py-4 bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white rounded-xl font-black hover:shadow-xl transition-all hover:scale-[1.02] min-w-[200px]"
-              >
-                <RotateCcw className="w-5 h-5" />
-                آزمون مجدد
-              </button>
-              <Link
-                href="/exams"
-                className="flex-1 flex items-center justify-center gap-2 py-4 border-2 border-brand-800 text-brand-800 rounded-xl font-black hover:bg-brand-800 hover:text-white transition-all min-w-[200px]"
-              >
-                <Home className="w-5 h-5" />
-                بازگشت به آزمون‌ها
-              </Link>
+                      {/* دکمه */}
+                      <div className="px-6 pb-6 relative">
+                        <Link
+                          href={`/live/${cls.id}`}
+                          className={cn(
+                            'flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-bold transition-all hover:gap-3',
+                            cls.isLive
+                              ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/30'
+                              : cls.isFree
+                              ? 'bg-teal-500 hover:bg-teal-600 text-white shadow-lg shadow-teal-500/30'
+                              : `bg-gradient-to-l ${colors.gradient} text-white shadow-lg ${colors.shadow}`
+                          )}
+                        >
+                          {cls.isLive ? (
+                            <>
+                              <Radio className="w-4 h-4" />
+                              ورود به کلاس زنده
+                            </>
+                          ) : (
+                            <>
+                              <PlayCircle className="w-4 h-4" />
+                              ثبت‌نام در کلاس
+                            </>
+                          )}
+                        </Link>
+                      </div>
+                    </div>
+                  </FadeIn>
+                );
+              })}
             </div>
+          ) : (
+            <FadeIn>
+              <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800">
+                <div className="text-6xl mb-4">📭</div>
+                <h3 className="text-xl font-black text-slate-800 dark:text-slate-100 mb-2">
+                  کلاسی یافت نشد
+                </h3>
+                <p className="text-slate-500 dark:text-slate-400">
+                  فیلتر دیگری را انتخاب کنید
+                </p>
+              </div>
+            </FadeIn>
+          )}
+        </div>
+      </section>
+
+      {/* ===== برنامه هفتگی ===== */}
+      <section className="py-12 lg:py-16 bg-white dark:bg-slate-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <FadeIn>
+            <div className="text-center mb-12">
+              <div className="inline-block px-4 py-1.5 bg-brand-100 dark:bg-brand-950/50 text-brand-800 dark:text-brand-300 rounded-full text-sm font-bold mb-4">
+                📅 برنامه هفتگی
+              </div>
+              <h2 className="text-3xl lg:text-4xl font-black text-slate-800 dark:text-slate-100 mb-3">
+                برنامه کلاس‌های هفته
+              </h2>
+              <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+                برنامه کلاس‌های زنده در طول هفته
+              </p>
+            </div>
+          </FadeIn>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+            {weeklySchedule.map((item, index) => {
+              const colorClasses = {
+                brand:
+                  'bg-blue-50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-900/50 text-blue-800 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-950/50',
+                teal: 'bg-teal-50 dark:bg-teal-950/30 border-teal-100 dark:border-teal-900/50 text-teal-700 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-950/50',
+                accent:
+                  'bg-orange-50 dark:bg-orange-950/30 border-orange-100 dark:border-orange-900/50 text-orange-700 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-950/50',
+              }[item.color as 'brand' | 'teal' | 'accent'];
+
+              return (
+                <FadeIn key={index} delay={index * 0.05} direction="up">
+                  <div
+                    className={cn(
+                      'rounded-2xl border-2 p-4 text-center transition-all duration-300 hover:scale-105 cursor-pointer',
+                      colorClasses
+                    )}
+                  >
+                    <div className="font-black text-sm mb-2">{item.day}</div>
+                    <div className="text-3xl font-black mb-1">
+                      {toPersianNumber(item.count)}
+                    </div>
+                    <div className="text-[10px] opacity-70">کلاس</div>
+                  </div>
+                </FadeIn>
+              );
+            })}
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* ===== CTA ===== */}
+      <section className="py-12 lg:py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <FadeIn>
+            <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-10 lg:p-14 text-center text-white relative overflow-hidden">
+              {/* افکت‌های تزئینی */}
+              <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500/20 rounded-full blur-3xl" />
+              <div className="absolute bottom-0 left-0 w-96 h-96 bg-orange-500/20 rounded-full blur-3xl" />
+
+              {/* الگوی نقطه‌ای */}
+              <div
+                className="absolute inset-0 opacity-[0.05]"
+                style={{
+                  backgroundImage:
+                    'radial-gradient(circle, white 1px, transparent 1px)',
+                  backgroundSize: '20px 20px',
+                }}
+              />
+
+              <div className="relative">
+                <div className="w-20 h-20 mx-auto rounded-2xl bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center mb-6">
+                  <Sparkles className="w-10 h-10 text-teal-400" />
+                </div>
+
+                <h2 className="text-3xl lg:text-4xl font-black mb-4">
+                  نمی‌خوای کلاس‌ها رو از دست بدی؟
+                </h2>
+                <p className="text-blue-100 max-w-2xl mx-auto mb-8 leading-relaxed">
+                  با عضویت در کانال تلگرام، از تمام کلاس‌های زنده با خبر شو
+                </p>
+
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  <a
+                    href="https://t.me/saramad"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-7 py-3.5 bg-orange-500 hover:bg-orange-600 rounded-xl font-black shadow-xl shadow-orange-500/30 hover:scale-105 transition-all"
+                  >
+                    <Zap className="w-5 h-5" />
+                    عضویت در کانال تلگرام
+                  </a>
+                  <Link
+                    href="/courses"
+                    className="inline-flex items-center gap-2 px-7 py-3.5 bg-white/10 backdrop-blur border border-white/20 hover:bg-white/20 rounded-xl font-bold transition"
+                  >
+                    <CheckCircle2 className="w-5 h-5" />
+                    مشاهده دوره‌ها
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </FadeIn>
+        </div>
+      </section>
     </div>
   );
 }
