@@ -22,13 +22,7 @@
   --color-teal-600: #0d9488;
 }
 
-body {
-  font-family: 'Vazirmatn', Arial, sans-serif !important;
-  background-color: #f8fafc !important;
-  color: #1e293b !important;
-  direction: rtl;
-}
-
+/* ============ استایل پایه ============ */
 * {
   box-sizing: border-box;
 }
@@ -37,6 +31,13 @@ html {
   scroll-behavior: smooth;
 }
 
+body {
+  font-family: 'Vazirmatn', Arial, sans-serif !important;
+  direction: rtl;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ============ اسکرول‌بار ============ */
 ::-webkit-scrollbar {
   width: 10px;
 }
@@ -51,6 +52,7 @@ html {
   background: #1e40af;
 }
 
+/* ============ کلاس‌های کمکی ============ */
 .font-vazir {
   font-family: 'Vazirmatn', Arial, sans-serif !important;
 }
@@ -69,6 +71,7 @@ html {
   border: 1px solid rgba(255, 255, 255, 0.25);
 }
 
+/* ============ انیمیشن‌ها ============ */
 @keyframes fadeUp {
   0% { opacity: 0; transform: translateY(30px); }
   100% { opacity: 1; transform: translateY(0); }
@@ -93,4 +96,326 @@ html {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* ============================================================
+   🌙 DARK MODE
+   ============================================================ */
+
+/* ---------- پس‌زمینه اصلی ---------- */
+.dark body {
+  background-color: #020617 !important;
+  color: #f1f5f9 !important;
+}
+
+/* ---------- کارت‌ها و بخش‌های پس‌زمینه ---------- */
+.dark .bg-white {
+  background-color: #0f172a !important;
+}
+
+.dark .bg-slate-50 {
+  background-color: #1e293b !important;
+}
+
+.dark .bg-slate-100 {
+  background-color: #1e293b !important;
+}
+
+.dark .bg-slate-200 {
+  background-color: #334155 !important;
+}
+
+.dark .bg-slate-900 {
+  background-color: #020617 !important;
+}
+
+/* ---------- مرزها ---------- */
+.dark .border-slate-100 {
+  border-color: #1e293b !important;
+}
+
+.dark .border-slate-200 {
+  border-color: #334155 !important;
+}
+
+.dark .border-slate-700 {
+  border-color: #475569 !important;
+}
+
+/* ---------- متن‌های عمومی (slate) ---------- */
+.dark .text-slate-900 {
+  color: #f8fafc !important;
+}
+
+.dark .text-slate-800 {
+  color: #f1f5f9 !important;
+}
+
+.dark .text-slate-700 {
+  color: #e2e8f0 !important;
+}
+
+.dark .text-slate-600 {
+  color: #cbd5e1 !important;
+}
+
+.dark .text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+.dark .text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+.dark .text-slate-300 {
+  color: #cbd5e1 !important;
+}
+
+/* ---------- متن‌های آبی برند ---------- */
+.dark .text-brand-800,
+.dark .text-brand-700,
+.dark .text-brand-600 {
+  color: #60a5fa !important;
+}
+
+.dark .text-brand-900 {
+  color: #93c5fd !important;
+}
+
+.dark .text-blue-800,
+.dark .text-blue-700,
+.dark .text-blue-600 {
+  color: #60a5fa !important;
+}
+
+.dark .text-blue-900 {
+  color: #93c5fd !important;
+}
+
+.dark .text-blue-500 {
+  color: #60a5fa !important;
+}
+
+/* ---------- متن‌های فیروزه‌ای (teal) ---------- */
+.dark .text-teal-600,
+.dark .text-teal-700 {
+  color: #2dd4bf !important;
+}
+
+.dark .text-teal-800,
+.dark .text-teal-900 {
+  color: #5eead4 !important;
+}
+
+/* ---------- متن‌های نارنجی ---------- */
+.dark .text-orange-600,
+.dark .text-orange-700 {
+  color: #fb923c !important;
+}
+
+.dark .text-orange-800,
+.dark .text-orange-900 {
+  color: #fdba74 !important;
+}
+
+/* ---------- متن‌های بنفش ---------- */
+.dark .text-purple-600,
+.dark .text-purple-700 {
+  color: #c084fc !important;
+}
+
+/* ---------- متن‌های قرمز ---------- */
+.dark .text-red-600,
+.dark .text-red-700 {
+  color: #f87171 !important;
+}
+
+/* ---------- متن‌های سبز ---------- */
+.dark .text-green-600,
+.dark .text-green-700 {
+  color: #4ade80 !important;
+}
+
+/* ---------- پس‌زمینه‌های رنگی ---------- */
+.dark .bg-brand-50,
+.dark .bg-blue-50 {
+  background-color: rgba(30, 58, 138, 0.3) !important;
+}
+
+.dark .bg-brand-100,
+.dark .bg-blue-100 {
+  background-color: rgba(30, 58, 138, 0.4) !important;
+}
+
+.dark .bg-teal-50 {
+  background-color: rgba(13, 148, 136, 0.25) !important;
+}
+
+.dark .bg-teal-100 {
+  background-color: rgba(13, 148, 136, 0.4) !important;
+}
+
+.dark .bg-orange-50 {
+  background-color: rgba(234, 88, 12, 0.25) !important;
+}
+
+.dark .bg-orange-100 {
+  background-color: rgba(234, 88, 12, 0.4) !important;
+}
+
+.dark .bg-purple-50 {
+  background-color: rgba(147, 51, 234, 0.25) !important;
+}
+
+.dark .bg-purple-100 {
+  background-color: rgba(147, 51, 234, 0.4) !important;
+}
+
+.dark .bg-red-50 {
+  background-color: rgba(220, 38, 38, 0.2) !important;
+}
+
+.dark .bg-red-100 {
+  background-color: rgba(220, 38, 38, 0.3) !important;
+}
+
+.dark .bg-green-50 {
+  background-color: rgba(22, 163, 74, 0.2) !important;
+}
+
+.dark .bg-green-100 {
+  background-color: rgba(22, 163, 74, 0.3) !important;
+}
+
+/* ---------- پس‌زمینه‌های شفاف ---------- */
+.dark .bg-slate-50\/50 {
+  background-color: rgba(30, 41, 59, 0.5) !important;
+}
+
+.dark .bg-slate-50\/30 {
+  background-color: rgba(30, 41, 59, 0.3) !important;
+}
+
+.dark .bg-white\/95 {
+  background-color: rgba(15, 23, 42, 0.95) !important;
+}
+
+.dark .bg-white\/80 {
+  background-color: rgba(15, 23, 42, 0.8) !important;
+}
+
+/* ---------- هدر و فوتر ---------- */
+.dark header {
+  background-color: rgba(15, 23, 42, 0.95) !important;
+  border-color: #1e293b !important;
+}
+
+.dark footer {
+  background-color: #020617 !important;
+}
+
+/* ---------- اسکرول‌بار در دارک مود ---------- */
+.dark ::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* ---------- فیلدهای ورودی ---------- */
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f1f5f9 !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #64748b !important;
+}
+
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+  background-color: #0f172a !important;
+  border-color: #60a5fa !important;
+}
+
+/* ---------- سایه‌ها ---------- */
+.dark .shadow-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.5) !important;
+}
+
+.dark .shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.6) !important;
+}
+
+.dark .shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.6) !important;
+}
+
+.dark .shadow-xl {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7) !important;
+}
+
+.dark .shadow-2xl {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* ---------- گرادیانت‌ها در دارک مود ---------- */
+.dark .gradient-brand {
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #0d9488 100%);
+}
+
+.dark .from-brand-50 {
+  --tw-gradient-from: rgba(30, 58, 138, 0.3) !important;
+}
+
+.dark .to-teal-50 {
+  --tw-gradient-to: rgba(13, 148, 136, 0.2) !important;
+}
+
+/* ---------- لینک‌ها و دکمه‌ها ---------- */
+.dark a:hover {
+  color: #60a5fa;
+}
+
+/* ---------- جداول و لیست‌ها ---------- */
+.dark .divide-slate-100 > * + * {
+  border-color: #1e293b !important;
+}
+
+.dark .divide-slate-200 > * + * {
+  border-color: #334155 !important;
+}
+
+/* ---------- کارت‌های hover ---------- */
+.dark .hover\:bg-slate-50:hover {
+  background-color: #1e293b !important;
+}
+
+.dark .hover\:bg-slate-100:hover {
+  background-color: #334155 !important;
+}
+
+.dark .hover\:bg-white:hover {
+  background-color: #1e293b !important;
+}
+
+/* ---------- بخش‌های خاص ---------- */
+.dark .bg-gradient-to-br.from-slate-50 {
+  background-image: none !important;
+  background-color: #0f172a !important;
+}
+
+.dark .bg-gradient-to-br.from-brand-50 {
+  background-image: none !important;
+  background-color: #0f172a !important;
 }

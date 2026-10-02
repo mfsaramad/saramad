@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { Send, Mail, Phone, MapPin } from 'lucide-react';
+import { Mail, Phone, MapPin } from 'lucide-react';
 import { SITE_CONFIG } from '@/lib/constants';
 
 const footerLinks = {
@@ -49,12 +49,13 @@ export default function Footer() {
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center gap-3 mb-5">
               <div className="w-14 h-14 flex items-center justify-center">
+                {/* لوگوی سفید - همیشه سفید چون فوتر تیره‌ست */}
                 <Image
-                  src="/logo.png"
+                  src="/logo-white.png"
                   alt="لوگوی آموزشگاه سرآمد"
                   width={56}
                   height={56}
-                  className="w-full h-full object-contain brightness-0 invert"
+                  className="w-full h-full object-contain"
                 />
               </div>
               <div>

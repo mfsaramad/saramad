@@ -1,0 +1,55 @@
+'use client';
+
+import { useTheme } from 'next-themes';
+import { useEffect, useState } from 'react';
+import { Sun, Moon } from 'lucide-react';
+
+export default function ThemeToggle() {
+  const [mounted, setMounted] = useState(false);
+  const { theme, setTheme, resolvedTheme } = useTheme();
+
+  // جلوگیری از hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <button
+        className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center"
+        aria-label="تغییر تم"
+      >
+        <div className="w-5 h-5 rounded-full bg-slate-200" />
+      </button>
+    );
+  }
+
+  const isDark = resolvedTheme === 'dark';
+
+  return (
+    <button
+      onClick={() => setTheme(isDark ? 'light' : 'dark')}
+      className="group relative w-10 h-10 rounded-xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 flex items-center justify-center transition-all"
+      aria-label={isDark ? 'حالت روشن' : 'حالت تاریک'}
+      title={isDark ? 'حالت روشن' : 'حالت تاریک'}
+    >
+      {/* آیکون خورشید (در حالت روشن) */}
+      <Sun
+        className={`absolute w-5 h-5 text-orange-500 transition-all duration-300 ${
+          isDark
+            ? 'rotate-90 scale-0 opacity-0'
+            : 'rotate-0 scale-100 opacity-100'
+        }`}
+      />
+
+      {/* آیکون ماه (در حالت تیره) */}
+      <Moon
+        className={`absolute w-5 h-5 text-blue-300 transition-all duration-300 ${
+          isDark
+            ? 'rotate-0 scale-100 opacity-100'
+            : '-rotate-90 scale-0 opacity-0'
+        }`}
+      />
+    </button>
+  );
+}

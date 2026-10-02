@@ -2,7 +2,14 @@
 
 import Link from 'next/link';
 import { useEffect } from 'react';
-import { Home, RefreshCw, AlertTriangle, ArrowLeft } from 'lucide-react';
+import {
+  Home,
+  RefreshCw,
+  AlertTriangle,
+  ArrowLeft,
+  LayoutDashboard,
+  Phone,
+} from 'lucide-react';
 
 interface ErrorPageProps {
   error: Error & { digest?: string };
@@ -27,8 +34,8 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
       />
 
       {/* دایره‌های تزئینی */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500/20 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-orange-500/20 rounded-full blur-3xl" />
+      <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/20 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-teal-500/20 rounded-full blur-3xl" />
 
       <div className="relative max-w-2xl w-full text-center text-white">
         {/* عدد ۵۰۰ */}
@@ -37,7 +44,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
             className="text-[120px] lg:text-[200px] font-black leading-none select-none"
             style={{
               background:
-                'linear-gradient(135deg, #ffffff 0%, #2dd4bf 50%, #fb923c 100%)',
+                'linear-gradient(135deg, #ffffff 0%, #fb923c 50%, #2dd4bf 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text',
@@ -54,7 +61,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
 
         {/* عنوان */}
         <h2 className="text-2xl lg:text-4xl font-black mb-4">
-          خطای غیرمنتظره‌ای رخ داد!
+          خطای غیرمنتظره‌ای رخ داد! ⚠️
         </h2>
 
         {/* توضیح */}
@@ -89,37 +96,55 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3 text-sm">
             <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 backdrop-blur rounded-lg border border-white/10 transition"
+            >
+              <LayoutDashboard className="w-4 h-4" />
+              پنل کاربری
+            </Link>
+            <Link
               href="/courses"
               className="px-4 py-2 bg-white/5 hover:bg-white/10 backdrop-blur rounded-lg border border-white/10 transition"
             >
               🎓 دوره‌ها
             </Link>
             <Link
-              href="/instructors"
-              className="px-4 py-2 bg-white/5 hover:bg-white/10 backdrop-blur rounded-lg border border-white/10 transition"
-            >
-              👨‍🏫 اساتید
-            </Link>
-            <Link
               href="/contact"
-              className="px-4 py-2 bg-white/5 hover:bg-white/10 backdrop-blur rounded-lg border border-white/10 transition"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 backdrop-blur rounded-lg border border-white/10 transition"
             >
-              📞 تماس با ما
+              <Phone className="w-4 h-4" />
+              تماس با ما
             </Link>
+          </div>
+        </div>
+
+        {/* اطلاعات تماس */}
+        <div className="mt-12 pt-8 border-t border-white/20">
+          <p className="text-sm text-blue-200 mb-3">
+            اگه مشکل ادامه داشت، با ما تماس بگیر:
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-sm text-blue-100">
+            <a
+              href="tel:09362847922"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 rounded-xl font-bold transition"
+            >
+              <Phone className="w-4 h-4" />
+              ۰۹۳۶۲۸۴۷۹۲۲
+            </a>
           </div>
         </div>
 
         {/* کد خطا (فقط در حالت توسعه) */}
         {process.env.NODE_ENV === 'development' && error.message && (
-          <div className="mt-8 p-4 bg-black/20 backdrop-blur rounded-xl border border-white/20 text-right">
-            <p className="text-xs text-blue-200 mb-2 font-bold">
+          <div className="mt-8 p-4 bg-black/30 backdrop-blur rounded-2xl border border-white/20 text-right">
+            <p className="text-xs text-orange-300 mb-2 font-bold">
               🔧 جزئیات خطا (فقط در حالت توسعه):
             </p>
-            <p className="text-xs text-orange-300 font-mono break-all">
+            <p className="text-xs text-blue-200 font-mono break-all leading-relaxed">
               {error.message}
             </p>
             {error.digest && (
-              <p className="text-xs text-blue-300 font-mono mt-2">
+              <p className="text-xs text-teal-300 font-mono mt-2">
                 Digest: {error.digest}
               </p>
             )}
