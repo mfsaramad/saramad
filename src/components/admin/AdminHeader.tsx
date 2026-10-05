@@ -1,8 +1,7 @@
 'use client';
 
 import { Bell, Search, Menu } from 'lucide-react';
-import { ThemeToggle } from '@/components/theme/ThemeToggle';
-
+import ThemeToggle from '@/components/theme/ThemeToggle';
 export function AdminHeader() {
   return (
     <header className="sticky top-0 z-30 bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800">
