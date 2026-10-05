@@ -4,8 +4,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Heart, Star, Clock, Trash2, ShoppingCart } from 'lucide-react';
 import { WishlistItem } from '@/types';
-import { useWishlist } from '@/context/WishlistContext';
-import { useCart } from '@/context/CartContext';
+import { useWishlist } from '@/contexts/WishlistContext';
+import { useCart } from '@/contexts/CartContext';
 
 function formatPrice(price: number): string {
   return price.toLocaleString('fa-IR');
@@ -30,8 +30,6 @@ export function WishlistCard({ item }: { item: WishlistItem }) {
       image: item.image,
       type: item.type,
     });
-    // اختیاری: حذف از علاقه‌مندی‌ها بعد از افزودن به سبد
-    // remove(item.id);
   };
 
   return (

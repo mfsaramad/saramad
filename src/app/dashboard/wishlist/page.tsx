@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Heart } from 'lucide-react';
-import { useWishlist } from '@/context/WishlistContext';
+import { useWishlist } from '@/contexts/WishlistContext';
 import { WishlistCard } from '@/components/dashboard/WishlistCard';
 
 export default function WishlistPage() {
