@@ -5,7 +5,17 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import ThemeProvider from '@/components/theme/ThemeProvider';
 import { CartProvider } from '@/contexts/CartContext';
+import { WishlistProvider } from '@/context/WishlistContext';
 
+// ...
+
+<ThemeProvider>
+  <CartProvider>
+    <WishlistProvider>
+      {children}
+    </WishlistProvider>
+  </CartProvider>
+</ThemeProvider>
 const siteUrl = 'https://mfsaramad.ir';
 
 export const metadata: Metadata = {
