@@ -1,11 +1,11 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  output: 'export',
+  output: 'export',           // ← Static Export برای Cloudflare Pages
   images: {
-    unoptimized: true,
+    unoptimized: true,        // ← برای next/image
   },
-  trailingSlash: true,
+  trailingSlash: true,        // ← برای URL ها
 };
 
 export default nextConfig;
