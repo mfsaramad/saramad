@@ -492,32 +492,6 @@ export const skillCategories = [
 ];
 
 /* ============================================================
-   🎯 توابع کمکی
-   ============================================================ */
-export function getPopularCourses(limit = 6): Course[] {
-  return [...courses]
-    .sort((a, b) => b.studentsCount - a.studentsCount)
-    .slice(0, limit);
-}
-
-export function getCoursesByMode(
-  mode: 'online' | 'in-person' | 'hybrid'
-): Course[] {
-  return courses.filter((c) => c.mode === mode);
-}
-
-export function getCourseBySlug(slug: string): Course | undefined {
-  return courses.find((c) => c.slug === slug);
-}
-
-export function getCoursesByInstructor(instructorId: string): Course[] {
-  return courses.filter((c) => c.instructor.id === instructorId);
-}
-
-export function getLatestPosts(limit = 3): BlogPost[] {
-  return blogPosts.slice(0, limit);
-}
-/* ============================================================
    📝 آزمون‌های آنلاین
    ============================================================ */
 export interface ExamQuestion {
@@ -883,7 +857,326 @@ export const exams: Exam[] = [
   },
 ];
 
-/* توابع کمکی آزمون‌ها */
+/* ============================================================
+   🛍️ محصولات فروشگاه
+   ============================================================ */
+export interface ProductReview {
+  id: string;
+  name: string;
+  rating: number;
+  comment: string;
+  date: string;
+}
+
+export interface Product {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  longDescription: string;
+  type: 'questions' | 'book' | 'video' | 'package';
+  typeLabel: string;
+  price: number;
+  originalPrice?: number;
+  icon: string;
+  color: 'brand' | 'teal' | 'accent';
+  rating: number;
+  reviewsCount: number;
+  salesCount: number;
+  badge?: string;
+  features: string[];
+  format?: string;
+  fileSize?: string;
+  pages?: number;
+  duration?: number;
+  tags: string[];
+  reviews: ProductReview[];
+}
+
+export const products: Product[] = [
+  {
+    id: '1',
+    slug: 'tech-vocational-exam-questions',
+    title: 'پکیج سوالات آزمون فنی و حرفه‌ای',
+    description: 'مجموعه کامل سوالات آزمون‌های فنی و حرفه‌ای با پاسخ تشریحی',
+    longDescription:
+      'این پکیج شامل ۱۰ سال سوالات آزمون‌های فنی و حرفه‌ای در تمام رشته‌ها است. تمام سوالات دارای پاسخ تشریحی کامل هستند و به‌صورت PDF قابل دانلود می‌باشند.',
+    type: 'questions',
+    typeLabel: 'سوالات',
+    price: 350000,
+    originalPrice: 500000,
+    icon: '📝',
+    color: 'brand',
+    rating: 4.9,
+    reviewsCount: 234,
+    salesCount: 1240,
+    badge: 'پرفروش',
+    features: [
+      '۱۰ سال سوالات آزمون',
+      'پاسخ تشریحی کامل',
+      'فرمت PDF قابل چاپ',
+      'دسترسی مادام‌العمر',
+      'بروزرسانی رایگان',
+    ],
+    format: 'PDF',
+    fileSize: '۴۵ مگابایت',
+    pages: 850,
+    tags: ['سوالات', 'فنی و حرفه‌ای', 'آزمون'],
+    reviews: [
+      {
+        id: '1',
+        name: 'علی محمدی',
+        rating: 5,
+        comment: 'عالی بود! سوالات دقیقاً مشابه آزمون اصلی بود و من قبول شدم.',
+        date: '۱۴۰۴/۰۶/۱۵',
+      },
+      {
+        id: '2',
+        name: 'زهرا احمدی',
+        rating: 5,
+        comment: 'پاسخ‌های تشریحی خیلی کمکم کرد. ارزش خرید داشت.',
+        date: '۱۴۰۴/۰۵/۲۰',
+      },
+    ],
+  },
+  {
+    id: '2',
+    slug: 'python-programming-book',
+    title: 'جزوه جامع برنامه‌نویسی پایتون',
+    description: 'جزوه PDF کامل آموزش پایتون همراه با تمرین و پروژه‌های عملی',
+    longDescription:
+      'جزوه‌ای ۴۰۰ صفحه‌ای که از صفر تا پیشرفته پایتون رو آموزش می‌ده. شامل ۵۰ پروژه عملی، ۲۰۰ تمرین، و کدهای آماده برای دانلود.',
+    type: 'book',
+    typeLabel: 'جزوه',
+    price: 280000,
+    icon: '📚',
+    color: 'teal',
+    rating: 4.8,
+    reviewsCount: 156,
+    salesCount: 890,
+    features: [
+      '۴۰۰ صفحه محتوای کامل',
+      '۵۰ پروژه عملی',
+      '۲۰۰ تمرین با پاسخ',
+      'کدهای آماده دانلود',
+      'پشتیبانی رایگان',
+    ],
+    format: 'PDF',
+    fileSize: '۲۵ مگابایت',
+    pages: 400,
+    tags: ['پایتون', 'برنامه‌نویسی', 'جزوه'],
+    reviews: [
+      {
+        id: '1',
+        name: 'رضا کریمی',
+        rating: 5,
+        comment: 'بهترین جزوه پایتونی که خوندم. خیلی روان و کامل.',
+        date: '۱۴۰۴/۰۷/۰۱',
+      },
+    ],
+  },
+  {
+    id: '3',
+    slug: 'graphic-design-videos',
+    title: 'ویدیوهای ضبط‌شده دوره طراحی گرافیک',
+    description: 'دسترسی مادام‌العمر به ویدیوهای ضبط‌شده دوره گرافیک',
+    longDescription:
+      'این پکیج شامل ۴۵ ساعت ویدیوی آموزشی HD از دوره طراحی گرافیک سرآمد است. تمام جلسات ضبط شده و با کیفیت بالا در اختیار شما قرار می‌گیرد.',
+    type: 'video',
+    typeLabel: 'ویدیو',
+    price: 1200000,
+    originalPrice: 1800000,
+    icon: '🎬',
+    color: 'accent',
+    rating: 5.0,
+    reviewsCount: 89,
+    salesCount: 560,
+    badge: 'تخفیف ویژه',
+    features: [
+      '۴۵ ساعت ویدیو HD',
+      'دسترسی مادام‌العمر',
+      'فایل‌های پروژه',
+      'پشتیبانی آنلاین',
+      'گواهی پایان دوره',
+    ],
+    format: 'MP4',
+    fileSize: '۱۲ گیگابایت',
+    duration: 45,
+    tags: ['گرافیک', 'ویدیو', 'طراحی'],
+    reviews: [
+      {
+        id: '1',
+        name: 'سارا حسینی',
+        rating: 5,
+        comment: 'کیفیت ویدیوها عالیه. انگار توی کلاس حضوری نشسته بودم.',
+        date: '۱۴۰۴/۰۶/۱۰',
+      },
+      {
+        id: '2',
+        name: 'مریم رضایی',
+        rating: 5,
+        comment: 'بهترین سرمایه‌گذاری زندگیم بود.',
+        date: '۱۴۰۴/۰۵/۰۵',
+      },
+    ],
+  },
+  {
+    id: '4',
+    slug: 'programming-exam-questions',
+    title: 'پکیج سوالات آزمون برنامه‌نویسی',
+    description: 'مجموعه سوالات تخصصی برنامه‌نویسی با پاسخ‌های تشریحی',
+    longDescription:
+      'پکیجی شامل ۱۵۰۰ سوال تخصصی برنامه‌نویسی در زبان‌های پایتون، جاوا، و ++C به همراه پاسخ‌های تشریحی.',
+    type: 'questions',
+    typeLabel: 'سوالات',
+    price: 320000,
+    originalPrice: 450000,
+    icon: '📝',
+    color: 'brand',
+    rating: 4.7,
+    reviewsCount: 112,
+    salesCount: 780,
+    features: [
+      '۱۵۰۰ سوال تخصصی',
+      'پاسخ تشریحی',
+      'شامل ۳ زبان',
+      'آزمون‌های شبیه‌سازی شده',
+      'دسترسی مادام‌العمر',
+    ],
+    format: 'PDF',
+    fileSize: '۱۸ مگابایت',
+    pages: 520,
+    tags: ['برنامه‌نویسی', 'سوالات', 'آزمون'],
+    reviews: [
+      {
+        id: '1',
+        name: 'حسین نوری',
+        rating: 5,
+        comment: 'سوالات خیلی خوب و متنوع بودن. ممنون!',
+        date: '۱۴۰۴/۰۷/۰۸',
+      },
+    ],
+  },
+  {
+    id: '5',
+    slug: 'accounting-basics-book',
+    title: 'جزوه اصول حسابداری',
+    description: 'جزوه کامل اصول حسابداری ویژه دانشجویان و علاقه‌مندان',
+    longDescription:
+      'جزوه‌ای ۳۵۰ صفحه‌ای که اصول حسابداری رو از پایه تا پیشرفته آموزش می‌ده. شامل مثال‌های واقعی، تمرین‌های حل‌شده، و نمونه سوالات امتحانی.',
+    type: 'book',
+    typeLabel: 'جزوه',
+    price: 220000,
+    icon: '📚',
+    color: 'teal',
+    rating: 4.8,
+    reviewsCount: 178,
+    salesCount: 1120,
+    features: [
+      '۳۵۰ صفحه',
+      'مثال‌های واقعی',
+      'تمرین‌های حل‌شده',
+      'نمونه سوالات امتحانی',
+      'فرمت PDF',
+    ],
+    format: 'PDF',
+    fileSize: '۲۰ مگابایت',
+    pages: 350,
+    tags: ['حسابداری', 'جزوه', 'مالی'],
+    reviews: [
+      {
+        id: '1',
+        name: 'فاطمه صادقی',
+        rating: 5,
+        comment: 'خیلی کامل و روان. برای امتحان‌ها عالیه.',
+        date: '۱۴۰۴/۰۶/۲۵',
+      },
+    ],
+  },
+  {
+    id: '6',
+    slug: 'advanced-excel-videos',
+    title: 'ویدیوهای آموزش اکسل پیشرفته',
+    description: 'آموزش اکسل از مقدماتی تا پیشرفته با پروژه‌های واقعی',
+    longDescription:
+      'این دوره شامل ۲۰ ساعت ویدیوی آموزشی اکسل از سطح مقدماتی تا پیشرفته است. با پروژه‌های واقعی و کاربردی برای بازار کار.',
+    type: 'video',
+    typeLabel: 'ویدیو',
+    price: 950000,
+    originalPrice: 1400000,
+    icon: '🎬',
+    color: 'accent',
+    rating: 4.9,
+    reviewsCount: 134,
+    salesCount: 670,
+    badge: 'پرفروش',
+    features: [
+      '۲۰ ساعت ویدیو HD',
+      'پروژه‌های واقعی',
+      'فایل‌های تمرینی',
+      'دسترسی مادام‌العمر',
+      'پشتیبانی رایگان',
+    ],
+    format: 'MP4',
+    fileSize: '۸ گیگابایت',
+    duration: 20,
+    tags: ['اکسل', 'آفیس', 'ویدیو'],
+    reviews: [
+      {
+        id: '1',
+        name: 'محمد رضایی',
+        rating: 5,
+        comment: 'بعد از این دوره توی شرکتم ارتقا گرفتم!',
+        date: '۱۴۰۴/۰۷/۱۲',
+      },
+      {
+        id: '2',
+        name: 'نرگس کریمی',
+        rating: 5,
+        comment: 'آموزش‌ها خیلی کاربردی و عملی بودن.',
+        date: '۱۴۰۴/۰۶/۱۸',
+      },
+    ],
+  },
+];
+
+/* ============================================================
+   🎯 توابع کمکی
+   ============================================================ */
+export function getPopularCourses(limit = 6): Course[] {
+  return [...courses]
+    .sort((a, b) => b.studentsCount - a.studentsCount)
+    .slice(0, limit);
+}
+
+export function getCoursesByMode(
+  mode: 'online' | 'in-person' | 'hybrid'
+): Course[] {
+  return courses.filter((c) => c.mode === mode);
+}
+
+export function getCourseBySlug(slug: string): Course | undefined {
+  return courses.find((c) => c.slug === slug);
+}
+
+export function getCoursesByInstructor(instructorId: string): Course[] {
+  return courses.filter((c) => c.instructor.id === instructorId);
+}
+
+export function getRelatedCourses(course: Course, limit = 3): Course[] {
+  return courses
+    .filter((c) => c.id !== course.id && c.mode === course.mode)
+    .slice(0, limit);
+}
+
+export function getCoursesByCategory(tag: string): Course[] {
+  return courses.filter((c) => c.tags.includes(tag));
+}
+
+export function getLatestPosts(limit = 3): BlogPost[] {
+  return blogPosts.slice(0, limit);
+}
+
 export function getExamBySlug(slug: string): Exam | undefined {
   return exams.find((e) => e.slug === slug);
 }
@@ -893,13 +1186,13 @@ export function getRelatedExams(exam: Exam, limit = 3): Exam[] {
     .filter((e) => e.id !== exam.id && e.type === exam.type)
     .slice(0, limit);
 }
-/* توابع کمکی دوره‌ها */
-export function getRelatedCourses(course: Course, limit = 3): Course[] {
-  return courses
-    .filter((c) => c.id !== course.id && c.mode === course.mode)
-    .slice(0, limit);
+
+export function getProductBySlug(slug: string): Product | undefined {
+  return products.find((p) => p.slug === slug);
 }
 
-export function getCoursesByCategory(tag: string): Course[] {
-  return courses.filter((c) => c.tags.includes(tag));
+export function getRelatedProducts(product: Product, limit = 3): Product[] {
+  return products
+    .filter((p) => p.id !== product.id && p.type === product.type)
+    .slice(0, limit);
 }

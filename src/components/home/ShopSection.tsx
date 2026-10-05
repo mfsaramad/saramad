@@ -1,60 +1,33 @@
 import Link from 'next/link';
-import {
-  FileText,
-  BookOpen,
-  Video,
-  Package,
-  ArrowLeft,
-  Star,
-} from 'lucide-react';
+import { ArrowLeft, Star, Package, Sparkles } from 'lucide-react';
+import { products } from '@/lib/data';
+import { toPersianNumber, formatPrice } from '@/lib/format';
 import SectionTitle from '@/components/shared/SectionTitle';
-import { formatPrice } from '@/lib/format';
-
-const products = [
-  {
-    id: '1',
-    title: 'پکیج سوالات آزمون فنی و حرفه‌ای',
-    description: 'مجموعه کامل سوالات آزمون‌های فنی و حرفه‌ای با پاسخ تشریحی',
-    type: 'سوالات',
-    price: 350000,
-    originalPrice: 500000,
-    icon: FileText,
-    color: 'brand' as const,
-    rating: 4.9,
-    salesCount: 1240,
-    badge: 'پرفروش',
-  },
-  {
-    id: '2',
-    title: 'جزوه جامع برنامه‌نویسی پایتون',
-    description: 'جزوه PDF کامل آموزش پایتون همراه با تمرین و پروژه',
-    type: 'جزوه',
-    price: 280000,
-    originalPrice: null,
-    icon: BookOpen,
-    color: 'teal' as const,
-    rating: 4.8,
-    salesCount: 890,
-    badge: null,
-  },
-  {
-    id: '3',
-    title: 'ویدیوهای ضبط‌شده دوره طراحی گرافیک',
-    description: 'دسترسی مادام‌العمر به ویدیوهای ضبط‌شده دوره گرافیک',
-    type: 'ویدیو',
-    price: 1200000,
-    originalPrice: 1800000,
-    icon: Video,
-    color: 'accent' as const,
-    rating: 5.0,
-    salesCount: 560,
-    badge: 'تخفیف ویژه',
-  },
-];
+import { cn } from '@/lib/utils';
 
 export default function ShopSection() {
+  const topProducts = products.slice(0, 3);
+
+  const colorMap = {
+    brand: {
+      bg: 'bg-blue-100 dark:bg-blue-950/50',
+      icon: 'text-blue-800 dark:text-blue-300',
+      gradient: 'from-[#1e3a8a] to-[#1e40af]',
+    },
+    teal: {
+      bg: 'bg-teal-100 dark:bg-teal-950/50',
+      icon: 'text-teal-600 dark:text-teal-300',
+      gradient: 'from-teal-500 to-teal-700',
+    },
+    accent: {
+      bg: 'bg-orange-100 dark:bg-orange-950/50',
+      icon: 'text-orange-600 dark:text-orange-300',
+      gradient: 'from-orange-500 to-orange-700',
+    },
+  };
+
   return (
-    <section className="py-16 lg:py-24 bg-slate-50">
+    <section className="py-16 lg:py-24 bg-slate-50 dark:bg-slate-950">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <SectionTitle
           badge="فروشگاه سرآمد"
@@ -63,91 +36,85 @@ export default function ShopSection() {
         />
 
         <div className="grid md:grid-cols-3 gap-6">
-          {products.map((product) => {
-            const Icon = product.icon;
-            const colorClasses = {
-              brand: {
-                bg: 'bg-brand-100',
-                icon: 'text-brand-800',
-                gradient: 'from-brand-700 to-brand-900',
-              },
-              teal: {
-                bg: 'bg-teal-100',
-                icon: 'text-teal-600',
-                gradient: 'from-teal-500 to-teal-700',
-              },
-              accent: {
-                bg: 'bg-orange-100',
-                icon: 'text-orange-600',
-                gradient: 'from-orange-500 to-orange-700',
-              },
-            }[product.color];
+          {topProducts.map((product) => {
+            const colors = colorMap[product.color];
 
             return (
-              <div
+              <Link
                 key={product.id}
-                className="group bg-white rounded-3xl overflow-hidden border border-slate-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300"
+                href={`/shop/${product.slug}`}
+                className="group bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-slate-100 dark:border-slate-800 hover:border-brand-200 dark:hover:border-brand-800 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300"
               >
-                <div className="relative p-7 pb-5">
+                <div
+                  className={cn(
+                    'relative aspect-[16/10] flex items-center justify-center text-[100px]',
+                    colors.bg
+                  )}
+                >
+                  {product.icon}
+
                   {product.badge && (
-                    <div className="absolute top-5 left-5 px-3 py-1 gradient-accent text-white rounded-full text-xs font-black shadow-lg">
+                    <div
+                      className={cn(
+                        'absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-black text-white shadow-lg',
+                        product.badge === 'تخفیف ویژه'
+                          ? 'bg-red-500'
+                          : 'bg-orange-500'
+                      )}
+                    >
                       {product.badge}
                     </div>
                   )}
+                </div>
 
-                  <div
-                    className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-5 transition-transform group-hover:scale-110 ${colorClasses.bg}`}
-                  >
-                    <Icon className={`w-8 h-8 ${colorClasses.icon}`} />
+                <div className="p-6">
+                  <div className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">
+                    {product.typeLabel}
                   </div>
 
-                  <div className="text-xs font-bold text-slate-500 mb-2">
-                    {product.type}
-                  </div>
-
-                  <h3 className="text-lg font-black text-slate-800 leading-snug mb-3 line-clamp-2 min-h-[3.5rem]">
+                  <h3 className="text-lg font-black text-slate-800 dark:text-slate-100 leading-snug mb-3 line-clamp-2 min-h-[3.5rem] group-hover:text-brand-800 dark:group-hover:text-brand-300 transition">
                     {product.title}
                   </h3>
 
-                  <p className="text-sm text-slate-600 leading-relaxed line-clamp-2 min-h-[2.5rem] mb-4">
+                  <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-4 line-clamp-2 min-h-[2.5rem]">
                     {product.description}
                   </p>
 
-                  <div className="flex items-center gap-3 text-xs text-slate-500 mb-5">
+                  <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mb-5 pb-5 border-b border-slate-100 dark:border-slate-800">
                     <div className="flex items-center gap-1">
                       <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
-                      <span className="font-bold text-slate-700">
+                      <span className="font-bold text-slate-700 dark:text-slate-300">
                         {product.rating.toLocaleString('fa-IR')}
                       </span>
                     </div>
-                    <span className="w-1 h-1 rounded-full bg-slate-300" />
-                    <div>{product.salesCount.toLocaleString('fa-IR')} فروش</div>
+                    <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
+                    <div>
+                      {toPersianNumber(product.salesCount)} فروش
+                    </div>
                   </div>
-                </div>
 
-                <div className="px-7 pb-7 pt-5 border-t border-slate-100 bg-slate-50/50">
-                  <div className="flex items-end justify-between mb-4">
+                  <div className="flex items-end justify-between">
                     <div>
                       {product.originalPrice && (
                         <div className="text-xs text-slate-400 line-through">
                           {formatPrice(product.originalPrice)}
                         </div>
                       )}
-                      <div className="text-xl font-black text-brand-800">
+                      <div className="text-xl font-black text-brand-800 dark:text-brand-300">
                         {formatPrice(product.price)}
                       </div>
                     </div>
+                    <div
+                      className={cn(
+                        'w-9 h-9 rounded-full bg-slate-50 dark:bg-slate-800 group-hover:bg-gradient-to-l flex items-center justify-center transition-all',
+                        `group-hover:${colors.gradient}`
+                      )}
+                    >
+                      <Package className="w-4 h-4 text-brand-800 dark:text-brand-300 group-hover:text-white transition" />
+                    </div>
                   </div>
-
-                  <Link
-                    href={`/shop/${product.id}`}
-                    className={`flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-white bg-gradient-to-l transition-all hover:shadow-lg ${colorClasses.gradient}`}
-                  >
-                    <Package className="w-4 h-4" />
-                    افزودن به سبد
-                  </Link>
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>
@@ -155,10 +122,10 @@ export default function ShopSection() {
         <div className="text-center mt-12">
           <Link
             href="/shop"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-brand-800 text-brand-800 font-bold hover:bg-brand-800 hover:text-white transition"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-brand-800 dark:border-brand-300 text-brand-800 dark:text-brand-300 font-bold hover:bg-brand-800 dark:hover:bg-brand-300 hover:text-white dark:hover:text-brand-800 transition-all hover:gap-3 group"
           >
             مشاهده همه محصولات
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
           </Link>
         </div>
       </div>
