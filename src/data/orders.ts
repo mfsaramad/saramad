@@ -1,0 +1,91 @@
+import { Order } from '@/types';
+
+export const mockOrders: Order[] = [
+  {
+    id: '1',
+    orderNumber: 'SRM-14040701-001',
+    items: [
+      {
+        id: 'c1',
+        title: 'دوره جامع React و Next.js',
+        type: 'course',
+        price: 2500000,
+        quantity: 1,
+        image: '/images/courses/react.jpg',
+      },
+    ],
+    totalAmount: 2500000,
+    discount: 0,
+    finalAmount: 2500000,
+    status: 'completed',
+    paymentMethod: 'zarinpal',
+    trackingCode: 'ZP-987654321',
+    createdAt: '1404/07/01',
+    updatedAt: '1404/07/01',
+  },
+  {
+    id: '2',
+    orderNumber: 'SRM-14040628-002',
+    items: [
+      {
+        id: 'c2',
+        title: 'دوره Python مقدماتی',
+        type: 'course',
+        price: 1800000,
+        quantity: 1,
+      },
+      {
+        id: 'e1',
+        title: 'آزمون تعیین سطح Python',
+        type: 'exam',
+        price: 200000,
+        quantity: 1,
+      },
+    ],
+    totalAmount: 2000000,
+    discount: 200000,
+    finalAmount: 1800000,
+    status: 'processing',
+    paymentMethod: 'zarinpal',
+    createdAt: '1404/06/28',
+    updatedAt: '1404/06/29',
+  },
+  {
+    id: '3',
+    orderNumber: 'SRM-14040620-003',
+    items: [
+      {
+        id: 'p1',
+        title: 'کتاب آموزش TypeScript',
+        type: 'product',
+        price: 450000,
+        quantity: 2,
+      },
+    ],
+    totalAmount: 900000,
+    discount: 0,
+    finalAmount: 900000,
+    status: 'pending',
+    createdAt: '1404/06/20',
+    updatedAt: '1404/06/20',
+  },
+  {
+    id: '4',
+    orderNumber: 'SRM-14040615-004',
+    items: [
+      {
+        id: 'c3',
+        title: 'دوره UI/UX Design',
+        type: 'course',
+        price: 3200000,
+        quantity: 1,
+      },
+    ],
+    totalAmount: 3200000,
+    discount: 500000,
+    finalAmount: 2700000,
+    status: 'cancelled',
+    createdAt: '1404/06/15',
+    updatedAt: '1404/06/16',
+  },
+];
