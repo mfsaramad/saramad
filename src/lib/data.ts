@@ -1141,6 +1141,304 @@ export const products: Product[] = [
 ];
 
 /* ============================================================
+   🎥 کلاس‌های آنلاین زنده
+   ============================================================ */
+export interface LiveSession {
+  id: number;
+  title: string;
+  instructor: string;
+  duration: number;
+  topics: string[];
+}
+
+export interface LiveClass {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  longDescription: string;
+  instructor: string;
+  instructorTitle: string;
+  date: string;
+  day: string;
+  time: string;
+  duration: number;
+  level: string;
+  capacity: number;
+  registered: number;
+  isLive: boolean;
+  isFree: boolean;
+  price: number;
+  color: 'brand' | 'teal' | 'accent';
+  icon: string;
+  tags: string[];
+  learnings: string[];
+  sessions: LiveSession[];
+}
+
+export const liveClasses: LiveClass[] = [
+  {
+    id: '1',
+    slug: 'ai-chatgpt-workshop',
+    title: 'کارگاه زنده: هوش مصنوعی و ChatGPT',
+    description: 'آشنایی عملی با هوش مصنوعی و کاربردهای ChatGPT در زندگی و کار',
+    longDescription:
+      'در این کارگاه زنده، با مفاهیم پایه هوش مصنوعی و کاربردهای عملی ChatGPT آشنا می‌شوید. این کارگاه به‌صورت تعاملی برگزار می‌شود و فرصت پرسش و پاسخ زنده دارید.',
+    instructor: 'دکتر علی محمدی',
+    instructorTitle: 'متخصص هوش مصنوعی و برنامه‌نویسی',
+    date: '۱۴۰۴/۰۸/۲۰',
+    day: 'شنبه',
+    time: '۱۸:۰۰ - ۲۰:۰۰',
+    duration: 2,
+    level: 'متوسط',
+    capacity: 200,
+    registered: 156,
+    isLive: true,
+    isFree: true,
+    price: 0,
+    color: 'brand',
+    icon: '🤖',
+    tags: ['هوش مصنوعی', 'ChatGPT', 'کارگاه'],
+    learnings: [
+      'مفاهیم پایه هوش مصنوعی',
+      'کار با ChatGPT و ابزارهای مشابه',
+      'نوشتن پرامپت‌های حرفه‌ای',
+      'کاربردهای عملی در کسب‌وکار',
+      'اخبار و ترندهای هوش مصنوعی',
+    ],
+    sessions: [
+      {
+        id: 1,
+        title: 'آشنایی با هوش مصنوعی',
+        instructor: 'دکتر علی محمدی',
+        duration: 60,
+        topics: ['مفاهیم پایه', 'تاریخچه', 'کاربردها'],
+      },
+      {
+        id: 2,
+        title: 'کارگاه عملی ChatGPT',
+        instructor: 'دکتر علی محمدی',
+        duration: 60,
+        topics: ['پرامپت‌نویسی', 'مثال‌های واقعی', 'سؤالات'],
+      },
+    ],
+  },
+  {
+    id: '2',
+    slug: 'english-conversation-qa',
+    title: 'مکالمه انگلیسی - جلسه پرسش و پاسخ',
+    description: 'جلسه پرسش و پاسخ زنده مکالمه انگلیسی با استاد رضایی',
+    longDescription:
+      'این جلسه زنده فرصتی برای پرسیدن سوالات شما درباره مکالمه انگلیسی است. با شرکت در این جلسه، می‌توانید اشکالات خود را رفع کنید و با تکنیک‌های جدید آشنا شوید.',
+    instructor: 'خانم مریم رضایی',
+    instructorTitle: 'مدرس بین‌المللی زبان انگلیسی',
+    date: '۱۴۰۴/۰۸/۲۲',
+    day: 'دوشنبه',
+    time: '۱۹:۰۰ - ۲۰:۳۰',
+    duration: 1.5,
+    level: 'مقدماتی',
+    capacity: 150,
+    registered: 98,
+    isLive: false,
+    isFree: true,
+    price: 0,
+    color: 'teal',
+    icon: '🌍',
+    tags: ['انگلیسی', 'مکالمه', 'پرسش و پاسخ'],
+    learnings: [
+      'رفع اشکالات مکالمه',
+      'تکنیک‌های تقویت Speaking',
+      'اصطلاحات روزمره',
+      'تلفظ صحیح',
+    ],
+    sessions: [
+      {
+        id: 1,
+        title: 'جلسه پرسش و پاسخ',
+        instructor: 'خانم مریم رضایی',
+        duration: 90,
+        topics: ['سؤالات دانشجویان', 'تمرین مکالمه', 'بازخورد'],
+      },
+    ],
+  },
+  {
+    id: '3',
+    slug: 'ui-ux-design-workshop',
+    title: 'کارگاه عملی طراحی UI/UX',
+    description: 'کارگاه عملی طراحی رابط و تجربه کاربری با پروژه واقعی',
+    longDescription:
+      'در این کارگاه، به‌صورت عملی با اصول طراحی UI/UX آشنا می‌شوید و روی یک پروژه واقعی کار می‌کنید. این کارگاه مناسب همه سطوح است.',
+    instructor: 'مهندس سارا احمدی',
+    instructorTitle: 'متخصص طراحی UI/UX',
+    date: '۱۴۰۴/۰۸/۲۵',
+    day: 'چهارشنبه',
+    time: '۱۶:۰۰ - ۱۸:۰۰',
+    duration: 2,
+    level: 'پیشرفته',
+    capacity: 100,
+    registered: 87,
+    isLive: false,
+    isFree: false,
+    price: 350000,
+    color: 'accent',
+    icon: '🎨',
+    tags: ['UI/UX', 'طراحی', 'کارگاه'],
+    learnings: [
+      'اصول طراحی رابط کاربری',
+      'تجربه کاربری (UX)',
+      'کار با Figma',
+      'پروژه واقعی',
+      'بازخورد اساتید',
+    ],
+    sessions: [
+      {
+        id: 1,
+        title: 'اصول UI',
+        instructor: 'مهندس سارا احمدی',
+        duration: 60,
+        topics: ['رنگ', 'تایپوگرافی', 'چیدمان'],
+      },
+      {
+        id: 2,
+        title: 'اصول UX',
+        instructor: 'مهندس سارا احمدی',
+        duration: 60,
+        topics: ['تحقیق کاربر', 'پرسونا', 'wireframe'],
+      },
+    ],
+  },
+  {
+    id: '4',
+    slug: 'python-exercises-solutions',
+    title: 'حل تمرین‌های برنامه‌نویسی پایتون',
+    description: 'حل زنده تمرین‌های برنامه‌نویسی پایتون با دکتر محمدی',
+    longDescription:
+      'این جلسه زنده به حل تمرین‌های برنامه‌نویسی پایتون اختصاص دارد. تمرین‌های سطح متوسط تا پیشرفته به‌صورت زنده حل می‌شوند.',
+    instructor: 'دکتر علی محمدی',
+    instructorTitle: 'متخصص برنامه‌نویسی',
+    date: '۱۴۰۴/۰۸/۲۸',
+    day: 'شنبه',
+    time: '۱۷:۰۰ - ۱۹:۰۰',
+    duration: 2,
+    level: 'متوسط',
+    capacity: 120,
+    registered: 65,
+    isLive: false,
+    isFree: true,
+    price: 0,
+    color: 'brand',
+    icon: '💻',
+    tags: ['پایتون', 'تمرین', 'حل مسئله'],
+    learnings: [
+      'حل تمرین‌های واقعی',
+      'الگوریتم و ساختمان داده',
+      'بهینه‌سازی کد',
+      'بهترین شیوه‌ها',
+    ],
+    sessions: [
+      {
+        id: 1,
+        title: 'حل تمرین‌ها',
+        instructor: 'دکتر علی محمدی',
+        duration: 120,
+        topics: ['تمرین‌های سطح متوسط', 'تمرین‌های پیشرفته', 'پرسش و پاسخ'],
+      },
+    ],
+  },
+  {
+    id: '5',
+    slug: 'digital-marketing-workshop',
+    title: 'کارگاه دیجیتال مارکتینگ',
+    description: 'کارگاه عملی دیجیتال مارکتینگ با دکتر صادقی',
+    longDescription:
+      'در این کارگاه، با استراتژی‌های نوین دیجیتال مارکتینگ آشنا می‌شوید و یاد می‌گیرید چگونه کسب‌وکار خود را در فضای آنلاین رشد دهید.',
+    instructor: 'دکتر فاطمه صادقی',
+    instructorTitle: 'متخصص دیجیتال مارکتینگ',
+    date: '۱۴۰۴/۰۹/۰۱',
+    day: 'دوشنبه',
+    time: '۲۰:۰۰ - ۲۲:۰۰',
+    duration: 2,
+    level: 'پیشرفته',
+    capacity: 180,
+    registered: 112,
+    isLive: false,
+    isFree: false,
+    price: 450000,
+    color: 'teal',
+    icon: '📈',
+    tags: ['دیجیتال مارکتینگ', 'کسب‌وکار', 'کارگاه'],
+    learnings: [
+      'استراتژی محتوا',
+      'سئو و بهینه‌سازی',
+      'تبلیغات آنلاین',
+      'تحلیل داده',
+      'مطالعه موردی',
+    ],
+    sessions: [
+      {
+        id: 1,
+        title: 'استراتژی دیجیتال',
+        instructor: 'دکتر فاطمه صادقی',
+        duration: 60,
+        topics: ['برنامه‌ریزی', 'کانال‌ها', 'بودجه'],
+      },
+      {
+        id: 2,
+        title: 'اجرای کمپین',
+        instructor: 'دکتر فاطمه صادقی',
+        duration: 60,
+        topics: ['تبلیغات', 'محتوا', 'تحلیل'],
+      },
+    ],
+  },
+  {
+    id: '6',
+    slug: 'excel-data-analysis',
+    title: 'کلاس زنده: تحلیل داده با اکسل',
+    description: 'آموزش زنده تحلیل داده با اکسل و ساخت داشبورد',
+    longDescription:
+      'این کلاس زنده به آموزش تحلیل داده با اکسل و ساخت داشبوردهای حرفه‌ای اختصاص دارد. مناسب برای همه کسانی که با داده کار می‌کنند.',
+    instructor: 'استاد رضا کریمی',
+    instructorTitle: 'متخصص تحلیل داده',
+    date: '۱۴۰۴/۰۹/۰۵',
+    day: 'پنجشنبه',
+    time: '۱۹:۰۰ - ۲۱:۰۰',
+    duration: 2,
+    level: 'متوسط',
+    capacity: 150,
+    registered: 73,
+    isLive: false,
+    isFree: false,
+    price: 300000,
+    color: 'accent',
+    icon: '📊',
+    tags: ['اکسل', 'تحلیل داده', 'داشبورد'],
+    learnings: [
+      'تحلیل داده با Pivot Table',
+      'ساخت داشبورد',
+      'نمودارهای پیشرفته',
+      'فرمول‌های حرفه‌ای',
+    ],
+    sessions: [
+      {
+        id: 1,
+        title: 'تحلیل داده',
+        instructor: 'استاد رضا کریمی',
+        duration: 60,
+        topics: ['Pivot Table', 'Power Query', 'فرمول‌ها'],
+      },
+      {
+        id: 2,
+        title: 'ساخت داشبورد',
+        instructor: 'استاد رضا کریمی',
+        duration: 60,
+        topics: ['نمودارها', 'KPI', 'گزارش‌گیری'],
+      },
+    ],
+  },
+];
+
+/* ============================================================
    🎯 توابع کمکی
    ============================================================ */
 export function getPopularCourses(limit = 6): Course[] {
@@ -1194,5 +1492,18 @@ export function getProductBySlug(slug: string): Product | undefined {
 export function getRelatedProducts(product: Product, limit = 3): Product[] {
   return products
     .filter((p) => p.id !== product.id && p.type === product.type)
+    .slice(0, limit);
+}
+
+export function getLiveClassBySlug(slug: string): LiveClass | undefined {
+  return liveClasses.find((l) => l.slug === slug);
+}
+
+export function getRelatedLiveClasses(
+  liveClass: LiveClass,
+  limit = 3
+): LiveClass[] {
+  return liveClasses
+    .filter((l) => l.id !== liveClass.id)
     .slice(0, limit);
 }
