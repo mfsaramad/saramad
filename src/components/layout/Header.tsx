@@ -7,6 +7,8 @@ import { useTheme } from 'next-themes';
 import { SITE_CONFIG } from '@/lib/constants';
 import SearchButton from '@/components/search/SearchButton';
 import ThemeToggle from '@/components/theme/ThemeToggle';
+import { ShoppingBag } from 'lucide-react';
+import { useCart } from '@/contexts/CartContext';
 
 const NAV_ITEMS = [
   { href: '/', label: 'خانه' },

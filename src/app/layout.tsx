@@ -4,6 +4,7 @@ import './globals.css';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import ThemeProvider from '@/components/theme/ThemeProvider';
+import { CartProvider } from '@/contexts/CartContext';
 
 const siteUrl = 'https://mfsaramad.ir';
 
@@ -74,9 +75,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body className="font-vazir antialiased bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors">
         <ThemeProvider>
-          <Header />
-          <main className="min-h-screen">{children}</main>
-          <Footer />
+          <CartProvider>
+            <Header />
+            <main className="min-h-screen">{children}</main>
+            <Footer />
+          </CartProvider>
         </ThemeProvider>
       </body>
     </html>

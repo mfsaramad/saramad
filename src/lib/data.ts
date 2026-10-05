@@ -517,3 +517,389 @@ export function getCoursesByInstructor(instructorId: string): Course[] {
 export function getLatestPosts(limit = 3): BlogPost[] {
   return blogPosts.slice(0, limit);
 }
+/* ============================================================
+   📝 آزمون‌های آنلاین
+   ============================================================ */
+export interface ExamQuestion {
+  id: number;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+}
+
+export interface Exam {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  longDescription: string;
+  type: 'level' | 'mock' | 'free';
+  typeLabel: string;
+  icon: string;
+  color: 'brand' | 'teal' | 'accent';
+  questions: number;
+  duration: number;
+  level: string;
+  price: number;
+  participants: number;
+  rating: number;
+  reviewsCount: number;
+  successRate: number;
+  certificate: boolean;
+  tags: string[];
+  examData: {
+    id: string;
+    title: string;
+    description: string;
+    duration: number;
+    level: string;
+    icon: string;
+    questions: ExamQuestion[];
+  };
+}
+
+export const exams: Exam[] = [
+  {
+    id: '1',
+    slug: 'programming-level-test',
+    title: 'آزمون تعیین سطح برنامه‌نویسی',
+    description:
+      'سطح دانش خود را در برنامه‌نویسی بسنجید و مسیر یادگیری مناسب را انتخاب کنید',
+    longDescription:
+      'این آزمون تعیین سطح شامل سوالاتی در زمینه مبانی برنامه‌نویسی، الگوریتم، ساختمان داده و زبان‌های محبوب مانند پایتون و جاوااسکریپت است.',
+    type: 'level',
+    typeLabel: 'تعیین سطح',
+    icon: '💻',
+    color: 'brand',
+    questions: 30,
+    duration: 45,
+    level: 'مقدماتی تا پیشرفته',
+    price: 0,
+    participants: 3240,
+    rating: 4.9,
+    reviewsCount: 234,
+    successRate: 78,
+    certificate: false,
+    tags: ['برنامه‌نویسی', 'پایتون', 'تعیین سطح'],
+    examData: {
+      id: '1',
+      title: 'آزمون تعیین سطح برنامه‌نویسی',
+      description: 'سطح دانش خود را در برنامه‌نویسی بسنجید',
+      duration: 45,
+      level: 'مقدماتی تا پیشرفته',
+      icon: '💻',
+      questions: [
+        {
+          id: 1,
+          question: 'زبان پایتون در چه سالی معرفی شد؟',
+          options: ['۱۹۸۹', '۱۹۹۱', '۱۹۹۵', '۲۰۰۰'],
+          correctAnswer: 1,
+        },
+        {
+          id: 2,
+          question: 'کدام یک از موارد زیر یک نوع داده در پایتون نیست؟',
+          options: ['List', 'Tuple', 'Array', 'Dictionary'],
+          correctAnswer: 2,
+        },
+        {
+          id: 3,
+          question: 'خروجی دستور print(2 ** 3) چیست؟',
+          options: ['6', '8', '9', '23'],
+          correctAnswer: 1,
+        },
+        {
+          id: 4,
+          question:
+            'در جاوااسکریپت، کدام کلمه کلیدی برای تعریف متغیر با قابلیت تغییر استفاده می‌شود؟',
+          options: ['const', 'let', 'final', 'static'],
+          correctAnswer: 1,
+        },
+        {
+          id: 5,
+          question: 'HTML مخفف چیست؟',
+          options: [
+            'Hyper Text Markup Language',
+            'High Tech Modern Language',
+            'Hyper Transfer Markup Language',
+            'Home Tool Markup Language',
+          ],
+          correctAnswer: 0,
+        },
+      ],
+    },
+  },
+  {
+    id: '2',
+    slug: 'technical-mock-exam',
+    title: 'آزمون آزمایشی فنی و حرفه‌ای',
+    description: 'خودت را در شرایط واقعی آزمون قرار بده و آماده شو',
+    longDescription:
+      'این آزمون آزمایشی دقیقاً مشابه آزمون‌های رسمی فنی و حرفه‌ای طراحی شده است.',
+    type: 'mock',
+    typeLabel: 'آزمایشی',
+    icon: '📋',
+    color: 'teal',
+    questions: 60,
+    duration: 90,
+    level: 'متوسط',
+    price: 150000,
+    participants: 1890,
+    rating: 4.8,
+    reviewsCount: 145,
+    successRate: 65,
+    certificate: true,
+    tags: ['فنی و حرفه‌ای', 'آزمایشی', 'مدرک'],
+    examData: {
+      id: '2',
+      title: 'آزمون آزمایشی فنی و حرفه‌ای',
+      description: 'خودت را در شرایط واقعی آزمون قرار بده',
+      duration: 90,
+      level: 'متوسط',
+      icon: '📋',
+      questions: [
+        {
+          id: 1,
+          question: 'کدام یک از موارد زیر یک سیستم‌عامل نیست؟',
+          options: ['Windows', 'Linux', 'macOS', 'Photoshop'],
+          correctAnswer: 3,
+        },
+        {
+          id: 2,
+          question: 'واحد اندازه‌گیری سرعت اینترنت چیست؟',
+          options: ['مگابایت', 'مگابیت', 'گیگابایت', 'کیلوبایت'],
+          correctAnswer: 1,
+        },
+        {
+          id: 3,
+          question: 'کدام یک از موارد زیر نرم‌افزار گرافیکی است؟',
+          options: ['Excel', 'Word', 'Photoshop', 'PowerPoint'],
+          correctAnswer: 2,
+        },
+      ],
+    },
+  },
+  {
+    id: '3',
+    slug: 'english-level-test',
+    title: 'آزمون تعیین سطح زبان انگلیسی',
+    description: 'سطح زبان خود را بسنجید و کلاس مناسب را انتخاب کنید',
+    longDescription:
+      'این آزمون تعیین سطح زبان انگلیسی شامل سوالات گرامر، واژگان، درک مطلب و مکالمه است.',
+    type: 'level',
+    typeLabel: 'تعیین سطح',
+    icon: '🌍',
+    color: 'accent',
+    questions: 40,
+    duration: 50,
+    level: 'همه سطوح',
+    price: 0,
+    participants: 4520,
+    rating: 4.9,
+    reviewsCount: 412,
+    successRate: 82,
+    certificate: false,
+    tags: ['انگلیسی', 'تعیین سطح', 'زبان'],
+    examData: {
+      id: '3',
+      title: 'آزمون تعیین سطح زبان انگلیسی',
+      description: 'سطح زبان خود را بسنجید',
+      duration: 50,
+      level: 'همه سطوح',
+      icon: '🌍',
+      questions: [
+        {
+          id: 1,
+          question: 'معنی کلمه "Book" چیست؟',
+          options: ['کتاب', 'دفتر', 'قلم', 'میز'],
+          correctAnswer: 0,
+        },
+        {
+          id: 2,
+          question: 'کدام گزینه صحیح است؟ I ___ a student.',
+          options: ['is', 'am', 'are', 'be'],
+          correctAnswer: 1,
+        },
+        {
+          id: 3,
+          question: 'گذشته فعل "go" چیست؟',
+          options: ['goed', 'gone', 'went', 'going'],
+          correctAnswer: 2,
+        },
+      ],
+    },
+  },
+  {
+    id: '4',
+    slug: 'accounting-final-exam',
+    title: 'آزمون پایانی دوره حسابداری',
+    description: 'آزمون جامع پایان دوره حسابداری با صدور مدرک معتبر',
+    longDescription:
+      'آزمون پایانی دوره حسابداری سرآمد، شامل سوالات جامع از تمام مباحث دوره است.',
+    type: 'mock',
+    typeLabel: 'پایان دوره',
+    icon: '🧮',
+    color: 'brand',
+    questions: 50,
+    duration: 75,
+    level: 'پیشرفته',
+    price: 200000,
+    participants: 890,
+    rating: 4.7,
+    reviewsCount: 98,
+    successRate: 70,
+    certificate: true,
+    tags: ['حسابداری', 'پایان دوره', 'مدرک'],
+    examData: {
+      id: '4',
+      title: 'آزمون پایانی دوره حسابداری',
+      description: 'آزمون جامع پایان دوره حسابداری',
+      duration: 75,
+      level: 'پیشرفته',
+      icon: '🧮',
+      questions: [
+        {
+          id: 1,
+          question: 'معادله اصلی حسابداری چیست؟',
+          options: [
+            'دارایی = بدهی + سرمایه',
+            'دارایی = بدهی - سرمایه',
+            'سرمایه = دارایی + بدهی',
+            'بدهی = دارایی + سرمایه',
+          ],
+          correctAnswer: 0,
+        },
+        {
+          id: 2,
+          question: 'کدام یک از موارد زیر جزء دارایی‌ها نیست؟',
+          options: ['نقد', 'بانک', 'حساب‌های پرداختنی', 'موجودی کالا'],
+          correctAnswer: 2,
+        },
+      ],
+    },
+  },
+  {
+    id: '5',
+    slug: 'computer-skills-free',
+    title: 'آزمون رایگان مهارت‌های کامپیوتری',
+    description: 'سطح مهارت‌های پایه کامپیوتری خود را محک بزنید',
+    longDescription:
+      'این آزمون رایگان، سطح آشنایی شما با مفاهیم پایه کامپیوتر، سیستم‌عامل، نرم‌افزارهای اداری و اینترنت را می‌سنجد.',
+    type: 'free',
+    typeLabel: 'رایگان',
+    icon: '⚡',
+    color: 'teal',
+    questions: 25,
+    duration: 30,
+    level: 'مقدماتی',
+    price: 0,
+    participants: 6780,
+    rating: 4.8,
+    reviewsCount: 534,
+    successRate: 85,
+    certificate: false,
+    tags: ['کامپیوتر', 'رایگان', 'مقدماتی'],
+    examData: {
+      id: '5',
+      title: 'آزمون رایگان مهارت‌های کامپیوتری',
+      description: 'سطح مهارت‌های پایه کامپیوتری خود را محک بزنید',
+      duration: 30,
+      level: 'مقدماتی',
+      icon: '💻',
+      questions: [
+        {
+          id: 1,
+          question: 'کدام کلید برای کپی استفاده می‌شود؟',
+          options: ['Ctrl + V', 'Ctrl + C', 'Ctrl + X', 'Ctrl + Z'],
+          correctAnswer: 1,
+        },
+        {
+          id: 2,
+          question: 'کدام یک سیستم‌عامل است؟',
+          options: ['Word', 'Excel', 'Windows', 'Photoshop'],
+          correctAnswer: 2,
+        },
+        {
+          id: 3,
+          question: 'RAM مخفف چیست؟',
+          options: [
+            'Random Access Memory',
+            'Read Access Memory',
+            'Rapid Access Memory',
+            'Real Access Memory',
+          ],
+          correctAnswer: 0,
+        },
+      ],
+    },
+  },
+  {
+    id: '6',
+    slug: 'graphic-design-mock',
+    title: 'آزمون آزمایشی گرافیک و طراحی',
+    description: 'دانش خود را در زمینه گرافیک و طراحی محک بزنید',
+    longDescription:
+      'این آزمون آزمایشی شامل سوالات تخصصی گرافیک، طراحی، رنگ‌شناسی و نرم‌افزارهای گرافیکی است.',
+    type: 'mock',
+    typeLabel: 'آزمایشی',
+    icon: '🎨',
+    color: 'accent',
+    questions: 35,
+    duration: 60,
+    level: 'متوسط',
+    price: 120000,
+    participants: 1240,
+    rating: 4.8,
+    reviewsCount: 127,
+    successRate: 72,
+    certificate: true,
+    tags: ['گرافیک', 'طراحی', 'آزمایشی'],
+    examData: {
+      id: '6',
+      title: 'آزمون آزمایشی گرافیک و طراحی',
+      description: 'دانش خود را در زمینه گرافیک و طراحی محک بزنید',
+      duration: 60,
+      level: 'متوسط',
+      icon: '🎨',
+      questions: [
+        {
+          id: 1,
+          question: 'کدام نرم‌افزار برای طراحی گرافیکی استفاده می‌شود؟',
+          options: ['Excel', 'Photoshop', 'Word', 'Notepad'],
+          correctAnswer: 1,
+        },
+        {
+          id: 2,
+          question: 'RGB مخفف چیست؟',
+          options: [
+            'Red Green Blue',
+            'Red Gray Black',
+            'Random Green Blue',
+            'Red Gold Blue',
+          ],
+          correctAnswer: 0,
+        },
+      ],
+    },
+  },
+];
+
+/* توابع کمکی آزمون‌ها */
+export function getExamBySlug(slug: string): Exam | undefined {
+  return exams.find((e) => e.slug === slug);
+}
+
+export function getRelatedExams(exam: Exam, limit = 3): Exam[] {
+  return exams
+    .filter((e) => e.id !== exam.id && e.type === exam.type)
+    .slice(0, limit);
+}
+/* توابع کمکی دوره‌ها */
+export function getRelatedCourses(course: Course, limit = 3): Course[] {
+  return courses
+    .filter((c) => c.id !== course.id && c.mode === course.mode)
+    .slice(0, limit);
+}
+
+export function getCoursesByCategory(tag: string): Course[] {
+  return courses.filter((c) => c.tags.includes(tag));
+}
