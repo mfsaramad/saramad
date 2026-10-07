@@ -47,11 +47,7 @@ const emptyForm: CourseFormData = {
   level: 'beginner',
   duration: 60,
   sessions: 30,
-  price: {
-    'in-person': 0,
-    online: 0,
-    hybrid: 0,
-  },
+  price: { 'in-person': 0, online: 0, hybrid: 0 },
   image: '/images/courses/default.jpg',
   instructorId: '',
   capacity: 30,
@@ -64,7 +60,12 @@ const emptyForm: CourseFormData = {
   isActive: true,
 };
 
-export function CourseForm({ initialData, instructors, onSubmit, mode }: Props) {
+export function CourseForm({
+  initialData,
+  instructors,
+  onSubmit,
+  mode,
+}: Props) {
   const router = useRouter();
   const [form, setForm] = useState<CourseFormData>({
     ...emptyForm,
@@ -72,8 +73,6 @@ export function CourseForm({ initialData, instructors, onSubmit, mode }: Props) 
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
-  // ورودی‌های موقت برای آرایه‌ها
   const [tagInput, setTagInput] = useState('');
   const [prereqInput, setPrereqInput] = useState('');
 
@@ -101,26 +100,20 @@ export function CourseForm({ initialData, instructors, onSubmit, mode }: Props) 
     }
   };
 
-  const removeTag = (tag: string) => {
-    update('tags', form.tags.filter((t) => t !== tag));
-  };
-
   const addPrereq = () => {
-    if (prereqInput.trim() && !form.prerequisites.includes(prereqInput.trim())) {
+    if (
+      prereqInput.trim() &&
+      !form.prerequisites.includes(prereqInput.trim())
+    ) {
       update('prerequisites', [...form.prerequisites, prereqInput.trim()]);
       setPrereqInput('');
     }
-  };
-
-  const removePrereq = (p: string) => {
-    update('prerequisites', form.prerequisites.filter((x) => x !== p));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    // اعتبارسنجی
     if (!form.title.trim()) return setError('عنوان الزامی است');
     if (!form.slug.trim()) return setError('slug الزامی است');
     if (!form.instructorId) return setError('استاد را انتخاب کنید');
@@ -160,7 +153,7 @@ export function CourseForm({ initialData, instructors, onSubmit, mode }: Props) 
               value={form.title}
               onChange={(e) => update('title', e.target.value)}
               placeholder="مثلاً: دوره جامع پایتون"
-              className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:border-blue-500 focus:bg-white dark:focus:bg-gray-900 outline-none text-sm transition"
+              className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:border-blue-500 outline-none text-sm transition"
             />
           </div>
 
@@ -174,7 +167,7 @@ export function CourseForm({ initialData, instructors, onSubmit, mode }: Props) 
               onChange={(e) => update('slug', e.target.value)}
               placeholder="python-programming"
               dir="ltr"
-              className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:border-blue-500 focus:bg-white dark:focus:bg-gray-900 outline-none text-sm transition text-left"
+              className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:border-blue-500 outline-none text-sm transition text-left"
             />
           </div>
 
@@ -237,7 +230,7 @@ export function CourseForm({ initialData, instructors, onSubmit, mode }: Props) 
         </div>
       </div>
 
-      {/* مشخصات دوره */}
+      {/* مشخصات */}
       <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 space-y-4">
         <h2 className="font-bold text-gray-900 dark:text-white text-lg">
           مشخصات دوره
@@ -251,7 +244,7 @@ export function CourseForm({ initialData, instructors, onSubmit, mode }: Props) 
             <select
               value={form.mode}
               onChange={(e) => update('mode', e.target.value as any)}
-              className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:border-blue-500 outline-none text-sm transition"
+              className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 outline-none text-sm"
             >
               <option value="online">آنلاین</option>
               <option value="in-person">حضوری</option>
@@ -266,7 +259,7 @@ export function CourseForm({ initialData, instructors, onSubmit, mode }: Props) 
             <select
               value={form.level}
               onChange={(e) => update('level', e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:border-blue-500 outline-none text-sm transition"
+              className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 outline-none text-sm"
             >
               <option value="beginner">مبتدی</option>
               <option value="intermediate">متوسط</option>
@@ -281,7 +274,7 @@ export function CourseForm({ initialData, instructors, onSubmit, mode }: Props) 
             <select
               value={form.certificate ? 'yes' : 'no'}
               onChange={(e) => update('certificate', e.target.value === 'yes')}
-              className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:border-blue-500 outline-none text-sm transition"
+              className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 outline-none text-sm"
             >
               <option value="yes">دارد</option>
               <option value="no">ندارد</option>
@@ -296,7 +289,7 @@ export function CourseForm({ initialData, instructors, onSubmit, mode }: Props) 
               type="number"
               value={form.duration}
               onChange={(e) => update('duration', Number(e.target.value))}
-              className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:border-blue-500 outline-none text-sm transition"
+              className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 outline-none text-sm"
             />
           </div>
 
@@ -308,7 +301,7 @@ export function CourseForm({ initialData, instructors, onSubmit, mode }: Props) 
               type="number"
               value={form.sessions}
               onChange={(e) => update('sessions', Number(e.target.value))}
-              className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:border-blue-500 outline-none text-sm transition"
+              className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 outline-none text-sm"
             />
           </div>
 
@@ -320,7 +313,7 @@ export function CourseForm({ initialData, instructors, onSubmit, mode }: Props) 
               type="number"
               value={form.capacity}
               onChange={(e) => update('capacity', Number(e.target.value))}
-              className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:border-blue-500 outline-none text-sm transition"
+              className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 outline-none text-sm"
             />
           </div>
 
@@ -331,8 +324,10 @@ export function CourseForm({ initialData, instructors, onSubmit, mode }: Props) 
             <input
               type="number"
               value={form.remainingCapacity}
-              onChange={(e) => update('remainingCapacity', Number(e.target.value))}
-              className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:border-blue-500 outline-none text-sm transition"
+              onChange={(e) =>
+                update('remainingCapacity', Number(e.target.value))
+              }
+              className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 outline-none text-sm"
             />
           </div>
 
@@ -345,7 +340,7 @@ export function CourseForm({ initialData, instructors, onSubmit, mode }: Props) 
               value={form.startDate}
               onChange={(e) => update('startDate', e.target.value)}
               placeholder="۱۴۰۴/۰۸/۱۵"
-              className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:border-blue-500 outline-none text-sm transition"
+              className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 outline-none text-sm"
             />
           </div>
 
@@ -358,7 +353,7 @@ export function CourseForm({ initialData, instructors, onSubmit, mode }: Props) 
               value={form.schedule}
               onChange={(e) => update('schedule', e.target.value)}
               placeholder="شنبه و دوشنبه ۱۸:۰۰ - ۲۰:۰۰"
-              className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:border-blue-500 outline-none text-sm transition"
+              className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 outline-none text-sm"
             />
           </div>
         </div>
@@ -378,8 +373,10 @@ export function CourseForm({ initialData, instructors, onSubmit, mode }: Props) 
             <input
               type="number"
               value={form.price['in-person'] || 0}
-              onChange={(e) => updatePrice('in-person', Number(e.target.value))}
-              className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:border-blue-500 outline-none text-sm transition"
+              onChange={(e) =>
+                updatePrice('in-person', Number(e.target.value))
+              }
+              className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 outline-none text-sm"
             />
           </div>
 
@@ -391,7 +388,7 @@ export function CourseForm({ initialData, instructors, onSubmit, mode }: Props) 
               type="number"
               value={form.price.online || 0}
               onChange={(e) => updatePrice('online', Number(e.target.value))}
-              className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:border-blue-500 outline-none text-sm transition"
+              className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 outline-none text-sm"
             />
           </div>
 
@@ -403,7 +400,7 @@ export function CourseForm({ initialData, instructors, onSubmit, mode }: Props) 
               type="number"
               value={form.price.hybrid || 0}
               onChange={(e) => updatePrice('hybrid', Number(e.target.value))}
-              className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:border-blue-500 outline-none text-sm transition"
+              className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 outline-none text-sm"
             />
           </div>
         </div>
@@ -421,14 +418,16 @@ export function CourseForm({ initialData, instructors, onSubmit, mode }: Props) 
               type="text"
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+              onKeyDown={(e) =>
+                e.key === 'Enter' && (e.preventDefault(), addTag())
+              }
               placeholder="مثلاً: پایتون"
-              className="flex-1 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:border-blue-500 outline-none text-sm transition"
+              className="flex-1 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 outline-none text-sm"
             />
             <button
               type="button"
               onClick={addTag}
-              className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition"
+              className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm transition"
             >
               <Plus className="w-4 h-4" />
             </button>
@@ -443,7 +442,12 @@ export function CourseForm({ initialData, instructors, onSubmit, mode }: Props) 
                 {tag}
                 <button
                   type="button"
-                  onClick={() => removeTag(tag)}
+                  onClick={() =>
+                    update(
+                      'tags',
+                      form.tags.filter((t) => t !== tag)
+                    )
+                  }
                   className="hover:text-red-500"
                 >
                   <X className="w-3.5 h-3.5" />
@@ -467,12 +471,12 @@ export function CourseForm({ initialData, instructors, onSubmit, mode }: Props) 
                 e.key === 'Enter' && (e.preventDefault(), addPrereq())
               }
               placeholder="مثلاً: آشنایی با کامپیوتر"
-              className="flex-1 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:border-blue-500 outline-none text-sm transition"
+              className="flex-1 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 outline-none text-sm"
             />
             <button
               type="button"
               onClick={addPrereq}
-              className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition"
+              className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm transition"
             >
               <Plus className="w-4 h-4" />
             </button>
@@ -487,8 +491,13 @@ export function CourseForm({ initialData, instructors, onSubmit, mode }: Props) 
                 <span className="text-gray-700 dark:text-gray-300">{p}</span>
                 <button
                   type="button"
-                  onClick={() => removePrereq(p)}
-                  className="text-red-500 hover:text-red-600"
+                  onClick={() =>
+                    update(
+                      'prerequisites',
+                      form.prerequisites.filter((x) => x !== p)
+                    )
+                  }
+                  className="text-red-500"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>

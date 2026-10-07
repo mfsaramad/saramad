@@ -1,6 +1,5 @@
-'use client';
+﻿'use client';
 
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { CourseForm, type CourseFormData } from '@/components/admin/CourseForm';
@@ -12,18 +11,15 @@ interface Instructor {
 }
 
 export default function NewCoursePage() {
-  const router = useRouter();
   const { add } = useDb('courses');
   const { items: instructors } = useDb<Instructor>('instructors');
 
   const handleSubmit = async (data: CourseFormData) => {
     add(data as any);
-    // router.push توی CourseForm انجام میشه
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center gap-3">
         <Link
           href="/admin/courses"
@@ -41,7 +37,6 @@ export default function NewCoursePage() {
         </div>
       </div>
 
-      {/* Form */}
       <CourseForm
         instructors={instructors}
         onSubmit={handleSubmit}

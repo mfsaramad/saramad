@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowRight, Loader2 } from 'lucide-react';
 import { CourseForm, type CourseFormData } from '@/components/admin/CourseForm';
@@ -14,24 +14,22 @@ interface Instructor {
 
 interface Course {
   id: string;
+  instructor?: { id: string };
+  instructorId?: string;
   [key: string]: any;
 }
 
 export default function EditCoursePage() {
   const params = useParams();
-  const router = useRouter();
   const id = params.id as string;
-
   const { items: courses, update, isLoading } = useDb<Course>('courses');
   const { items: instructors } = useDb<Instructor>('instructors');
-
   const [course, setCourse] = useState<Course | null>(null);
 
   useEffect(() => {
     if (!isLoading) {
       const found = courses.find((c) => c.id === id);
       if (found) {
-        // تبدیل instructor به instructorId برای فرم
         setCourse({
           ...found,
           instructorId: found.instructor?.id || found.instructorId || '',
@@ -62,7 +60,7 @@ export default function EditCoursePage() {
           href="/admin/courses"
           className="text-blue-600 dark:text-blue-400 hover:underline"
         >
-          بازگشت به لیست دوره‌ها
+          بازگشت به لیست
         </Link>
       </div>
     );
