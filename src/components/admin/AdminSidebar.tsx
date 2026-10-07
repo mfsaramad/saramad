@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   BookOpen,
@@ -13,6 +13,7 @@ import {
   Home,
   LogOut,
 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 const menuItems = [
   { href: '/admin', label: 'داشبورد', icon: LayoutDashboard },
@@ -26,6 +27,13 @@ const menuItems = [
 
 export function AdminSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    router.push('/');
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -69,6 +77,11 @@ export function AdminSidebar() {
       </nav>
 
       <div className="p-3 border-t border-gray-200 dark:border-gray-800 space-y-1">
+        {user && (
+          <div className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400 truncate">
+            👤 {user.name}
+          </div>
+        )}
         <Link
           href="/"
           className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
@@ -78,6 +91,7 @@ export function AdminSidebar() {
         </Link>
         <button
           type="button"
+          onClick={handleLogout}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition"
         >
           <LogOut className="w-4 h-4" />

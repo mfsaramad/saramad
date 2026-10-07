@@ -90,9 +90,8 @@ export const instructors: Instructor[] = onlyActive(
 ) as Instructor[];
 
 // 🎓 دوره‌ها (با hydrate)
-export const courses: Course[] = onlyActive(db.courses as any[]).map(
-  (c: any) => hydrateCourse(c as CourseRaw)
-);
+export const courses: Course[] = onlyActive(db.courses as any[])
+  .map((c: any) => hydrateCourse(c as CourseRaw));
 
 // 💬 نظرات
 export const testimonials: Testimonial[] = onlyActive(

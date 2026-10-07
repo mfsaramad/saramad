@@ -4,6 +4,8 @@ import ThemeProvider from '@/components/theme/ThemeProvider';
 import { CartProvider } from '@/contexts/CartContext';
 import { WishlistProvider } from '@/contexts/WishlistContext';
 import { NotificationsProvider } from '@/contexts/NotificationsContext';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { ConditionalLayout } from '@/components/layout/ConditionalLayout';
 
 export const metadata: Metadata = {
   title: 'آموزشگاه سرآمد',
@@ -19,11 +21,15 @@ export default function RootLayout({
     <html lang="fa" dir="rtl" suppressHydrationWarning>
       <body>
         <ThemeProvider>
-          <CartProvider>
-            <WishlistProvider>
-              <NotificationsProvider>{children}</NotificationsProvider>
-            </WishlistProvider>
-          </CartProvider>
+          <AuthProvider>
+            <CartProvider>
+              <WishlistProvider>
+                <NotificationsProvider>
+                  <ConditionalLayout>{children}</ConditionalLayout>
+                </NotificationsProvider>
+              </WishlistProvider>
+            </CartProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
