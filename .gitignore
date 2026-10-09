@@ -37,4 +37,5 @@ wrangler.toml
 
 # typescript
 *.tsbuildinfo
+next-env.d.tssrc/app/admin/courses/[id]/
 next-env.d.ts
