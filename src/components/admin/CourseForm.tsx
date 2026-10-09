@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Save, X, Loader2, Plus, Trash2 } from 'lucide-react';
 
 export interface CourseFormData {
@@ -66,7 +65,6 @@ export function CourseForm({
   onSubmit,
   mode,
 }: Props) {
-  const router = useRouter();
   const [form, setForm] = useState<CourseFormData>({
     ...emptyForm,
     ...initialData,
@@ -122,7 +120,7 @@ export function CourseForm({
     setLoading(true);
     try {
       await onSubmit(form);
-      router.push('/admin/courses');
+      window.location.href = '/admin/courses';
     } catch (err: any) {
       setError(err.message || 'خطا در ذخیره');
       setLoading(false);
@@ -531,7 +529,7 @@ export function CourseForm({
       <div className="flex gap-3 justify-end">
         <button
           type="button"
-          onClick={() => router.push('/admin/courses')}
+          onClick={() => (window.location.href = '/admin/courses')}
           className="px-6 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-800 transition"
         >
           انصراف

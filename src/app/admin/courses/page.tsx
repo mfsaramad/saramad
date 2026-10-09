@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   Plus,
@@ -39,7 +39,24 @@ export default function AdminCoursesPage() {
   const [search, setSearch] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const { items: courses, remove, isLoading, refresh } = useDb<AdminCourse>('courses');
+  const {
+    items: courses,
+    remove,
+    isLoading,
+    refresh,
+  } = useDb<AdminCourse>('courses');
+
+  // ✅ رفرش خودکار وقتی صفحه باز می‌شه
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  // ✅ رفرش خودکار وقتی صفحه focus می‌شه (وقتی از new برگشتی)
+  useEffect(() => {
+    const onFocus = () => refresh();
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [refresh]);
 
   const filtered = useMemo(() => {
     if (!search) return courses;
@@ -184,7 +201,7 @@ export default function AdminCoursesPage() {
                           <Eye className="w-4 h-4" />
                         </Link>
                         <Link
-                          href={`/admin/courses/${course.id}/edit`}
+                          href={`/admin/courses/edit?id=${course.id}`}
                           className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition"
                           aria-label="ویرایش"
                         >

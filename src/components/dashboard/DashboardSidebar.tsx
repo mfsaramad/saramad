@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toPersianNumber } from '@/lib/format';
+import { useAuth } from '@/contexts/AuthContext';
 
 const menuItems = [
   {
@@ -57,10 +58,16 @@ const menuItems = [
 
 export default function DashboardSidebar() {
   const pathname = usePathname();
+  const { user, logout } = useAuth();
 
   const isActive = (href: string, exact?: boolean) => {
     if (exact) return pathname === href;
     return pathname.startsWith(href);
+  };
+
+  const handleLogout = () => {
+    logout();
+    window.location.href = '/';
   };
 
   return (
@@ -80,15 +87,15 @@ export default function DashboardSidebar() {
               }}
             />
 
-            {/* افکت درخشش */}
+            {/* حباب تزئینی */}
             <div className="absolute -top-10 -right-10 w-40 h-40 bg-teal-400/20 rounded-full blur-3xl" />
 
             <div className="relative flex items-center gap-3">
-              {/* آواتار با حلقه رنگی */}
+              {/* آواتار با حاشیه رنگی */}
               <div className="relative">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-teal-400 via-brand-500 to-orange-500 p-1 shadow-lg">
                   <div className="w-full h-full rounded-full bg-white dark:bg-slate-900 flex items-center justify-center text-2xl font-black text-brand-800 dark:text-brand-300">
-                    ک
+                    {user?.name?.charAt(0) || '؟'}
                   </div>
                 </div>
                 {/* نقطه آنلاین */}
@@ -97,9 +104,11 @@ export default function DashboardSidebar() {
 
               <div className="min-w-0 flex-1">
                 <div className="font-black text-white truncate">
-                  کاربر مهمان
+                  {user?.name || 'کاربر مهمان'}
                 </div>
-                <div className="text-xs text-blue-100">دانشجوی سرآمد</div>
+                <div className="text-xs text-blue-100">
+                  {user?.role === 'admin' ? 'مدیر سیستم' : 'دانشجوی سرآمد'}
+                </div>
                 <div className="inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 bg-white/20 backdrop-blur border border-white/30 rounded-full text-[10px] font-bold text-white">
                   <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
                   <span>سطح طلایی</span>
@@ -154,7 +163,10 @@ export default function DashboardSidebar() {
 
           {/* Logout */}
           <div className="p-3 border-t border-slate-100 dark:border-slate-800">
-            <button className="group flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition">
+            <button
+              onClick={handleLogout}
+              className="group flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition"
+            >
               <LogOut className="w-5 h-5 group-hover:scale-110 transition-transform" />
               <span>خروج از حساب</span>
             </button>
@@ -227,7 +239,7 @@ export default function DashboardSidebar() {
 
             <h4 className="font-black text-lg mb-2">دوره‌های جدید</h4>
             <p className="text-sm text-blue-100 mb-4 leading-relaxed">
-              دوره‌های تازه سرآمد را ببین و مهارت جدید یاد بگیر
+              دوره‌های تازه سرآمد را ببین و مسیر یادگیری‌ات را ادامه بده
             </p>
 
             <Link

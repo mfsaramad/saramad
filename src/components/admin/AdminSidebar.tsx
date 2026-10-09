@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   BookOpen,
@@ -27,12 +27,11 @@ const menuItems = [
 
 export function AdminSidebar() {
   const pathname = usePathname();
-  const router = useRouter();
   const { user, logout } = useAuth();
 
   const handleLogout = () => {
     logout();
-    router.push('/');
+    window.location.href = '/';
   };
 
   return (
@@ -46,7 +45,9 @@ export function AdminSidebar() {
             <div className="font-bold text-gray-900 dark:text-white text-sm">
               پنل مدیریت
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">سرآمد</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              سرآمد
+            </div>
           </div>
         </Link>
       </div>
@@ -79,7 +80,7 @@ export function AdminSidebar() {
       <div className="p-3 border-t border-gray-200 dark:border-gray-800 space-y-1">
         {user && (
           <div className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400 truncate">
-            👤 {user.name}
+            خوش آمدی، {user.name}
           </div>
         )}
         <Link
