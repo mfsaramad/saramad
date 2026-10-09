@@ -1,12 +1,8 @@
-import type { Metadata } from 'next';
+'use client';
+
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { AdminGuard } from '@/components/admin/AdminGuard';
-
-export const metadata: Metadata = {
-  title: 'پنل مدیریت | آموزشگاه سرآمد',
-  description: 'مدیریت دوره‌ها، کاربران و سفارشات',
-};
 
 export default function AdminLayout({
   children,
