@@ -1,11 +1,14 @@
+'use client';
+
 import Link from 'next/link';
 import { ArrowLeft, Star, Package } from 'lucide-react';
-import { products } from '@/lib/data';
+import { useCollection } from '@/hooks/useCollection';
 import { toPersianNumber, formatPrice } from '@/lib/format';
 import SectionTitle from '@/components/shared/SectionTitle';
 import { cn } from '@/lib/utils';
 
 export default function ShopSection() {
+  const { data: products } = useCollection<any>('products');
   const topProducts = products.slice(0, 3);
 
   const colorMap = {
@@ -31,7 +34,7 @@ export default function ShopSection() {
 
         <div className="grid md:grid-cols-3 gap-6">
           {topProducts.map((product) => {
-            const colors = colorMap[product.color];
+            const colors = colorMap[product.color as keyof typeof colorMap] || colorMap.brand;
 
             return (
               <Link

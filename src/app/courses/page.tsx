@@ -13,7 +13,7 @@ import {
   Award,
   TrendingUp,
 } from 'lucide-react';
-import { courses } from '@/lib/data';
+import { useCollection } from '@/hooks/useCollection';
 import { toPersianNumber } from '@/lib/format';
 import CourseCard from '@/components/shared/CourseCard';
 import FadeIn from '@/components/animations/FadeIn';
@@ -27,6 +27,7 @@ type SortOption = 'newest' | 'popular' | 'cheapest' | 'expensive' | 'rating';
 const ITEMS_PER_PAGE = 6;
 
 export default function CoursesPage() {
+  const { data: courses } = useCollection<any>('courses');
   const [searchQuery, setSearchQuery] = useState('');
   const [modeFilter, setModeFilter] = useState<ModeFilter>('all');
   const [levelFilter, setLevelFilter] = useState<LevelFilter>('all');
@@ -35,9 +36,11 @@ export default function CoursesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
-  const getMinPrice = (course: typeof courses[0]) =>
+  const getMinPrice = (course: any) =>
     Math.min(
-      ...Object.values(course.price).filter((p): p is number => p !== undefined)
+      ...Object.values(course.price || {}).filter(
+        (p): p is number => p !== undefined
+      )
     );
 
   const filteredCourses = useMemo(() => {
@@ -49,7 +52,7 @@ export default function CoursesPage() {
         (c) =>
           c.title.toLowerCase().includes(q) ||
           c.description.toLowerCase().includes(q) ||
-          c.tags.some((tag) => tag.toLowerCase().includes(q))
+          c.tags.some((tag: string) => tag.toLowerCase().includes(q))
       );
     }
 
@@ -89,7 +92,7 @@ export default function CoursesPage() {
     }
 
     return result;
-  }, [searchQuery, modeFilter, levelFilter, priceFilter, sortBy]);
+  }, [courses, searchQuery, modeFilter, levelFilter, priceFilter, sortBy]);
 
   const totalPages = Math.ceil(filteredCourses.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -288,7 +291,7 @@ export default function CoursesPage() {
                   <Users className="w-5 h-5 lg:w-6 lg:h-6 text-teal-400" />
                 </div>
                 <div className="text-2xl lg:text-3xl font-black text-white">
-                  ۵٬۰۰۰+
+                  ۵,۰۰۰+
                 </div>
                 <div className="text-xs text-blue-200 mt-1">دانشجو</div>
               </div>

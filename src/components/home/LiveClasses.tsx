@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import {
   Calendar,
@@ -7,13 +9,14 @@ import {
   ArrowLeft,
   Zap,
 } from 'lucide-react';
-import { liveClasses } from '@/lib/data';
+import { useCollection } from '@/hooks/useCollection';
 import { toPersianNumber } from '@/lib/format';
 import SectionTitle from '@/components/shared/SectionTitle';
 import FadeIn from '@/components/animations/FadeIn';
 import { cn } from '@/lib/utils';
 
 export default function LiveClasses() {
+  const { data: liveClasses } = useCollection<any>('liveClasses');
   const topClasses = liveClasses.slice(0, 3);
 
   return (
@@ -53,7 +56,7 @@ export default function LiveClasses() {
         </FadeIn>
 
         <div className="grid md:grid-cols-3 gap-6">
-          {topClasses.map((cls, index) => {
+          {topClasses.map((cls: any, index: number) => {
             const percentage = Math.round(
               (cls.registered / cls.capacity) * 100
             );

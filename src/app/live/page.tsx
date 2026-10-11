@@ -11,7 +11,7 @@ import {
   Zap,
   CheckCircle2,
 } from 'lucide-react';
-import { liveClasses } from '@/lib/data';
+import { useCollection } from '@/hooks/useCollection';
 import { toPersianNumber } from '@/lib/format';
 import LiveClassCard from '@/components/live/LiveClassCard';
 import FadeIn from '@/components/animations/FadeIn';
@@ -30,13 +30,14 @@ const weeklySchedule = [
 ];
 
 export default function LivePage() {
+  const { data: liveClasses } = useCollection<any>('liveClasses');
   const [activeTab, setActiveTab] = useState<FilterType>('all');
 
   const filteredClasses = useMemo(() => {
     if (activeTab === 'all') return liveClasses;
     if (activeTab === 'live') return liveClasses.filter((c) => c.isLive);
     return liveClasses.filter((c) => !c.isLive);
-  }, [activeTab]);
+  }, [liveClasses, activeTab]);
 
   const tabs = [
     { id: 'all' as FilterType, label: 'همه کلاس‌ها', icon: '🎥' },

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { courses } from '@/lib/data';
+import { useCollection } from '@/hooks/useCollection';
 import SectionTitle from '@/components/shared/SectionTitle';
 import CourseCard from '@/components/shared/CourseCard';
 import { cn } from '@/lib/utils';
@@ -19,6 +19,16 @@ const tabs: { id: ModeFilter; label: string; icon: string }[] = [
 
 export default function PopularCourses() {
   const [activeTab, setActiveTab] = useState<ModeFilter>('all');
+
+  // خوندن دوره‌ها + اساتید از db.json + localStorage
+  const { data: coursesRaw } = useCollection<any>('courses');
+  const { data: allInstructors } = useCollection<any>('instructors');
+
+  // hydrate: instructorId → instructor
+  const courses = coursesRaw.map((c: any) => ({
+    ...c,
+    instructor: allInstructors.find((i: any) => i.id === c.instructorId),
+  }));
 
   const filteredCourses =
     activeTab === 'all'

@@ -2,18 +2,21 @@ import { Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface StarRatingProps {
-  rating: number;
+  rating?: number;
   size?: 'sm' | 'md' | 'lg';
   showNumber?: boolean;
   className?: string;
 }
 
 export default function StarRating({
-  rating,
+  rating = 0,
   size = 'sm',
   showNumber = true,
   className,
 }: StarRatingProps) {
+  const safeRating =
+    typeof rating === 'number' && !isNaN(rating) ? rating : 0;
+
   const sizes = {
     sm: 'w-3.5 h-3.5',
     md: 'w-4 h-4',
@@ -34,7 +37,7 @@ export default function StarRating({
             key={star}
             className={cn(
               sizes[size],
-              star <= Math.round(rating)
+              star <= Math.round(safeRating)
                 ? 'fill-yellow-400 text-yellow-400'
                 : 'fill-slate-200 text-slate-200'
             )}
@@ -43,7 +46,7 @@ export default function StarRating({
       </div>
       {showNumber && (
         <span className={cn('font-bold text-slate-700', textSizes[size])}>
-          {rating.toLocaleString('fa-IR', {
+          {safeRating.toLocaleString('fa-IR', {
             minimumFractionDigits: 1,
             maximumFractionDigits: 1,
           })}

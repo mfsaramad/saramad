@@ -583,45 +583,25 @@
           {
             "id": 1,
             "question": "زبان پایتون در چه سالی معرفی شد؟",
-            "options": [
-              "۱۹۸۹",
-              "۱۹۹۱",
-              "۱۹۹۵",
-              "۲۰۰۰"
-            ],
+            "options": ["۱۹۸۹", "۱۹۹۱", "۱۹۹۵", "۲۰۰۰"],
             "correctAnswer": 1
           },
           {
             "id": 2,
             "question": "کدام یک از موارد زیر یک نوع داده در پایتون نیست؟",
-            "options": [
-              "List",
-              "Tuple",
-              "Array",
-              "Dictionary"
-            ],
+            "options": ["List", "Tuple", "Array", "Dictionary"],
             "correctAnswer": 2
           },
           {
             "id": 3,
             "question": "خروجی دستور print(2 ** 3) چیست؟",
-            "options": [
-              "6",
-              "8",
-              "9",
-              "23"
-            ],
+            "options": ["6", "8", "9", "23"],
             "correctAnswer": 1
           },
           {
             "id": 4,
             "question": "در جاوااسکریپت، کدام کلمه کلیدی برای تعریف متغیر با قابلیت تغییر استفاده می‌شود؟",
-            "options": [
-              "const",
-              "let",
-              "final",
-              "static"
-            ],
+            "options": ["const", "let", "final", "static"],
             "correctAnswer": 1
           },
           {
@@ -660,11 +640,7 @@
       "reviewsCount": 145,
       "successRate": 65,
       "certificate": true,
-      "tags": [
-        "فنی و حرفه‌ای",
-        "آزمایشی",
-        "مدرک"
-      ],
+      "tags": ["فنی و حرفه‌ای", "آزمایشی", "مدرک"],
       "examData": {
         "id": "2",
         "title": "آزمون آزمایشی فنی و حرفه‌ای",
@@ -676,34 +652,19 @@
           {
             "id": 1,
             "question": "کدام یک از موارد زیر یک سیستم‌عامل نیست؟",
-            "options": [
-              "Windows",
-              "Linux",
-              "macOS",
-              "Photoshop"
-            ],
+            "options": ["Windows", "Linux", "macOS", "Photoshop"],
             "correctAnswer": 3
           },
           {
             "id": 2,
             "question": "واحد اندازه‌گیری سرعت اینترنت چیست؟",
-            "options": [
-              "مگابایت",
-              "مگابیت",
-              "گیگابایت",
-              "کیلوبایت"
-            ],
+            "options": ["مگابایت", "مگابیت", "گیگابایت", "کیلوبایت"],
             "correctAnswer": 1
           },
           {
             "id": 3,
             "question": "کدام یک از موارد زیر نرم‌افزار گرافیکی است؟",
-            "options": [
-              "Excel",
-              "Word",
-              "Photoshop",
-              "PowerPoint"
-            ],
+            "options": ["Excel", "Word", "Photoshop", "PowerPoint"],
             "correctAnswer": 2
           }
         ]
@@ -731,11 +692,7 @@
       "reviewsCount": 98,
       "successRate": 70,
       "certificate": true,
-      "tags": [
-        "حسابداری",
-        "پایان دوره",
-        "مدرک"
-      ],
+      "tags": ["حسابداری", "پایان دوره", "مدرک"],
       "examData": {
         "id": "4",
         "title": "آزمون پایانی دوره حسابداری",
@@ -758,12 +715,7 @@
           {
             "id": 2,
             "question": "کدام یک از موارد زیر جزء دارایی‌ها نیست؟",
-            "options": [
-              "نقد",
-              "بانک",
-              "حساب‌های پرداختنی",
-              "موجودی کالا"
-            ],
+            "options": ["نقد", "بانک", "حساب‌های پرداختنی", "موجودی کالا"],
             "correctAnswer": 2
           }
         ]
@@ -791,11 +743,7 @@
       "reviewsCount": 534,
       "successRate": 85,
       "certificate": false,
-      "tags": [
-        "کامپیوتر",
-        "رایگان",
-        "مقدماتی"
-      ],
+      "tags": ["کامپیوتر", "رایگان", "مقدماتی"],
       "examData": {
         "id": "5",
         "title": "آزمون رایگان مهارت‌های کامپیوتری",
@@ -807,23 +755,13 @@
           {
             "id": 1,
             "question": "کدام کلید برای کپی استفاده می‌شود؟",
-            "options": [
-              "Ctrl + V",
-              "Ctrl + C",
-              "Ctrl + X",
-              "Ctrl + Z"
-            ],
+            "options": ["Ctrl + V", "Ctrl + C", "Ctrl + X", "Ctrl + Z"],
             "correctAnswer": 1
           },
           {
             "id": 2,
             "question": "کدام یک سیستم‌عامل است؟",
-            "options": [
-              "Word",
-              "Excel",
-              "Windows",
-              "Photoshop"
-            ],
+            "options": ["Word", "Excel", "Windows", "Photoshop"],
             "correctAnswer": 2
           },
           {
@@ -862,11 +800,7 @@
       "reviewsCount": 127,
       "successRate": 72,
       "certificate": true,
-      "tags": [
-        "گرافیک",
-        "طراحی",
-        "آزمایشی"
-      ],
+      "tags": ["گرافیک", "طراحی", "آزمایشی"],
       "examData": {
         "id": "6",
         "title": "آزمون آزمایشی گرافیک و طراحی",
@@ -878,12 +812,7 @@
           {
             "id": 1,
             "question": "کدام نرم‌افزار برای طراحی گرافیکی استفاده می‌شود؟",
-            "options": [
-              "Excel",
-              "Photoshop",
-              "Word",
-              "Notepad"
-            ],
+            "options": ["Excel", "Photoshop", "Word", "Notepad"],
             "correctAnswer": 1
           },
           {
@@ -931,11 +860,7 @@
       "format": "PDF",
       "fileSize": "۴۵ مگابایت",
       "pages": 850,
-      "tags": [
-        "سوالات",
-        "فنی و حرفه‌ای",
-        "آزمون"
-      ],
+      "tags": ["سوالات", "فنی و حرفه‌ای", "آزمون"],
       "reviews": [
         {
           "id": "1",
@@ -980,11 +905,7 @@
       "format": "PDF",
       "fileSize": "۲۵ مگابایت",
       "pages": 400,
-      "tags": [
-        "پایتون",
-        "برنامه‌نویسی",
-        "جزوه"
-      ],
+      "tags": ["پایتون", "برنامه‌نویسی", "جزوه"],
       "reviews": [
         {
           "id": "1",
@@ -1024,11 +945,7 @@
       "format": "MP4",
       "fileSize": "۱۲ گیگابایت",
       "duration": 45,
-      "tags": [
-        "گرافیک",
-        "ویدیو",
-        "طراحی"
-      ],
+      "tags": ["گرافیک", "ویدیو", "طراحی"],
       "reviews": [
         {
           "id": "1",
@@ -1074,11 +991,7 @@
       "format": "PDF",
       "fileSize": "۱۸ مگابایت",
       "pages": 520,
-      "tags": [
-        "برنامه‌نویسی",
-        "سوالات",
-        "آزمون"
-      ],
+      "tags": ["برنامه‌نویسی", "سوالات", "آزمون"],
       "reviews": [
         {
           "id": "1",
@@ -1116,11 +1029,7 @@
       "format": "PDF",
       "fileSize": "۲۰ مگابایت",
       "pages": 350,
-      "tags": [
-        "حسابداری",
-        "جزوه",
-        "مالی"
-      ],
+      "tags": ["حسابداری", "جزوه", "مالی"],
       "reviews": [
         {
           "id": "1",
@@ -1160,11 +1069,7 @@
       "format": "MP4",
       "fileSize": "۸ گیگابایت",
       "duration": 20,
-      "tags": [
-        "اکسل",
-        "آفیس",
-        "ویدیو"
-      ],
+      "tags": ["اکسل", "آفیس", "ویدیو"],
       "reviews": [
         {
           "id": "1",
@@ -1207,11 +1112,7 @@
       "price": 0,
       "color": "brand",
       "icon": "🤖",
-      "tags": [
-        "هوش مصنوعی",
-        "ChatGPT",
-        "کارگاه"
-      ],
+      "tags": ["هوش مصنوعی", "ChatGPT", "کارگاه"],
       "learnings": [
         "مفاهیم پایه هوش مصنوعی",
         "کار با ChatGPT و ابزارهای مشابه",
@@ -1225,22 +1126,14 @@
           "title": "آشنایی با هوش مصنوعی",
           "instructor": "دکتر علی محمدی",
           "duration": 60,
-          "topics": [
-            "مفاهیم پایه",
-            "تاریخچه",
-            "کاربردها"
-          ]
+          "topics": ["مفاهیم پایه", "تاریخچه", "کاربردها"]
         },
         {
           "id": 2,
           "title": "کارگاه عملی ChatGPT",
           "instructor": "دکتر علی محمدی",
           "duration": 60,
-          "topics": [
-            "پرامپت‌نویسی",
-            "مثال‌های واقعی",
-            "سؤالات"
-          ]
+          "topics": ["پرامپت‌نویسی", "مثال‌های واقعی", "سؤالات"]
         }
       ],
       "isActive": true,
@@ -1267,11 +1160,7 @@
       "price": 350000,
       "color": "accent",
       "icon": "🎨",
-      "tags": [
-        "UI/UX",
-        "طراحی",
-        "کارگاه"
-      ],
+      "tags": ["UI/UX", "طراحی", "کارگاه"],
       "learnings": [
         "اصول طراحی رابط کاربری",
         "تجربه کاربری (UX)",
@@ -1285,22 +1174,14 @@
           "title": "اصول UI",
           "instructor": "مهندس سارا احمدی",
           "duration": 60,
-          "topics": [
-            "رنگ",
-            "تایپوگرافی",
-            "چیدمان"
-          ]
+          "topics": ["رنگ", "تایپوگرافی", "چیدمان"]
         },
         {
           "id": 2,
           "title": "اصول UX",
           "instructor": "مهندس سارا احمدی",
           "duration": 60,
-          "topics": [
-            "تحقیق کاربر",
-            "پرسونا",
-            "wireframe"
-          ]
+          "topics": ["تحقیق کاربر", "پرسونا", "wireframe"]
         }
       ],
       "isActive": true,
@@ -1327,11 +1208,7 @@
       "price": 0,
       "color": "brand",
       "icon": "💻",
-      "tags": [
-        "پایتون",
-        "تمرین",
-        "حل مسئله"
-      ],
+      "tags": ["پایتون", "تمرین", "حل مسئله"],
       "learnings": [
         "حل تمرین‌های واقعی",
         "الگوریتم و ساختمان داده",
@@ -1344,11 +1221,7 @@
           "title": "حل تمرین‌ها",
           "instructor": "دکتر علی محمدی",
           "duration": 120,
-          "topics": [
-            "تمرین‌های سطح متوسط",
-            "تمرین‌های پیشرفته",
-            "پرسش و پاسخ"
-          ]
+          "topics": ["تمرین‌های سطح متوسط", "تمرین‌های پیشرفته", "پرسش و پاسخ"]
         }
       ],
       "isActive": true,
@@ -1375,11 +1248,7 @@
       "price": 450000,
       "color": "teal",
       "icon": "📈",
-      "tags": [
-        "دیجیتال مارکتینگ",
-        "کسب‌وکار",
-        "کارگاه"
-      ],
+      "tags": ["دیجیتال مارکتینگ", "کسب‌وکار", "کارگاه"],
       "learnings": [
         "استراتژی محتوا",
         "سئو و بهینه‌سازی",
@@ -1393,22 +1262,14 @@
           "title": "استراتژی دیجیتال",
           "instructor": "دکتر فاطمه صادقی",
           "duration": 60,
-          "topics": [
-            "برنامه‌ریزی",
-            "کانال‌ها",
-            "بودجه"
-          ]
+          "topics": ["برنامه‌ریزی", "کانال‌ها", "بودجه"]
         },
         {
           "id": 2,
           "title": "اجرای کمپین",
           "instructor": "دکتر فاطمه صادقی",
           "duration": 60,
-          "topics": [
-            "تبلیغات",
-            "محتوا",
-            "تحلیل"
-          ]
+          "topics": ["تبلیغات", "محتوا", "تحلیل"]
         }
       ],
       "isActive": true,
@@ -1435,11 +1296,7 @@
       "price": 300000,
       "color": "accent",
       "icon": "📊",
-      "tags": [
-        "اکسل",
-        "تحلیل داده",
-        "داشبورد"
-      ],
+      "tags": ["اکسل", "تحلیل داده", "داشبورد"],
       "learnings": [
         "تحلیل داده با Pivot Table",
         "ساخت داشبورد",
@@ -1452,27 +1309,184 @@
           "title": "تحلیل داده",
           "instructor": "استاد رضا کریمی",
           "duration": 60,
-          "topics": [
-            "Pivot Table",
-            "Power Query",
-            "فرمول‌ها"
-          ]
+          "topics": ["Pivot Table", "Power Query", "فرمول‌ها"]
         },
         {
           "id": 2,
           "title": "ساخت داشبورد",
           "instructor": "استاد رضا کریمی",
           "duration": 60,
-          "topics": [
-            "نمودارها",
-            "KPI",
-            "گزارش‌گیری"
-          ]
+          "topics": ["نمودارها", "KPI", "گزارش‌گیری"]
         }
       ],
       "isActive": true,
       "createdAt": "2026-10-07T18:23:06.478Z",
       "updatedAt": "2026-10-07T18:23:06.478Z"
+    }
+  ],
+  "orders": [
+    {
+      "id": "1",
+      "orderNumber": "SRM-14040701-001",
+      "userId": "2",
+      "userName": "علی رضایی",
+      "userEmail": "user@saramad.ir",
+      "userPhone": "09123456789",
+      "items": [
+        {
+          "id": "1",
+          "type": "course",
+          "title": "برنامه‌نویسی پایتون از صفر تا پیشرفته",
+          "price": 3200000,
+          "quantity": 1,
+          "mode": "online"
+        }
+      ],
+      "subtotal": 3200000,
+      "discount": 0,
+      "total": 3200000,
+      "status": "completed",
+      "paymentMethod": "zarinpal",
+      "trackingCode": "ZP-987654321",
+      "createdAt": "۱۴۰۴/۰۷/۰۱",
+      "updatedAt": "۱۴۰۴/۰۷/۰۱"
+    },
+    {
+      "id": "2",
+      "orderNumber": "SRM-14040705-002",
+      "userId": "3",
+      "userName": "مریم احمدی",
+      "userEmail": "maryam@example.com",
+      "userPhone": "09121234567",
+      "items": [
+        {
+          "id": "2",
+          "type": "course",
+          "title": "طراحی سایت با HTML, CSS و JavaScript",
+          "price": 4800000,
+          "quantity": 1,
+          "mode": "hybrid"
+        },
+        {
+          "id": "2",
+          "type": "product",
+          "title": "جزوه جامع برنامه‌نویسی پایتون",
+          "price": 280000,
+          "quantity": 2
+        }
+      ],
+      "subtotal": 5360000,
+      "discount": 360000,
+      "total": 5000000,
+      "status": "processing",
+      "paymentMethod": "zarinpal",
+      "trackingCode": "ZP-987654322",
+      "createdAt": "۱۴۰۴/۰۷/۰۵",
+      "updatedAt": "۱۴۰۴/۰۷/۰۶"
+    },
+    {
+      "id": "3",
+      "orderNumber": "SRM-14040710-003",
+      "userId": "4",
+      "userName": "رضا کریمی",
+      "userEmail": "reza@example.com",
+      "userPhone": "09351234567",
+      "items": [
+        {
+          "id": "3",
+          "type": "course",
+          "title": "طراحی گرافیک با Photoshop و Illustrator",
+          "price": 4800000,
+          "quantity": 1,
+          "mode": "in-person"
+        }
+      ],
+      "subtotal": 4800000,
+      "discount": 0,
+      "total": 4800000,
+      "status": "pending",
+      "paymentMethod": "online",
+      "trackingCode": "",
+      "createdAt": "۱۴۰۴/۰۷/۱۰",
+      "updatedAt": "۱۴۰۴/۰۷/۱۰"
+    },
+    {
+      "id": "4",
+      "orderNumber": "SRM-14040712-004",
+      "userId": "5",
+      "userName": "سارا محمدی",
+      "userEmail": "sara@example.com",
+      "userPhone": "09121239876",
+      "items": [
+        {
+          "id": "7",
+          "type": "course",
+          "title": "آموزش گیتار از مبتدی تا پیشرفته",
+          "price": 3800000,
+          "quantity": 1,
+          "mode": "in-person"
+        }
+      ],
+      "subtotal": 3800000,
+      "discount": 0,
+      "total": 3800000,
+      "status": "cancelled",
+      "paymentMethod": "zarinpal",
+      "trackingCode": "ZP-987654323",
+      "createdAt": "۱۴۰۴/۰۷/۱۲",
+      "updatedAt": "۱۴۰۴/۰۷/۱۳"
+    }
+  ],
+  "users": [
+    {
+      "id": "1",
+      "name": "مدیر سرآمد",
+      "email": "admin@saramad.ir",
+      "phone": "09120000000",
+      "role": "admin",
+      "avatar": "/images/avatars/admin.jpg",
+      "isActive": true,
+      "createdAt": "۱۴۰۴/۰۶/۰۱"
+    },
+    {
+      "id": "2",
+      "name": "علی رضایی",
+      "email": "user@saramad.ir",
+      "phone": "09123456789",
+      "role": "user",
+      "avatar": "/images/avatars/user.jpg",
+      "isActive": true,
+      "createdAt": "۱۴۰۴/۰۶/۱۵"
+    },
+    {
+      "id": "3",
+      "name": "مریم احمدی",
+      "email": "maryam@example.com",
+      "phone": "09121234567",
+      "role": "user",
+      "avatar": "/images/avatars/user2.jpg",
+      "isActive": true,
+      "createdAt": "۱۴۰۴/۰۶/۲۰"
+    },
+    {
+      "id": "4",
+      "name": "استاد رضا کریمی",
+      "email": "reza.karimi@saramad.ir",
+      "phone": "09351234567",
+      "role": "instructor",
+      "avatar": "/images/instructors/reza-karimi.jpg",
+      "isActive": true,
+      "createdAt": "۱۴۰۴/۰۵/۱۰"
+    },
+    {
+      "id": "5",
+      "name": "سارا محمدی",
+      "email": "sara@example.com",
+      "phone": "09121239876",
+      "role": "user",
+      "avatar": "/images/avatars/user3.jpg",
+      "isActive": false,
+      "createdAt": "۱۴۰۴/۰۷/۱۲"
     }
   ]
 }

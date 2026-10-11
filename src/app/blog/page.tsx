@@ -19,7 +19,7 @@ import {
   Send,
   CheckCircle2,
 } from 'lucide-react';
-import { blogPosts } from '@/lib/data';
+import { useCollection } from '@/hooks/useCollection';
 import { toPersianNumber } from '@/lib/format';
 import Badge from '@/components/shared/Badge';
 import FadeIn from '@/components/animations/FadeIn';
@@ -37,6 +37,7 @@ const categories = [
 type SortOption = 'newest' | 'oldest';
 
 export default function BlogPage() {
+  const { data: blogPosts } = useCollection<any>('blogPosts');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
@@ -69,7 +70,7 @@ export default function BlogPage() {
     }
 
     return result;
-  }, [searchQuery, activeCategory, sortBy]);
+  }, [blogPosts, searchQuery, activeCategory, sortBy]);
 
   const totalPages = Math.ceil(filteredPosts.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;

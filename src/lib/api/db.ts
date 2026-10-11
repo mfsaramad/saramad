@@ -1,10 +1,10 @@
 /**
  * db.ts — لایه دسترسی به داده
- * 
+ *
  * ترکیب:
  *   - db.json (داده‌های اولیه)
  *   - localStorage (تغییرات کاربر)
- * 
+ *
  * نحوه کار:
  *   - خواندن: db.json + تغییرات localStorage
  *   - نوشتن: فقط localStorage (db.json دست‌نخورده می‌مونه)
@@ -26,7 +26,9 @@ export type CollectionName =
   | 'branches'
   | 'exams'
   | 'products'
-  | 'liveClasses';
+  | 'liveClasses'
+  | 'orders'
+  | 'users';
 
 export interface DbOverrides {
   // آیتم‌های جدید (اضافه شده توسط کاربر)
@@ -51,6 +53,8 @@ const emptyOverrides: DbOverrides = {
     exams: [],
     products: [],
     liveClasses: [],
+    orders: [],
+    users: [],
   },
   updated: {
     instructors: {},
@@ -61,6 +65,8 @@ const emptyOverrides: DbOverrides = {
     exams: {},
     products: {},
     liveClasses: {},
+    orders: {},
+    users: {},
   },
   deleted: {
     instructors: [],
@@ -71,6 +77,8 @@ const emptyOverrides: DbOverrides = {
     exams: [],
     products: [],
     liveClasses: [],
+    orders: [],
+    users: [],
   },
   lastUpdated: new Date().toISOString(),
 };
@@ -172,7 +180,7 @@ export function updateItem(
 ): boolean {
   const overrides = getOverrides();
 
-  // اگه توی added هست، مستقیم ویرایش کن
+  // اگه تو added هست، مستقیم ویرایش کن
   const addedIndex = overrides.added[collection].findIndex(
     (i: any) => i.id === id
   );
@@ -186,7 +194,7 @@ export function updateItem(
     return true;
   }
 
-  // وگرنه، توی updated بریز
+  // وگرنه، تو updated بریز
   overrides.updated[collection][id] = {
     ...(overrides.updated[collection][id] || {}),
     ...updates,
@@ -205,7 +213,7 @@ export function deleteItem(
 ): boolean {
   const overrides = getOverrides();
 
-  // اگه توی added هست، از اونجا حذف کن
+  // اگه تو added هست، از اونجا حذف کن
   const addedIndex = overrides.added[collection].findIndex(
     (i: any) => i.id === id
   );
@@ -243,4 +251,73 @@ export function restoreItem(
  */
 export function resetAll(): void {
   clearOverrides();
+}
+
+/* ============================================================
+   ⚙️ Settings (تنظیمات سایت)
+   ============================================================ */
+
+const SETTINGS_STORAGE_KEY = 'saramad_settings_overrides';
+
+/**
+ * خواندن تنظیمات (db.json + localStorage)
+ */
+export function getSettings(): any {
+  const base = (baseDb as any).settings || {};
+
+  if (typeof window === 'undefined') return base;
+
+  try {
+    const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
+    if (!raw) return base;
+
+    const overrides = JSON.parse(raw);
+    return {
+      ...base,
+      ...overrides,
+      // merge عمیق برای آبجکت‌های تودرتو
+      socials: { ...(base.socials || {}), ...(overrides.socials || {}) },
+      seo: { ...(base.seo || {}), ...(overrides.seo || {}) },
+    };
+  } catch {
+    return base;
+  }
+}
+
+/**
+ * بروزرسانی تنظیمات (ذخیره در localStorage)
+ */
+export function updateSettings(partial: Partial<any>): any {
+  if (typeof window === 'undefined') return partial;
+
+  try {
+    const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
+    const current = raw ? JSON.parse(raw) : {};
+
+    const merged = {
+      ...current,
+      ...partial,
+      // merge عمیق
+      socials: partial.socials
+        ? { ...(current.socials || {}), ...partial.socials }
+        : current.socials,
+      seo: partial.seo
+        ? { ...(current.seo || {}), ...partial.seo }
+        : current.seo,
+      updatedAt: new Date().toISOString(),
+    };
+
+    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(merged));
+    return merged;
+  } catch {
+    return partial;
+  }
+}
+
+/**
+ * بازگشت تنظیمات به پیش‌فرض db.json
+ */
+export function resetSettings(): void {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(SETTINGS_STORAGE_KEY);
 }
