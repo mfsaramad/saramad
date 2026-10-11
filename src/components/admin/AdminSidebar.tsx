@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -12,15 +12,17 @@ import {
   Settings,
   Home,
   LogOut,
+  Package,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const menuItems = [
   { href: '/admin', label: 'داشبورد', icon: LayoutDashboard },
   { href: '/admin/courses', label: 'دوره‌ها', icon: BookOpen },
+  { href: '/admin/instructors', label: 'اساتید', icon: GraduationCap },
+  { href: '/admin/products', label: 'محصولات', icon: Package },
   { href: '/admin/users', label: 'کاربران', icon: Users },
   { href: '/admin/orders', label: 'سفارشات', icon: ShoppingBag },
-  { href: '/admin/instructors', label: 'اساتید', icon: GraduationCap },
   { href: '/admin/blog', label: 'مقالات', icon: FileText },
   { href: '/admin/settings', label: 'تنظیمات', icon: Settings },
 ];

@@ -14,6 +14,7 @@ function LoginContent() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -23,7 +24,7 @@ function LoginContent() {
     setError('');
     setLoading(true);
 
-    const result = await login(email, password);
+    const result = await login(email, password, rememberMe);
 
     if (result.success) {
       router.push(redirect);
@@ -36,6 +37,7 @@ function LoginContent() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-950 dark:to-gray-900 p-4">
       <div className="w-full max-w-md">
+        {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl">
@@ -53,6 +55,7 @@ function LoginContent() {
           </p>
         </div>
 
+        {/* Form */}
         <form
           onSubmit={handleSubmit}
           className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 space-y-4 shadow-xl"
@@ -63,6 +66,7 @@ function LoginContent() {
             </div>
           )}
 
+          {/* Email */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
               ایمیل
@@ -78,6 +82,7 @@ function LoginContent() {
             />
           </div>
 
+          {/* Password */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
               رمز عبور
@@ -106,11 +111,14 @@ function LoginContent() {
             </div>
           </div>
 
+          {/* Remember Me + Forgot */}
           <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+            <label className="flex items-center gap-2 text-gray-600 dark:text-gray-400 cursor-pointer">
               <input
                 type="checkbox"
-                className="rounded border-gray-300 dark:border-gray-600"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
               />
               مرا به خاطر بسپار
             </label>
@@ -122,6 +130,7 @@ function LoginContent() {
             </Link>
           </div>
 
+          {/* Submit */}
           <button
             type="submit"
             disabled={loading}
@@ -140,6 +149,7 @@ function LoginContent() {
             )}
           </button>
 
+          {/* Register Link */}
           <p className="text-center text-sm text-gray-500 dark:text-gray-400">
             حساب نداری؟{' '}
             <Link
@@ -151,6 +161,7 @@ function LoginContent() {
           </p>
         </form>
 
+        {/* Demo Credentials */}
         <div className="mt-6 p-4 rounded-2xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-900/50">
           <p className="text-xs font-medium text-blue-800 dark:text-blue-300 mb-2">
             🎯 حساب‌های تست:

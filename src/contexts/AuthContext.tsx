@@ -5,17 +5,14 @@ import {
   useContext,
   useEffect,
   useState,
-  useCallback,
   ReactNode,
 } from 'react';
-import { verifyPassword, generateToken, verifyToken } from '@/lib/auth/crypto';
+import { hashPassword, verifyPassword, generateToken } from '@/lib/auth/crypto';
 import {
   USERS,
   SESSION_DURATION,
-  ACTIVITY_REFRESH_THRESHOLD,
-  MAX_LOGIN_ATTEMPTS,
-  LOCKOUT_DURATION,
   STORAGE_KEYS,
+  type AuthUser,
 } from '@/lib/auth/constants';
 
 export type UserRole = 'user' | 'admin' | 'instructor';
@@ -31,12 +28,6 @@ interface Session {
   user: User;
   token: string;
   expiresAt: number;
-  createdAt: number;
-}
-
-interface LoginAttempts {
-  count: number;
-  lockedUntil: number | null;
 }
 
 interface AuthContextType {
@@ -44,25 +35,41 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   isAdmin: boolean;
-  isInstructor: boolean;
   login: (
     email: string,
     password: string,
-    remember?: boolean
+    rememberMe?: boolean
   ) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
-  refreshSession: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const SESSION_KEY = STORAGE_KEYS.SESSION;
-const ATTEMPTS_KEY = STORAGE_KEYS.LOGIN_ATTEMPTS;
+/**
+ * Session رو از هر دو storage می‌خونه
+ * (چون Remember Me ممکنه توی localStorage باشه)
+ */
+function readSession(): Session | null {
+  if (typeof window === 'undefined') return null;
 
-function safeParse<T>(raw: string | null): T | null {
-  if (!raw) return null;
   try {
-    return JSON.parse(raw) as T;
+    // اول localStorage (Remember Me)
+    const raw =
+      localStorage.getItem(STORAGE_KEYS.SESSION) ||
+      sessionStorage.getItem(STORAGE_KEYS.SESSION);
+
+    if (!raw) return null;
+
+    const session: Session = JSON.parse(raw);
+
+    // چک انقضا
+    if (session.expiresAt <= Date.now()) {
+      localStorage.removeItem(STORAGE_KEYS.SESSION);
+      sessionStorage.removeItem(STORAGE_KEYS.SESSION);
+      return null;
+    }
+
+    return session;
   } catch {
     return null;
   }
@@ -72,138 +79,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // ── بارگذاری session ──
+  // بارگذاری اولیه session
   useEffect(() => {
-    try {
-      const raw =
-        localStorage.getItem(SESSION_KEY) ??
-        sessionStorage.getItem(SESSION_KEY);
-
-      const session = safeParse<Session>(raw);
-
-      if (session && session.expiresAt > Date.now()) {
-        const tokenValid = verifyToken(session.token, session.user.id);
-        if (tokenValid) {
-          setUser(session.user);
-        } else {
-          localStorage.removeItem(SESSION_KEY);
-          sessionStorage.removeItem(SESSION_KEY);
-        }
-      }
-    } catch {
-      // ignore
-    }
+    const session = readSession();
+    if (session) setUser(session.user);
     setIsLoading(false);
   }, []);
 
-  // ── تمدید session ──
-  const refreshSession = useCallback(() => {
-    const raw =
-      localStorage.getItem(SESSION_KEY) ??
-      sessionStorage.getItem(SESSION_KEY);
-
-    const session = safeParse<Session>(raw);
-    if (!session || !user) return;
-
-    const timeLeft = session.expiresAt - Date.now();
-
-    if (timeLeft < ACTIVITY_REFRESH_THRESHOLD && timeLeft > 0) {
-      const updated: Session = {
-        ...session,
-        expiresAt: Date.now() + SESSION_DURATION,
-      };
-
-      const storage = localStorage.getItem(SESSION_KEY)
-        ? localStorage
-        : sessionStorage;
-
-      storage.setItem(SESSION_KEY, JSON.stringify(updated));
-    }
-  }, [user]);
-
-  // ── چک خودکار انقضا (هر ۳۰ ثانیه) ──
+  // چک خودکار انقضا (هر ۱ دقیقه)
   useEffect(() => {
     if (!user) return;
 
     const interval = setInterval(() => {
-      const raw =
-        localStorage.getItem(SESSION_KEY) ??
-        sessionStorage.getItem(SESSION_KEY);
-
-      const session = safeParse<Session>(raw);
-
-      if (!session || session.expiresAt <= Date.now()) {
+      const session = readSession();
+      if (!session) {
         setUser(null);
-        localStorage.removeItem(SESSION_KEY);
-        sessionStorage.removeItem(SESSION_KEY);
       }
-    }, 30 * 1000);
+    }, 60 * 1000);
 
     return () => clearInterval(interval);
   }, [user]);
 
-  // ── همگام‌سازی بین تب‌ها ──
-  useEffect(() => {
-    const onStorage = (e: StorageEvent) => {
-      if (e.key !== SESSION_KEY) return;
-
-      if (!e.newValue) {
-        setUser(null);
-      } else {
-        const session = safeParse<Session>(e.newValue);
-        if (session && session.expiresAt > Date.now()) {
-          setUser(session.user);
-        } else {
-          setUser(null);
-        }
-      }
-    };
-
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
-  }, []);
-
-  // ── Login ──
   const login = async (
     email: string,
     password: string,
-    remember = false
+    rememberMe = false
   ): Promise<{ success: boolean; error?: string }> => {
-    // چک lockout
-    const attempts = safeParse<LoginAttempts>(
-      localStorage.getItem(ATTEMPTS_KEY)
-    );
-
-    if (attempts?.lockedUntil && attempts.lockedUntil > Date.now()) {
-      const remaining = Math.ceil(
-        (attempts.lockedUntil - Date.now()) / 1000 / 60
-      );
-      return {
-        success: false,
-        error: `حساب موقتاً قفل شده. ${remaining} دقیقه دیگه تلاش کن.`,
-      };
-    }
-
+    // شبیه‌سازی تأخیر شبکه
     await new Promise((r) => setTimeout(r, 400));
 
+    // پیدا کردن کاربر
     const found = USERS.find(
       (u) => u.email.toLowerCase() === email.toLowerCase()
     );
 
     if (!found) {
-      registerFailedAttempt();
       return { success: false, error: 'ایمیل یا رمز عبور اشتباه است' };
     }
 
+    // تأیید رمز عبور
     const isValid = await verifyPassword(password, found.passwordHash);
     if (!isValid) {
-      registerFailedAttempt();
       return { success: false, error: 'ایمیل یا رمز عبور اشتباه است' };
     }
 
-    // پاک کردن تلاش‌های ناموفق
-    localStorage.removeItem(ATTEMPTS_KEY);
-
+    // ساخت session
     const userData: User = {
       id: found.id,
       name: found.name,
@@ -213,44 +133,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const session: Session = {
       user: userData,
-      token: generateToken(found.id),
+      token: generateToken(),
       expiresAt: Date.now() + SESSION_DURATION,
-      createdAt: Date.now(),
     };
 
-    const storage = remember ? localStorage : sessionStorage;
+    // انتخاب storage بر اساس Remember Me
+    // - Remember Me: localStorage (با بستن مرورگر پاک نمیشه)
+    // - بدون Remember Me: sessionStorage (با بستن مرورگر پاک میشه)
+    const storage = rememberMe ? localStorage : sessionStorage;
 
-    localStorage.removeItem(SESSION_KEY);
-    sessionStorage.removeItem(SESSION_KEY);
+    // پاک کردن storage دیگه برای جلوگیری از تداخل
+    const otherStorage = rememberMe ? sessionStorage : localStorage;
+    otherStorage.removeItem(STORAGE_KEYS.SESSION);
 
-    storage.setItem(SESSION_KEY, JSON.stringify(session));
+    storage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
     setUser(userData);
 
     return { success: true };
   };
 
   const logout = () => {
-    localStorage.removeItem(SESSION_KEY);
-    sessionStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(STORAGE_KEYS.SESSION);
+    sessionStorage.removeItem(STORAGE_KEYS.SESSION);
     setUser(null);
   };
 
   const isAuthenticated = !!user;
   const isAdmin = user?.role === 'admin';
-  const isInstructor = user?.role === 'instructor';
 
   return (
     <AuthContext.Provider
-      value={{
-        user,
-        isLoading,
-        isAuthenticated,
-        isAdmin,
-        isInstructor,
-        login,
-        logout,
-        refreshSession,
-      }}
+      value={{ user, isLoading, isAuthenticated, isAdmin, login, logout }}
     >
       {children}
     </AuthContext.Provider>
@@ -261,27 +174,4 @@ export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');
   return ctx;
-}
-
-function registerFailedAttempt() {
-  const attempts = safeParse<LoginAttempts>(
-    localStorage.getItem(ATTEMPTS_KEY)
-  ) ?? { count: 0, lockedUntil: null };
-
-  const newCount = attempts.count + 1;
-
-  if (newCount >= MAX_LOGIN_ATTEMPTS) {
-    localStorage.setItem(
-      ATTEMPTS_KEY,
-      JSON.stringify({
-        count: newCount,
-        lockedUntil: Date.now() + LOCKOUT_DURATION,
-      })
-    );
-  } else {
-    localStorage.setItem(
-      ATTEMPTS_KEY,
-      JSON.stringify({ count: newCount, lockedUntil: null })
-    );
-  }
 }
