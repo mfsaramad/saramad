@@ -13,6 +13,7 @@ import {
   Home,
   LogOut,
   Package,
+  ClipboardList,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -21,6 +22,7 @@ const menuItems = [
   { href: '/admin/courses', label: 'دوره‌ها', icon: BookOpen },
   { href: '/admin/instructors', label: 'اساتید', icon: GraduationCap },
   { href: '/admin/products', label: 'محصولات', icon: Package },
+  { href: '/admin/exams', label: 'آزمون‌ها', icon: ClipboardList },
   { href: '/admin/users', label: 'کاربران', icon: Users },
   { href: '/admin/orders', label: 'سفارشات', icon: ShoppingBag },
   { href: '/admin/blog', label: 'مقالات', icon: FileText },
