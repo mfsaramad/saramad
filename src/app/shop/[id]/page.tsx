@@ -1,4 +1,4 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import {
   Star,
@@ -21,6 +21,7 @@ import { toPersianNumber, formatPrice } from '@/lib/format';
 import FadeIn from '@/components/animations/FadeIn';
 import StarRating from '@/components/shared/StarRating';
 import ProductCard from '@/components/shop/ProductCard';
+import AddToCartButton from '@/components/shop/AddToCartButton';
 import { cn } from '@/lib/utils';
 
 // ✅ برای Static Export
@@ -349,16 +350,17 @@ export default async function ProductDetailPage({
                     </div>
 
                     {/* دکمه */}
-                    <button
-                      className={cn(
-                        'w-full flex items-center justify-center gap-2 py-4 rounded-xl font-black text-white bg-gradient-to-l',
-                        colors.gradient,
-                        'hover:shadow-xl transition-all hover:scale-[1.02] hover:gap-3 mb-3'
-                      )}
-                    >
-                      <ShoppingCart className="w-5 h-5" />
-                      افزودن به سبد خرید
-                    </button>
+                    <AddToCartButton
+                      product={{
+                        id: product.id,
+                        slug: product.slug,
+                        title: product.title,
+                        price: product.price,
+                        originalPrice: product.originalPrice,
+                        icon: product.icon,
+                      }}
+                      gradientClass={colors.gradient}
+                    />
 
                     {/* مزایا */}
                     <div className="space-y-3 pt-6 border-t border-slate-100 dark:border-slate-800">

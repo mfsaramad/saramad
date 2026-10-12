@@ -41,20 +41,36 @@ export default function ProductCard({ product }: ProductCardProps) {
     e.preventDefault();
     e.stopPropagation();
 
-    if (inCart) return;
+    console.log('🎯 Add to cart clicked for:', product.title);
+    console.log('🎯 Product ID:', product.id);
+    console.log('🎯 inCart:', inCart);
+
+    if (inCart) {
+      console.log('⚠️ Already in cart');
+      return;
+    }
 
     setIsAdding(true);
 
-    addItem({
+    const cartItem = {
       id: `product-${product.id}`,
       slug: product.slug,
       title: product.title,
-      type: 'product',
+      type: 'product' as const,
       price: product.price,
       originalPrice: product.originalPrice,
       icon: product.icon,
       quantity: 1,
-    });
+    };
+
+    console.log('🎯 Adding item:', cartItem);
+
+    try {
+      addItem(cartItem);
+      console.log('✅ Item added successfully');
+    } catch (err) {
+      console.error('❌ Error adding item:', err);
+    }
 
     setTimeout(() => setIsAdding(false), 800);
   };
@@ -65,7 +81,6 @@ export default function ProductCard({ product }: ProductCardProps) {
         href={`/shop/${product.slug}`}
         className="block flex-1 flex flex-col"
       >
-        {/* تصویر */}
         <div
           className={cn(
             'relative aspect-[16/10] flex items-center justify-center text-[100px]',
@@ -88,7 +103,6 @@ export default function ProductCard({ product }: ProductCardProps) {
           )}
         </div>
 
-        {/* محتوا */}
         <div className="p-6 flex-1 flex flex-col">
           <div className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">
             {product.typeLabel}
@@ -102,7 +116,6 @@ export default function ProductCard({ product }: ProductCardProps) {
             {product.description}
           </p>
 
-          {/* امتیاز و فروش */}
           <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 pb-4 border-b border-slate-100 dark:border-slate-800 mt-auto">
             <div className="flex items-center gap-1">
               <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
@@ -116,7 +129,6 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
       </Link>
 
-      {/* قیمت و دکمه‌ها */}
       <div className="px-6 pb-6">
         <div className="flex items-end justify-between mb-4">
           <div>
@@ -150,14 +162,15 @@ export default function ProductCard({ product }: ProductCardProps) {
             </Link>
           ) : (
             <button
+              type="button"
               onClick={handleAddToCart}
               disabled={isAdding}
               className={cn(
-                'flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl font-bold text-sm transition-all',
+                'flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl font-bold text-sm transition-all cursor-pointer',
                 isAdding
-                  ? 'bg-teal-100 dark:bg-teal-950/50 text-teal-700 dark:text-teal-300 cursor-wait'
+                  ? 'bg-teal-100 dark:bg-teal-950/50 text-teal-700 dark:text-teal-300'
                   : cn(
-                      'bg-gradient-to-l text-white hover:shadow-xl hover:scale-[1.02] active:scale-95',
+                      'bg-gradient-to-l text-white hover:shadow-xl',
                       colors.gradient
                     )
               )}

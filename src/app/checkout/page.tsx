@@ -2,156 +2,260 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   User,
   Mail,
   Phone,
   MapPin,
   CreditCard,
-  Building2,
-  Wallet,
   CheckCircle2,
-  ArrowLeft,
   ArrowRight,
+  ArrowLeft,
   ShoppingBag,
   Shield,
-  Lock,
+  Trash2,
+  Loader2,
 } from 'lucide-react';
-import { courses } from '@/lib/data';
-import {
-  toPersianNumber,
-  formatPrice,
-  getModeLabel,
-  getModeIcon,
-} from '@/lib/format';
+import { useCart } from '@/contexts/CartContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useDb } from '@/hooks/useDb';
+import { toPersianNumber, formatPrice } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
-type Step = 1 | 2 | 3 | 4;
-type PaymentMethod = 'online' | 'installment' | 'wallet';
-type CourseMode = 'in-person' | 'online' | 'hybrid';
+type Step = 1 | 2 | 3;
+
+interface OrderItem {
+  id: string;
+  type: string;
+  title: string;
+  price: number;
+  quantity: number;
+  mode?: string;
+}
+
+interface Order {
+  id: string;
+  orderNumber: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  userPhone: string;
+  items: OrderItem[];
+  subtotal: number;
+  discount: number;
+  total: number;
+  status: string;
+  paymentMethod: string;
+  trackingCode: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export default function CheckoutPage() {
-  const course = courses[0];
+  const router = useRouter();
+  const { user } = useAuth();
+  const { items, totalPrice, clearCart } = useCart();
+  const { add: addOrder } = useDb<Order>('orders');
+
   const [step, setStep] = useState<Step>(1);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [orderNumber, setOrderNumber] = useState('');
+  const [error, setError] = useState('');
+
   const [personalInfo, setPersonalInfo] = useState({
-    name: '',
-    email: '',
+    name: user?.name || '',
+    email: user?.email || '',
     phone: '',
     address: '',
   });
 
-  const availableModes = Object.keys(course.price).filter(
-    (key) => course.price[key as CourseMode] !== undefined
-  ) as CourseMode[];
+  const [paymentMethod, setPaymentMethod] = useState('zarinpal');
 
-  const [selectedMode, setSelectedMode] = useState<CourseMode>(
-    availableModes[0] || 'online'
-  );
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('online');
+  const formatDate = () => {
+    const now = new Date();
+    const year = now.getFullYear() - 621;
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}/${month}/${day}`;
+  };
 
-  const currentPrice = course.price[selectedMode] || 0;
-  const taxAmount = Math.round(currentPrice * 0.09);
-  const finalPrice = currentPrice + taxAmount;
+  const handleNext = () => {
+    setError('');
 
-  const steps = [
-    { id: 1, label: 'اطلاعات شخصی', icon: User },
-    { id: 2, label: 'نوع دوره', icon: ShoppingBag },
-    { id: 3, label: 'روش پرداخت', icon: CreditCard },
-    { id: 4, label: 'تأیید نهایی', icon: CheckCircle2 },
-  ];
+    if (step === 1) {
+      if (!personalInfo.name.trim()) return setError('نام الزامی است');
+      if (!personalInfo.email.trim()) return setError('ایمیل الزامی است');
+      if (!personalInfo.phone.trim()) return setError('شماره تماس الزامی است');
+    }
 
-  const paymentMethods = [
-    {
-      id: 'online' as PaymentMethod,
-      title: 'پرداخت آنلاین',
-      icon: CreditCard,
-      desc: 'کارت بانکی',
-    },
-    {
-      id: 'installment' as PaymentMethod,
-      title: 'پرداخت اقساطی',
-      icon: Building2,
-      desc: 'تا ۳ قسط',
-    },
-    {
-      id: 'wallet' as PaymentMethod,
-      title: 'کیف پول',
-      icon: Wallet,
-      desc: 'موجودی کیف پول',
-    },
-  ];
+    setStep((s) => Math.min(3, s + 1) as Step);
+  };
 
-  // ===== صفحه موفقیت =====
-  if (isSuccess) {
+  const handleBack = () => {
+    setStep((s) => Math.max(1, s - 1) as Step);
+  };
+
+  const handleSubmit = async () => {
+    setError('');
+
+    if (items.length === 0) {
+      return setError('سبد خرید خالی است');
+    }
+
+    setLoading(true);
+
+    try {
+      // ساخت شماره سفارش
+      const orderNum = `SRM-${Date.now().toString().slice(-8)}`;
+
+      // ساخت آیتم‌های سفارش
+      const orderItems: OrderItem[] = items.map((item) => ({
+        id: item.id,
+        type: item.type,
+        title: item.title,
+        price: item.price,
+        quantity: item.quantity || 1,
+        mode: item.mode,
+      }));
+
+      const date = formatDate();
+
+      // ساخت سفارش
+      const newOrder: Omit<Order, 'id'> & { id?: string } = {
+        orderNumber: orderNum,
+        userId: user?.id || 'guest',
+        userName: personalInfo.name,
+        userEmail: personalInfo.email,
+        userPhone: personalInfo.phone,
+        items: orderItems,
+        subtotal: totalPrice,
+        discount: 0,
+        total: totalPrice,
+        status: 'pending',
+        paymentMethod,
+        trackingCode: `TRK-${Date.now().toString().slice(-10)}`,
+        createdAt: date,
+        updatedAt: date,
+      };
+
+      // ثبت سفارش
+      addOrder(newOrder as any);
+
+      // پاک کردن سبد
+      clearCart();
+
+      // نمایش موفقیت
+      setOrderNumber(orderNum);
+      setSuccess(true);
+      setLoading(false);
+    } catch (err: any) {
+      console.error('خطا در ثبت سفارش:', err);
+      setError('خطا در ثبت سفارش. لطفاً دوباره تلاش کنید.');
+      setLoading(false);
+    }
+  };
+
+  // ==================== صفحه خالی ====================
+  if (items.length === 0 && !success) {
     return (
-      <div className="min-h-screen bg-slate-50 pt-32 pb-16">
-        <div className="max-w-2xl mx-auto px-4 text-center">
-          <div className="bg-white rounded-3xl shadow-2xl p-12">
-            <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center mb-6 shadow-2xl shadow-teal-500/30 animate-bounce">
-              <CheckCircle2 className="w-12 h-12 text-white" strokeWidth={3} />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-teal-50 dark:from-gray-950 dark:to-gray-900 p-4">
+        <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-xl p-12 max-w-md w-full text-center">
+          <div className="w-24 h-24 mx-auto rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-6">
+            <ShoppingBag className="w-12 h-12 text-gray-400" />
+          </div>
+          <h1 className="text-2xl font-black text-gray-900 dark:text-white mb-3">
+            سبد خرید خالی است
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400 mb-6">
+            برای ادامه، ابتدا محصولی به سبد اضافه کنید
+          </p>
+          <Link
+            href="/courses"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-l from-blue-600 to-teal-600 text-white rounded-xl font-bold hover:shadow-xl transition-all"
+          >
+            <ArrowRight className="w-5 h-5" />
+            مشاهده دوره‌ها
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // ==================== صفحه موفقیت ====================
+  if (success) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-teal-50 to-blue-50 dark:from-gray-950 dark:to-gray-900 p-4">
+        <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl p-12 max-w-md w-full text-center">
+          <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center mb-6 shadow-2xl shadow-teal-500/30 animate-bounce">
+            <CheckCircle2 className="w-12 h-12 text-white" strokeWidth={3} />
+          </div>
+
+          <h1 className="text-3xl font-black text-gray-900 dark:text-white mb-3">
+            سفارش با موفقیت ثبت شد!
+          </h1>
+
+          <p className="text-gray-500 dark:text-gray-400 mb-6">
+            از خرید شما سپاسگزاریم. اطلاعات سفارش:
+          </p>
+
+          <div className="p-5 bg-teal-50 dark:bg-teal-900/20 rounded-2xl mb-6">
+            <div className="text-sm text-teal-600 dark:text-teal-400 mb-1">
+              شماره سفارش
             </div>
-            <h1 className="text-3xl font-black text-slate-800 mb-4">
-              🎉 ثبت‌نام با موفقیت انجام شد!
-            </h1>
-            <p className="text-slate-600 mb-8">
-              شما در دوره «{course.title}» ثبت‌نام کردید.
-            </p>
-            <div className="bg-slate-50 rounded-2xl p-5 mb-8">
-              <div className="text-xs text-slate-500 mb-2">
-                کد پیگیری سفارش
-              </div>
-              <div className="text-2xl font-black text-blue-800 tracking-wider">
-                SRM-{toPersianNumber(new Date().getFullYear())}-
-                {toPersianNumber(Math.floor(Math.random() * 9000) + 1000)}
-              </div>
+            <div className="text-lg font-black text-teal-800 dark:text-teal-300" dir="ltr">
+              {orderNumber}
             </div>
-            <div className="flex flex-wrap gap-3 justify-center">
-              <Link
-                href="/dashboard"
-                className="inline-flex items-center gap-2 px-7 py-3.5 bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white rounded-xl font-black hover:shadow-xl transition-all hover:gap-3"
-              >
-                <User className="w-5 h-5" />
-                ورود به پنل کاربری
-              </Link>
-              <Link
-                href="/courses"
-                className="inline-flex items-center gap-2 px-7 py-3.5 border-2 border-blue-800 text-blue-800 rounded-xl font-bold hover:bg-blue-800 hover:text-white transition-all"
-              >
-                <ShoppingBag className="w-5 h-5" />
-                دوره‌های دیگر
-              </Link>
-            </div>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <Link
+              href="/dashboard/orders"
+              className="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-gradient-to-l from-blue-600 to-teal-600 text-white rounded-xl font-black hover:shadow-xl transition-all"
+            >
+              مشاهده سفارشات
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+            <Link
+              href="/courses"
+              className="inline-flex items-center justify-center gap-2 px-7 py-3.5 border-2 border-blue-800 dark:border-blue-600 text-blue-800 dark:text-blue-400 rounded-xl font-bold hover:bg-blue-800 hover:text-white transition-all"
+            >
+              ادامه خرید
+            </Link>
           </div>
         </div>
       </div>
     );
   }
 
-  // ===== فرم اصلی =====
+  // ==================== مراحل ====================
+  const steps = [
+    { id: 1, label: 'اطلاعات' },
+    { id: 2, label: 'پرداخت' },
+    { id: 3, label: 'تأیید' },
+  ];
+
   return (
-    <div className="min-h-screen bg-slate-50 pt-32 pb-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* عنوان */}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50 dark:from-gray-950 dark:to-gray-900 py-12 px-4">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-100 text-blue-800 rounded-full text-sm font-bold mb-4">
-            <ShoppingBag className="w-4 h-4" />
-            <span>تکمیل خرید</span>
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 rounded-full text-sm font-bold mb-4">
+            <Shield className="w-4 h-4" />
+            پرداخت امن
           </div>
-          <h1 className="text-3xl lg:text-4xl font-black text-slate-800 mb-3">
-            نهایی‌سازی ثبت‌نام
+          <h1 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white">
+            تکمیل خرید
           </h1>
-          <p className="text-slate-600">
-            در چند مرحله ساده، ثبت‌نام خود را تکمیل کنید
-          </p>
         </div>
 
         {/* Stepper */}
         <div className="flex items-center justify-center gap-2 mb-10 flex-wrap">
           {steps.map((s, idx) => {
-            const Icon = s.icon;
-            const isActive = step === s.id;
             const isDone = step > s.id;
+            const isActive = step === s.id;
+
             return (
               <div key={s.id} className="flex items-center">
                 <div className="flex flex-col items-center gap-2">
@@ -160,30 +264,26 @@ export default function CheckoutPage() {
                       'w-12 h-12 rounded-2xl flex items-center justify-center font-black transition-all',
                       isDone && 'bg-teal-500 text-white shadow-lg',
                       isActive &&
-                        'bg-gradient-to-br from-[#1e3a8a] to-[#0d9488] text-white shadow-lg scale-110',
-                      !isActive && !isDone && 'bg-slate-200 text-slate-500'
+                        'bg-gradient-to-br from-blue-600 to-teal-600 text-white shadow-lg',
+                      !isDone && !isActive && 'bg-gray-200 dark:bg-gray-800 text-gray-500'
                     )}
                   >
-                    {isDone ? (
-                      <CheckCircle2 className="w-6 h-6" />
-                    ) : (
-                      <Icon className="w-5 h-5" />
-                    )}
+                    {isDone ? <CheckCircle2 className="w-6 h-6" /> : s.id}
                   </div>
-                  <span
+                  <div
                     className={cn(
-                      'text-xs font-bold whitespace-nowrap',
-                      isActive ? 'text-blue-800' : 'text-slate-500'
+                      'text-xs font-bold',
+                      isActive ? 'text-blue-800 dark:text-blue-400' : 'text-gray-500'
                     )}
                   >
                     {s.label}
-                  </span>
+                  </div>
                 </div>
                 {idx < steps.length - 1 && (
                   <div
                     className={cn(
-                      'w-12 sm:w-20 h-1 rounded-full mx-2 mb-6',
-                      step > s.id ? 'bg-teal-500' : 'bg-slate-200'
+                      'w-12 md:w-24 h-1 mx-2 rounded',
+                      isDone ? 'bg-teal-500' : 'bg-gray-200 dark:bg-gray-800'
                     )}
                   />
                 )}
@@ -192,379 +292,309 @@ export default function CheckoutPage() {
           })}
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* فرم */}
+        {/* Error */}
+        {error && (
+          <div className="max-w-4xl mx-auto mb-6 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 text-sm text-red-600 dark:text-red-400">
+            {error}
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main Content */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 lg:p-8">
-              {/* مرحله ۱ */}
+            <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-xl p-6 md:p-8">
+              {/* ============ مرحله ۱: اطلاعات ============ */}
               {step === 1 && (
                 <div>
-                  <h2 className="text-2xl font-black text-slate-800 mb-6 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
-                      <User className="w-5 h-5 text-blue-800" />
+                  <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-6 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                      <User className="w-5 h-5 text-blue-800 dark:text-blue-400" />
                     </div>
                     اطلاعات شخصی
                   </h2>
-                  <div className="space-y-5">
+
+                  <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-2">
+                      <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
                         نام و نام خانوادگی *
                       </label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          value={personalInfo.name}
-                          onChange={(e) =>
-                            setPersonalInfo({
-                              ...personalInfo,
-                              name: e.target.value,
-                            })
-                          }
-                          placeholder="مثلاً: علی محمدی"
-                          className="w-full pr-12 pl-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 transition"
-                        />
-                        <User className="w-5 h-5 text-slate-400 absolute top-1/2 right-4 -translate-y-1/2" />
-                      </div>
+                      <input
+                        type="text"
+                        value={personalInfo.name}
+                        onChange={(e) =>
+                          setPersonalInfo({ ...personalInfo, name: e.target.value })
+                        }
+                        placeholder="مثلاً: علی رضایی"
+                        className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:border-blue-500 outline-none text-sm"
+                      />
                     </div>
-                    <div className="grid sm:grid-cols-2 gap-5">
-                      <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-2">
-                          ایمیل *
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="email"
-                            value={personalInfo.email}
-                            onChange={(e) =>
-                              setPersonalInfo({
-                                ...personalInfo,
-                                email: e.target.value,
-                              })
-                            }
-                            placeholder="example@email.com"
-                            className="w-full pr-12 pl-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 transition"
-                          />
-                          <Mail className="w-5 h-5 text-slate-400 absolute top-1/2 right-4 -translate-y-1/2" />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-2">
-                          شماره تماس *
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="tel"
-                            value={personalInfo.phone}
-                            onChange={(e) =>
-                              setPersonalInfo({
-                                ...personalInfo,
-                                phone: e.target.value,
-                              })
-                            }
-                            placeholder="۰۹۳۶۲۸۴۷۹۲۲"
-                            className="w-full pr-12 pl-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 transition"
-                          />
-                          <Phone className="w-5 h-5 text-slate-400 absolute top-1/2 right-4 -translate-y-1/2" />
-                        </div>
-                      </div>
-                    </div>
+
                     <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-2">
-                        آدرس
+                      <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                        ایمیل *
                       </label>
-                      <div className="relative">
-                        <textarea
-                          rows={3}
-                          value={personalInfo.address}
-                          onChange={(e) =>
-                            setPersonalInfo({
-                              ...personalInfo,
-                              address: e.target.value,
-                            })
-                          }
-                          placeholder="آدرس خود را وارد کنید..."
-                          className="w-full pr-12 pl-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 transition resize-none"
-                        />
-                        <MapPin className="w-5 h-5 text-slate-400 absolute top-4 right-4" />
-                      </div>
+                      <input
+                        type="email"
+                        value={personalInfo.email}
+                        onChange={(e) =>
+                          setPersonalInfo({ ...personalInfo, email: e.target.value })
+                        }
+                        placeholder="example@email.com"
+                        dir="ltr"
+                        className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:border-blue-500 outline-none text-sm text-left"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                        شماره تماس *
+                      </label>
+                      <input
+                        type="tel"
+                        value={personalInfo.phone}
+                        onChange={(e) =>
+                          setPersonalInfo({ ...personalInfo, phone: e.target.value })
+                        }
+                        placeholder="09123456789"
+                        dir="ltr"
+                        className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:border-blue-500 outline-none text-sm text-left"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                        آدرس (اختیاری)
+                      </label>
+                      <input
+                        type="text"
+                        value={personalInfo.address}
+                        onChange={(e) =>
+                          setPersonalInfo({ ...personalInfo, address: e.target.value })
+                        }
+                        placeholder="آدرس شما"
+                        className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:border-blue-500 outline-none text-sm"
+                      />
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* مرحله ۲ */}
+              {/* ============ مرحله ۲: پرداخت ============ */}
               {step === 2 && (
                 <div>
-                  <h2 className="text-2xl font-black text-slate-800 mb-6 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-teal-100 flex items-center justify-center">
-                      <ShoppingBag className="w-5 h-5 text-teal-600" />
-                    </div>
-                    انتخاب نوع دوره
-                  </h2>
-                  <div className="mb-6 p-5 bg-slate-50 rounded-2xl">
-                    <div className="font-black text-slate-800 mb-2">
-                      {course.title}
-                    </div>
-                    <div className="text-xs text-slate-500">
-                      {toPersianNumber(course.duration)} ساعت •{' '}
-                      {toPersianNumber(course.sessions)} جلسه
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    {availableModes.map((mode) => {
-                      const isSelected = selectedMode === mode;
-                      const price = course.price[mode] || 0;
-                      const label =
-                        mode === 'in-person'
-                          ? 'حضوری'
-                          : mode === 'online'
-                          ? 'آنلاین'
-                          : 'ترکیبی';
-                      const icon =
-                        mode === 'in-person'
-                          ? '🏢'
-                          : mode === 'online'
-                          ? '💻'
-                          : '🔄';
-                      return (
-                        <button
-                          key={mode}
-                          onClick={() => setSelectedMode(mode)}
-                          className={cn(
-                            'w-full flex items-center gap-4 p-5 rounded-2xl border-2 transition-all text-right',
-                            isSelected
-                              ? 'border-blue-500 bg-blue-50 shadow-md'
-                              : 'border-slate-200 bg-slate-50 hover:border-slate-300'
-                          )}
-                        >
-                          <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center text-2xl flex-shrink-0">
-                            {icon}
-                          </div>
-                          <div className="flex-1">
-                            <div className="font-black text-slate-800">
-                              {label}
-                            </div>
-                          </div>
-                          <div className="font-black text-blue-800">
-                            {formatPrice(price)}
-                          </div>
-                          <div
-                            className={cn(
-                              'w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0',
-                              isSelected
-                                ? 'bg-blue-800 border-blue-800'
-                                : 'border-slate-300'
-                            )}
-                          >
-                            {isSelected && (
-                              <CheckCircle2 className="w-4 h-4 text-white" />
-                            )}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* مرحله ۳ */}
-              {step === 3 && (
-                <div>
-                  <h2 className="text-2xl font-black text-slate-800 mb-6 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center">
-                      <CreditCard className="w-5 h-5 text-orange-600" />
+                  <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-6 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center">
+                      <CreditCard className="w-5 h-5 text-teal-600 dark:text-teal-400" />
                     </div>
                     روش پرداخت
                   </h2>
+
                   <div className="space-y-3">
-                    {paymentMethods.map((method) => {
-                      const Icon = method.icon;
-                      const isSelected = paymentMethod === method.id;
-                      return (
-                        <button
-                          key={method.id}
-                          onClick={() => setPaymentMethod(method.id)}
+                    {[
+                      { id: 'zarinpal', label: 'زرین‌پال', desc: 'پرداخت آنلاین با کارت بانکی' },
+                      { id: 'idpay', label: 'آیدی‌پی', desc: 'درگاه پرداخت امن' },
+                      { id: 'wallet', label: 'کیف پول', desc: 'پرداخت از موجودی کیف پول' },
+                    ].map((method) => (
+                      <button
+                        key={method.id}
+                        type="button"
+                        onClick={() => setPaymentMethod(method.id)}
+                        className={cn(
+                          'w-full flex items-center gap-4 p-5 rounded-2xl border-2 transition-all text-right',
+                          paymentMethod === method.id
+                            ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/20'
+                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                        )}
+                      >
+                        <div
                           className={cn(
-                            'w-full flex items-center gap-4 p-5 rounded-2xl border-2 transition-all text-right',
-                            isSelected
-                              ? 'border-blue-500 bg-blue-50 shadow-md'
-                              : 'border-slate-200 bg-slate-50 hover:border-slate-300'
+                            'w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0',
+                            paymentMethod === method.id
+                              ? 'border-teal-500 bg-teal-500'
+                              : 'border-gray-300'
                           )}
                         >
-                          <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
-                            <Icon className="w-6 h-6 text-blue-800" />
+                          {paymentMethod === method.id && (
+                            <CheckCircle2 className="w-4 h-4 text-white" />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-bold text-gray-900 dark:text-white mb-1">
+                            {method.label}
                           </div>
-                          <div className="flex-1">
-                            <div className="font-black text-slate-800">
-                              {method.title}
-                            </div>
-                            <div className="text-xs text-slate-500">
-                              {method.desc}
-                            </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            {method.desc}
                           </div>
-                          <div
-                            className={cn(
-                              'w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0',
-                              isSelected
-                                ? 'bg-blue-800 border-blue-800'
-                                : 'border-slate-300'
-                            )}
-                          >
-                            {isSelected && (
-                              <CheckCircle2 className="w-4 h-4 text-white" />
-                            )}
-                          </div>
-                        </button>
-                      );
-                    })}
+                        </div>
+                      </button>
+                    ))}
                   </div>
-                  <div className="mt-6 p-4 bg-teal-50 border-r-4 border-teal-500 rounded-xl flex items-start gap-2">
+
+                  <div className="mt-6 p-4 bg-teal-50 dark:bg-teal-900/20 border-r-4 border-teal-500 rounded-xl flex items-start gap-2">
                     <Shield className="w-5 h-5 text-teal-600 flex-shrink-0 mt-0.5" />
-                    <p className="text-sm text-teal-800">
-                      پرداخت شما در بستر امن انجام می‌شود.
+                    <p className="text-sm text-teal-800 dark:text-teal-300">
+                      پرداخت شما در محیطی امن انجام می‌شود.
                     </p>
                   </div>
                 </div>
               )}
 
-              {/* مرحله ۴ */}
-              {step === 4 && (
+              {/* ============ مرحله ۳: تأیید ============ */}
+              {step === 3 && (
                 <div>
-                  <h2 className="text-2xl font-black text-slate-800 mb-6 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
-                      <CheckCircle2 className="w-5 h-5 text-blue-800" />
+                  <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-6 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                      <CheckCircle2 className="w-5 h-5 text-blue-800 dark:text-blue-400" />
                     </div>
                     تأیید نهایی
                   </h2>
+
                   <div className="space-y-4">
-                    <div className="p-5 bg-slate-50 rounded-2xl">
-                      <h3 className="font-black text-slate-800 mb-3">
-                        اطلاعات شخصی
+                    <div className="p-5 bg-gray-50 dark:bg-gray-800 rounded-2xl">
+                      <h3 className="font-black text-gray-800 dark:text-white mb-3">
+                        اطلاعات شما
                       </h3>
-                      <div className="text-sm text-slate-600 space-y-1">
-                        <div>👤 {personalInfo.name || '—'}</div>
-                        <div>📧 {personalInfo.email || '—'}</div>
-                        <div>📱 {personalInfo.phone || '—'}</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
+                        <div>نام: {personalInfo.name || '—'}</div>
+                        <div dir="ltr">ایمیل: {personalInfo.email || '—'}</div>
+                        <div dir="ltr">تلفن: {personalInfo.phone || '—'}</div>
                       </div>
                     </div>
-                    <div className="p-5 bg-slate-50 rounded-2xl">
-                      <h3 className="font-black text-slate-800 mb-3">دوره</h3>
-                      <div className="font-bold text-slate-800 text-sm mb-1">
-                        {course.title}
-                      </div>
-                      <div className="text-xs text-slate-500">
-                        {getModeIcon(selectedMode)}{' '}
-                        {getModeLabel(selectedMode)}
+
+                    <div className="p-5 bg-gray-50 dark:bg-gray-800 rounded-2xl">
+                      <h3 className="font-black text-gray-800 dark:text-white mb-3">
+                        روش پرداخت
+                      </h3>
+                      <div className="text-sm text-gray-600 dark:text-gray-300">
+                        {paymentMethod === 'zarinpal' && 'زرین‌پال'}
+                        {paymentMethod === 'idpay' && 'آیدی‌پی'}
+                        {paymentMethod === 'wallet' && 'کیف پول'}
                       </div>
                     </div>
-                    <label className="flex items-start gap-3 p-4 bg-slate-50 rounded-2xl cursor-pointer">
-                      <input
-                        type="checkbox"
-                        defaultChecked
-                        className="w-5 h-5 mt-0.5"
-                      />
-                      <span className="text-sm text-slate-600">
-                        قوانین و مقررات سرآمد را می‌پذیرم.
-                      </span>
-                    </label>
                   </div>
                 </div>
               )}
 
               {/* دکمه‌ها */}
-              <div className="flex items-center justify-between gap-3 mt-8 pt-6 border-t border-slate-100">
+              <div className="flex items-center justify-between gap-3 mt-8 pt-6 border-t border-gray-100 dark:border-gray-800">
                 <button
-                  onClick={() => setStep((s) => Math.max(1, s - 1) as Step)}
+                  type="button"
+                  onClick={handleBack}
                   disabled={step === 1}
                   className={cn(
                     'flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition',
                     step === 1
-                      ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                      : 'bg-white border-2 border-slate-200 text-slate-700 hover:bg-slate-50'
+                      ? 'opacity-0 cursor-default'
+                      : 'border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                   )}
                 >
                   <ArrowRight className="w-4 h-4" />
                   مرحله قبل
                 </button>
 
-                {step < 4 ? (
+                {step < 3 ? (
                   <button
-                    onClick={() => setStep((s) => Math.min(4, s + 1) as Step)}
-                    className="flex items-center gap-2 px-6 py-3 bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white rounded-xl font-black hover:shadow-xl transition-all hover:gap-3"
+                    type="button"
+                    onClick={handleNext}
+                    className="flex items-center gap-2 px-6 py-3 bg-gradient-to-l from-blue-600 to-teal-600 text-white rounded-xl font-black hover:shadow-xl transition-all hover:gap-3"
                   >
                     مرحله بعد
                     <ArrowLeft className="w-4 h-4" />
                   </button>
                 ) : (
                   <button
-                    onClick={() => setIsSuccess(true)}
-                    className="flex items-center gap-2 px-7 py-3.5 rounded-xl font-black text-white bg-gradient-to-l from-teal-500 to-teal-700 hover:shadow-xl transition-all"
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={loading}
+                    className="flex items-center gap-2 px-7 py-3.5 rounded-xl font-black text-white bg-gradient-to-l from-teal-500 to-teal-700 hover:shadow-xl transition-all disabled:opacity-50"
                   >
-                    <Lock className="w-5 h-5" />
-                    پرداخت و تکمیل
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        در حال ثبت...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-5 h-5" />
+                        ثبت و پرداخت
+                      </>
+                    )}
                   </button>
                 )}
               </div>
             </div>
           </div>
 
-          {/* ستون راست */}
+          {/* Sidebar - خلاصه سفارش */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 lg:sticky lg:top-24 space-y-4">
-              <h3 className="text-lg font-black text-slate-800 mb-5 flex items-center gap-2">
-                <ShoppingBag className="w-5 h-5 text-blue-800" />
+            <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 lg:sticky lg:top-24 space-y-4">
+              <h3 className="text-lg font-black text-gray-800 dark:text-white mb-5 flex items-center gap-2">
+                <ShoppingBag className="w-5 h-5 text-blue-800 dark:text-blue-400" />
                 خلاصه سفارش
               </h3>
-              <div className="flex gap-3 mb-5 pb-5 border-b border-slate-100">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-100 to-teal-100 flex items-center justify-center text-3xl flex-shrink-0">
-                  🎓
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-bold text-sm text-slate-800 line-clamp-2 mb-1">
-                    {course.title}
+
+              {/* Items */}
+              <div className="space-y-3 mb-5 pb-5 border-b border-gray-100 dark:border-gray-800">
+                {items.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex gap-3 pb-3 border-b border-gray-50 dark:border-gray-800 last:border-0"
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-100 to-teal-100 dark:from-blue-900/30 dark:to-teal-900/30 flex items-center justify-center text-xl flex-shrink-0">
+                      {item.type === 'course' ? '📚' : '📦'}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-bold text-gray-800 dark:text-white truncate">
+                        {item.title}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        {item.quantity ? `${toPersianNumber(item.quantity)} عدد` : '۱ عدد'}
+                      </div>
+                    </div>
+                    <div className="text-sm font-bold text-gray-800 dark:text-white whitespace-nowrap">
+                      {formatPrice(item.price)}
+                    </div>
                   </div>
-                  <div className="text-xs text-slate-500">
-                    {getModeIcon(selectedMode)} {getModeLabel(selectedMode)}
-                  </div>
-                </div>
+                ))}
               </div>
-              <div className="space-y-3 mb-5 pb-5 border-b border-slate-100 text-sm">
+
+              {/* Totals */}
+              <div className="space-y-3 mb-5 pb-5 border-b border-gray-100 dark:border-gray-800 text-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500">قیمت دوره</span>
-                  <span className="font-bold text-slate-800">
-                    {formatPrice(currentPrice)}
+                  <span className="text-gray-500 dark:text-gray-400">جمع کل</span>
+                  <span className="font-bold text-gray-800 dark:text-white">
+                    {formatPrice(totalPrice)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500">مالیات (۹٪)</span>
-                  <span className="font-bold text-slate-800">
-                    {formatPrice(taxAmount)}
-                  </span>
+                  <span className="text-gray-500 dark:text-gray-400">تخفیف</span>
+                  <span className="font-bold text-gray-800 dark:text-white">۰ تومان</span>
                 </div>
               </div>
+
+              {/* Total */}
               <div className="flex items-center justify-between mb-6">
-                <span className="font-black text-slate-800">
+                <span className="font-black text-gray-800 dark:text-white">
                   مبلغ قابل پرداخت
                 </span>
-                <div className="text-left">
-                  <div className="text-2xl font-black text-blue-800">
-                    {formatPrice(finalPrice)}
-                  </div>
-                  <div className="text-xs text-slate-500">تومان</div>
-                </div>
+                <span className="font-black text-lg text-teal-600 dark:text-teal-400">
+                  {formatPrice(totalPrice)}
+                </span>
               </div>
-              <div className="space-y-2.5 pt-5 border-t border-slate-100">
-                <div className="flex items-center gap-2 text-xs text-slate-600">
+
+              {/* Trust badges */}
+              <div className="space-y-2.5 pt-5 border-t border-gray-100 dark:border-gray-800">
+                <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
                   <CheckCircle2 className="w-4 h-4 text-teal-500 flex-shrink-0" />
-                  ضمانت بازگشت وجه تا ۷ روز
+                  پرداخت امن و مطمئن
                 </div>
-                <div className="flex items-center gap-2 text-xs text-slate-600">
+                <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
                   <CheckCircle2 className="w-4 h-4 text-teal-500 flex-shrink-0" />
                   پشتیبانی ۲۴/۷
                 </div>
-                <div className="flex items-center gap-2 text-xs text-slate-600">
+                <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
                   <CheckCircle2 className="w-4 h-4 text-teal-500 flex-shrink-0" />
-                  صدور مدرک معتبر
+                  ضمانت بازگشت وجه
                 </div>
               </div>
             </div>
