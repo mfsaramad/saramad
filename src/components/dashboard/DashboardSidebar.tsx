@@ -14,6 +14,8 @@ import {
   Sparkles,
   TrendingUp,
   Star,
+  ShoppingBag,
+  Radio,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toPersianNumber } from '@/lib/format';
@@ -33,6 +35,16 @@ const menuItems = [
     badge: '۳',
   },
   {
+    href: '/dashboard/live',
+    label: 'کلاس‌های آنلاین',
+    icon: Radio,
+  },
+  {
+    href: '/dashboard/orders',
+    label: 'سفارشات من',
+    icon: ShoppingBag,
+  },
+  {
     href: '/dashboard/exams',
     label: 'آزمون‌های من',
     icon: ClipboardList,
@@ -40,7 +52,7 @@ const menuItems = [
   },
   {
     href: '/dashboard/certificates',
-    label: 'مدارک من',
+    label: 'گواهی‌نامه‌ها',
     icon: Award,
     badge: '۲',
   },
@@ -77,7 +89,6 @@ export default function DashboardSidebar() {
         <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
           {/* Header */}
           <div className="relative p-6 bg-gradient-to-br from-[#1e3a8a] via-[#1e40af] to-[#0d9488] overflow-hidden">
-            {/* الگوی نقطه‌ای */}
             <div
               className="absolute inset-0 opacity-[0.07]"
               style={{
@@ -87,18 +98,15 @@ export default function DashboardSidebar() {
               }}
             />
 
-            {/* حباب تزئینی */}
             <div className="absolute -top-10 -right-10 w-40 h-40 bg-teal-400/20 rounded-full blur-3xl" />
 
             <div className="relative flex items-center gap-3">
-              {/* آواتار با حاشیه رنگی */}
               <div className="relative">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-teal-400 via-brand-500 to-orange-500 p-1 shadow-lg">
                   <div className="w-full h-full rounded-full bg-white dark:bg-slate-900 flex items-center justify-center text-2xl font-black text-brand-800 dark:text-brand-300">
-                    {user?.name?.charAt(0) || '؟'}
+                    {user?.name?.charAt(0) || 'م'}
                   </div>
                 </div>
-                {/* نقطه آنلاین */}
                 <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-green-500 border-4 border-white dark:border-slate-900" />
               </div>
 
@@ -189,7 +197,6 @@ export default function DashboardSidebar() {
             </div>
           </div>
 
-          {/* Progress bars */}
           <div className="space-y-3">
             <div>
               <div className="flex items-center justify-between text-xs mb-1.5">
@@ -237,9 +244,9 @@ export default function DashboardSidebar() {
               <Sparkles className="w-6 h-6 text-orange-300" />
             </div>
 
-            <h4 className="font-black text-lg mb-2">دوره‌های جدید</h4>
+            <h4 className="font-black text-lg mb-2">دوره جدید</h4>
             <p className="text-sm text-blue-100 mb-4 leading-relaxed">
-              دوره‌های تازه سرآمد را ببین و مسیر یادگیری‌ات را ادامه بده
+              دوره‌های تازه سرآمد را ببین و مسیر یادگیری‌ت رو ادامه بده
             </p>
 
             <Link

@@ -1,15 +1,12 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import {
   Clock,
   Calendar,
   Users,
   Radio,
-  PlayCircle,
   CheckCircle2,
   Sparkles,
-  Zap,
-  Award,
   Bell,
   BookOpen,
   Target,
@@ -24,9 +21,10 @@ import {
 import { toPersianNumber, formatPrice } from '@/lib/format';
 import FadeIn from '@/components/animations/FadeIn';
 import LiveClassCard from '@/components/live/LiveClassCard';
+import ReserveButton from '@/components/live/ReserveButton';
 import { cn } from '@/lib/utils';
 
-// ✅ برای Static Export
+// برای Static Export
 export function generateStaticParams() {
   return liveClasses.map((live) => ({
     id: live.slug,
@@ -88,7 +86,6 @@ export default async function LiveClassDetailPage({
         <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500/20 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-orange-500/20 rounded-full blur-3xl" />
 
-        {/* خطوط نوری */}
         <div className="absolute top-1/2 left-1/4 w-96 h-px bg-gradient-to-r from-transparent via-teal-500/50 to-transparent" />
         <div className="absolute top-1/3 right-1/4 w-96 h-px bg-gradient-to-r from-transparent via-orange-500/50 to-transparent" />
 
@@ -101,7 +98,7 @@ export default async function LiveClassDetailPage({
               </Link>
               <span>/</span>
               <Link href="/live" className="hover:text-white transition">
-                کلاس‌های آنلاین
+                آموزش آنلاین
               </Link>
               <span>/</span>
               <span className="text-white font-bold line-clamp-1">
@@ -111,7 +108,7 @@ export default async function LiveClassDetailPage({
           </FadeIn>
 
           <div className="grid lg:grid-cols-2 gap-8 items-center">
-            {/* آیکون بزرگ */}
+            {/* تصویر سمت راست */}
             <FadeIn>
               <div className="relative">
                 <div
@@ -123,7 +120,6 @@ export default async function LiveClassDetailPage({
                   {liveClass.icon}
                 </div>
 
-                {/* برچسب زنده */}
                 {liveClass.isLive && (
                   <div className="absolute top-6 right-6 flex items-center gap-2 px-4 py-2 bg-red-500 rounded-full text-sm font-black text-white shadow-lg animate-pulse">
                     <span className="relative flex h-2.5 w-2.5">
@@ -134,16 +130,15 @@ export default async function LiveClassDetailPage({
                   </div>
                 )}
 
-                {/* برچسب رایگان */}
                 {liveClass.isFree && !liveClass.isLive && (
                   <div className="absolute top-6 right-6 px-4 py-2 bg-teal-500 rounded-full text-sm font-black text-white shadow-lg">
-                    🎁 رایگان
+                    رایگان
                   </div>
                 )}
               </div>
             </FadeIn>
 
-            {/* اطلاعات */}
+            {/* اطلاعات سمت چپ */}
             <FadeIn delay={0.15}>
               <div className="text-white">
                 <div className="flex flex-wrap items-center gap-2 mb-5">
@@ -165,7 +160,6 @@ export default async function LiveClassDetailPage({
                   {liveClass.description}
                 </p>
 
-                {/* اطلاعات سریع */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center">
@@ -206,7 +200,7 @@ export default async function LiveClassDetailPage({
                       <Users className="w-5 h-5 text-teal-400" />
                     </div>
                     <div>
-                      <div className="text-xs text-blue-200">ظرفیت</div>
+                      <div className="text-xs text-blue-200">شرکت‌کننده</div>
                       <div className="font-black text-sm">
                         {toPersianNumber(liveClass.registered)} /{' '}
                         {toPersianNumber(liveClass.capacity)}
@@ -240,7 +234,7 @@ export default async function LiveClassDetailPage({
       <section className="py-12 lg:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-3 gap-8">
-            {/* ستون چپ */}
+            {/* سمت چپ */}
             <div className="lg:col-span-2 space-y-6">
               {/* درباره کلاس */}
               <FadeIn>
@@ -319,9 +313,9 @@ export default async function LiveClassDetailPage({
                               {session.title}
                             </h3>
                             <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-                              <span>👨‍🏫 {session.instructor}</span>
+                              <span>👤 {session.instructor}</span>
                               <span>
-                                ⏱️ {toPersianNumber(session.duration)} دقیقه
+                                ⏱ {toPersianNumber(session.duration)} دقیقه
                               </span>
                             </div>
                           </div>
@@ -357,7 +351,7 @@ export default async function LiveClassDetailPage({
               </FadeIn>
             </div>
 
-            {/* ستون راست - کارت اقدام */}
+            {/* سمت راست - پنل رزرو */}
             <div className="lg:col-span-1">
               <FadeIn direction="left" delay={0.15}>
                 <div className="lg:sticky lg:top-24 space-y-4">
@@ -373,7 +367,7 @@ export default async function LiveClassDetailPage({
                             رایگان
                           </span>
                           <span className="px-2 py-0.5 bg-teal-100 dark:bg-teal-950/50 text-teal-700 dark:text-teal-300 rounded-full text-xs font-black">
-                            🎁
+                            ۱۰۰٪
                           </span>
                         </div>
                       ) : (
@@ -411,9 +405,7 @@ export default async function LiveClassDetailPage({
                           وضعیت
                         </span>
                         <span className="font-bold text-slate-800 dark:text-slate-100">
-                          {liveClass.isLive
-                            ? 'در حال پخش'
-                            : 'پیش‌رو'}
+                          {liveClass.isLive ? 'در حال پخش' : 'پیش‌رو'}
                         </span>
                       </div>
                     </div>
@@ -448,35 +440,17 @@ export default async function LiveClassDetailPage({
                       </div>
                     </div>
 
-                    {/* دکمه */}
-                    {liveClass.isLive ? (
-                      <button
-                        className="w-full flex items-center justify-center gap-2 py-4 bg-red-500 hover:bg-red-600 text-white rounded-xl font-black shadow-lg shadow-red-500/30 hover:shadow-xl transition-all hover:scale-[1.02] mb-3"
-                      >
-                        <Radio className="w-5 h-5" />
-                        ورود به کلاس زنده
-                      </button>
-                    ) : liveClass.isFree ? (
-                      <button
-                        className={cn(
-                          'w-full flex items-center justify-center gap-2 py-4 text-white rounded-xl font-black shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] mb-3 bg-gradient-to-l',
-                          colors.gradient
-                        )}
-                      >
-                        <PlayCircle className="w-5 h-5" />
-                        ثبت‌نام رایگان
-                      </button>
-                    ) : (
-                      <button
-                        className={cn(
-                          'w-full flex items-center justify-center gap-2 py-4 text-white rounded-xl font-black shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] mb-3 bg-gradient-to-l',
-                          colors.gradient
-                        )}
-                      >
-                        <PlayCircle className="w-5 h-5" />
-                        ثبت‌نام در کلاس
-                      </button>
-                    )}
+                    {/* دکمه رزرو — با کامپوننت جدید */}
+                    <ReserveButton
+                      liveClass={{
+                        id: liveClass.id,
+                        slug: liveClass.slug,
+                        title: liveClass.title,
+                        isFree: liveClass.isFree,
+                        isLive: liveClass.isLive,
+                        price: liveClass.price,
+                      }}
+                    />
 
                     {/* یادآور */}
                     <button className="w-full flex items-center justify-center gap-2 py-3 border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-all mb-6">
@@ -496,11 +470,11 @@ export default async function LiveClassDetailPage({
                       </div>
                       <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                         <CheckCircle2 className="w-4 h-4 text-teal-500 flex-shrink-0" />
-                        پرسش و پاسخ زنده
+                        پرسش و پاسخ با استاد
                       </div>
                       <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                         <CheckCircle2 className="w-4 h-4 text-teal-500 flex-shrink-0" />
-                        فایل‌های آموزشی
+                        گواهی حضور
                       </div>
                     </div>
                   </div>
@@ -518,13 +492,13 @@ export default async function LiveClassDetailPage({
             <FadeIn>
               <div className="text-center mb-10">
                 <div className="inline-block px-4 py-1.5 bg-brand-100 dark:bg-brand-950/50 text-brand-800 dark:text-brand-300 rounded-full text-sm font-bold mb-4">
-                  🔗 کلاس‌های مشابه
+                  🎯 کلاس‌های مشابه
                 </div>
                 <h2 className="text-3xl lg:text-4xl font-black text-slate-800 dark:text-slate-100 mb-3">
                   کلاس‌های مشابه
                 </h2>
                 <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-                  کلاس‌های مشابه که ممکن است به آن‌ها علاقه‌مند باشید
+                  کلاس‌های مشابه که ممکنه به آن‌ها علاقه‌مند باشی
                 </p>
               </div>
             </FadeIn>
