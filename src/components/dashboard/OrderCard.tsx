@@ -2,16 +2,64 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, Package, CreditCard, Calendar, Hash } from 'lucide-react';
-import { Order } from '@/types';
+import {
+  ChevronDown,
+  ChevronUp,
+  Package,
+  CreditCard,
+  Calendar,
+  Hash,
+} from 'lucide-react';
 import { StatusBadge } from './StatusBadge';
 
-function formatPrice(price: number): string {
+function formatPrice(price: number | undefined | null): string {
+  if (price === undefined || price === null || isNaN(price)) {
+    return '۰';
+  }
   return price.toLocaleString('fa-IR');
+}
+
+export interface OrderItem {
+  id: string;
+  type: string;
+  title: string;
+  price: number;
+  quantity: number;
+  mode?: string;
+}
+
+export interface Order {
+  id: string;
+  orderNumber: string;
+  userId?: string;
+  userName?: string;
+  userEmail?: string;
+  userPhone?: string;
+  items: OrderItem[];
+  subtotal?: number;
+  discount?: number;
+  total: number;
+  status:
+    | 'pending'
+    | 'paid'
+    | 'processing'
+    | 'completed'
+    | 'cancelled'
+    | 'refunded';
+  paymentMethod?: string;
+  trackingCode?: string;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 export function OrderCard({ order }: { order: Order }) {
   const [expanded, setExpanded] = useState(false);
+
+  const items = order.items || [];
+  const subtotal = order.subtotal ?? order.total ?? 0;
+  const discount = order.discount ?? 0;
+  const total = order.total ?? 0;
+  const itemsCount = items.length;
 
   return (
     <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden transition-all hover:shadow-lg">
@@ -24,23 +72,23 @@ export function OrderCard({ order }: { order: Order }) {
           <div>
             <div className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white">
               <Hash className="w-3.5 h-3.5 text-gray-400" />
-              {order.orderNumber}
+              {order.orderNumber || '—'}
             </div>
             <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 mt-0.5">
               <Calendar className="w-3.5 h-3.5" />
-              {order.createdAt}
+              {order.createdAt || '—'}
             </div>
           </div>
         </div>
-        <StatusBadge status={order.status} />
+        <StatusBadge status={order.status as any} />
       </div>
 
       {/* Summary */}
       <div className="p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3">
         <div className="text-sm text-gray-600 dark:text-gray-400">
-          {order.items.length} آیتم • مبلغ نهایی:{' '}
+          {itemsCount.toLocaleString('fa-IR')} آیتم • مبلغ نهایی:{' '}
           <span className="font-bold text-gray-900 dark:text-white">
-            {formatPrice(order.finalAmount)} تومان
+            {formatPrice(total)} تومان
           </span>
         </div>
         <button
@@ -48,7 +96,11 @@ export function OrderCard({ order }: { order: Order }) {
           className="inline-flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 hover:underline"
         >
           {expanded ? 'بستن' : 'جزئیات'}
-          {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          {expanded ? (
+            <ChevronUp className="w-4 h-4" />
+          ) : (
+            <ChevronDown className="w-4 h-4" />
+          )}
         </button>
       </div>
 
@@ -56,37 +108,45 @@ export function OrderCard({ order }: { order: Order }) {
       {expanded && (
         <div className="border-t border-gray-100 dark:border-gray-800 p-4 sm:p-5 bg-gray-50/50 dark:bg-gray-950/30">
           {/* Items */}
-          <div className="space-y-3 mb-4">
-            {order.items.map((item) => (
-              <div key={item.id} className="flex items-center justify-between text-sm">
-                <div className="flex-1">
-                  <div className="font-medium text-gray-900 dark:text-white">{item.title}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    تعداد: {item.quantity}
+          {items.length > 0 && (
+            <div className="space-y-3 mb-4">
+              {items.map((item, idx) => (
+                <div
+                  key={item.id || idx}
+                  className="flex items-center justify-between text-sm"
+                >
+                  <div className="flex-1">
+                    <div className="font-medium text-gray-900 dark:text-white">
+                      {item.title || 'بدون عنوان'}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      تعداد: {(item.quantity || 1).toLocaleString('fa-IR')}
+                      {item.mode && ` • ${item.mode}`}
+                    </div>
+                  </div>
+                  <div className="text-gray-700 dark:text-gray-300">
+                    {formatPrice((item.price || 0) * (item.quantity || 1))} تومان
                   </div>
                 </div>
-                <div className="text-gray-700 dark:text-gray-300">
-                  {formatPrice(item.price * item.quantity)} تومان
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
 
           {/* Totals */}
           <div className="space-y-2 pt-3 border-t border-gray-200 dark:border-gray-800 text-sm">
             <div className="flex justify-between text-gray-600 dark:text-gray-400">
               <span>جمع کل</span>
-              <span>{formatPrice(order.totalAmount)} تومان</span>
+              <span>{formatPrice(subtotal)} تومان</span>
             </div>
-            {order.discount > 0 && (
+            {discount > 0 && (
               <div className="flex justify-between text-green-600 dark:text-green-400">
                 <span>تخفیف</span>
-                <span>- {formatPrice(order.discount)} تومان</span>
+                <span>- {formatPrice(discount)} تومان</span>
               </div>
             )}
             <div className="flex justify-between font-bold text-gray-900 dark:text-white text-base pt-2 border-t border-gray-200 dark:border-gray-800">
               <span>مبلغ پرداختی</span>
-              <span>{formatPrice(order.finalAmount)} تومان</span>
+              <span>{formatPrice(total)} تومان</span>
             </div>
           </div>
 
@@ -101,26 +161,13 @@ export function OrderCard({ order }: { order: Order }) {
               </div>
             )}
             {order.trackingCode && (
-              <div>کد رهگیری: {order.trackingCode}</div>
+              <div className="flex items-center gap-1.5">
+                <span>کد رهگیری:</span>
+                <span className="font-mono text-[10px]" dir="ltr">
+                  {order.trackingCode}
+                </span>
+              </div>
             )}
-          </div>
-
-          {/* Actions */}
-          <div className="flex flex-wrap gap-2 mt-4">
-            {order.status === 'pending' && (
-              <Link
-                href={`/checkout?order=${order.id}`}
-                className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition"
-              >
-                تکمیل پرداخت
-              </Link>
-            )}
-            <Link
-              href={`/dashboard/orders/${order.id}`}
-              className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-            >
-              مشاهده کامل
-            </Link>
           </div>
         </div>
       )}
