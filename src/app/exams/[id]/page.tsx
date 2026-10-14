@@ -6,7 +6,6 @@ import {
   Award,
   Users,
   ClipboardList,
-  PlayCircle,
   CheckCircle2,
   Target,
   TrendingUp,
@@ -21,9 +20,10 @@ import {
 import { exams, getExamBySlug, getRelatedExams } from '@/lib/data';
 import { toPersianNumber, formatPrice } from '@/lib/format';
 import FadeIn from '@/components/animations/FadeIn';
+import ExamActionButton from '@/components/exams/ExamActionButton';
 import { cn } from '@/lib/utils';
 
-// ✅ برای Static Export
+// برای Static Export
 export function generateStaticParams() {
   return exams.map((exam) => ({
     id: exam.slug,
@@ -250,18 +250,19 @@ export default async function ExamDetailPage({
                   </div>
                 </div>
 
-                {/* دکمه شروع */}
-                <Link
-                  href={`/exams/${exam.slug}`}
-                  className={cn(
-                    'flex items-center justify-center gap-2 w-full py-4 rounded-xl font-black text-white bg-gradient-to-l',
-                    colors.gradient,
-                    'hover:shadow-xl transition-all hover:scale-[1.02] hover:gap-3 mb-3'
-                  )}
-                >
-                  <PlayCircle className="w-5 h-5" />
-                  شروع آزمون
-                </Link>
+                {/* دکمه اصلی — ExamActionButton */}
+                <ExamActionButton
+                  exam={{
+                    id: exam.id,
+                    slug: exam.slug,
+                    title: exam.title,
+                    price: exam.price,
+                    questions: exam.questions,
+                    duration: exam.duration,
+                    isFree: exam.price === 0,
+                  }}
+                  gradientClass={colors.gradient}
+                />
 
                 <Link
                   href="/exams"
@@ -495,17 +496,19 @@ export default async function ExamDetailPage({
                   <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
                     همین حالا آزمون رو شروع کن و خودت رو محک بزن
                   </p>
-                  <Link
-                    href={`/exams/${exam.slug}`}
-                    className={cn(
-                      'inline-flex items-center justify-center gap-2 w-full py-3 rounded-xl font-black text-white bg-gradient-to-l',
-                      colors.gradient,
-                      'hover:shadow-lg transition-all hover:gap-3'
-                    )}
-                  >
-                    <Zap className="w-4 h-4" />
-                    شروع آزمون
-                  </Link>
+
+                  <ExamActionButton
+                    exam={{
+                      id: exam.id,
+                      slug: exam.slug,
+                      title: exam.title,
+                      price: exam.price,
+                      questions: exam.questions,
+                      duration: exam.duration,
+                      isFree: exam.price === 0,
+                    }}
+                    gradientClass={colors.gradient}
+                  />
                 </div>
               </FadeIn>
             </div>
@@ -520,7 +523,7 @@ export default async function ExamDetailPage({
             <FadeIn>
               <div className="text-center mb-10">
                 <div className="inline-block px-4 py-1.5 bg-brand-100 dark:bg-brand-950/50 text-brand-800 dark:text-brand-300 rounded-full text-sm font-bold mb-4">
-                  🔗 آزمون‌های مشابه
+                  🔔 آزمون‌های مشابه
                 </div>
                 <h2 className="text-3xl lg:text-4xl font-black text-slate-800 dark:text-slate-100 mb-3">
                   آزمون‌های مشابه

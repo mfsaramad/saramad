@@ -1,0 +1,667 @@
+﻿'use client';
+
+import { useState, useMemo } from 'react';
+import {
+  Clock,
+  Award,
+  Users,
+  CheckCircle2,
+  Target,
+  FileText,
+  Zap,
+  TrendingUp,
+  ClipboardList,
+  Sparkles,
+  PlayCircle,
+} from 'lucide-react';
+import { toPersianNumber, formatPrice } from '@/lib/format';
+import ExamModal from '@/components/exams/ExamModal';
+import FadeIn from '@/components/animations/FadeIn';
+import { cn } from '@/lib/utils';
+
+type FilterType = 'all' | 'free' | 'level' | 'mock';
+
+const exams = [
+  {
+    id: '1',
+    title: 'ط¢ط²ظ…ظˆظ† طھط¹غŒغŒظ† ط³ط·ط­ ط¨ط±ظ†ط§ظ…ظ‡â€Œظ†ظˆغŒط³غŒ',
+    description:
+      'ط³ط·ط­ ط¯ط§ظ†ط´ ط®ظˆط¯ ط±ط§ ط¯ط± ط¨ط±ظ†ط§ظ…ظ‡â€Œظ†ظˆغŒط³غŒ ط¨ط³ظ†ط¬غŒط¯ ظˆ ظ…ط³غŒط± غŒط§ط¯ع¯غŒط±غŒ ظ…ظ†ط§ط³ط¨ ط±ط§ ط§ظ†طھط®ط§ط¨ ع©ظ†غŒط¯',
+    type: 'level',
+    typeLabel: 'طھط¹غŒغŒظ† ط³ط·ط­',
+    icon: Target,
+    color: 'brand' as const,
+    questions: 30,
+    duration: 45,
+    level: 'ظ…ظ‚ط¯ظ…ط§طھغŒ طھط§ ظ¾غŒط´ط±ظپطھظ‡',
+    price: 0,
+    participants: 3240,
+    rating: 4.9,
+    examData: {
+      id: '1',
+      title: 'ط¢ط²ظ…ظˆظ† طھط¹غŒغŒظ† ط³ط·ط­ ط¨ط±ظ†ط§ظ…ظ‡â€Œظ†ظˆغŒط³غŒ',
+      description: 'ط³ط·ط­ ط¯ط§ظ†ط´ ط®ظˆط¯ ط±ط§ ط¯ط± ط¨ط±ظ†ط§ظ…ظ‡â€Œظ†ظˆغŒط³غŒ ط¨ط³ظ†ط¬غŒط¯',
+      duration: 45,
+      level: 'ظ…ظ‚ط¯ظ…ط§طھغŒ طھط§ ظ¾غŒط´ط±ظپطھظ‡',
+      icon: 'ًں’»',
+      questions: [
+        {
+          id: 1,
+          question: 'ط²ط¨ط§ظ† ظ¾ط§غŒطھظˆظ† ط¯ط± ع†ظ‡ ط³ط§ظ„غŒ ظ…ط¹ط±ظپغŒ ط´ط¯طں',
+          options: ['غ±غ¹غ¸غ¹', 'غ±غ¹غ¹غ±', 'غ±غ¹غ¹غµ', 'غ²غ°غ°غ°'],
+          correctAnswer: 1,
+        },
+        {
+          id: 2,
+          question: 'ع©ط¯ط§ظ… غŒع© ط§ط² ظ…ظˆط§ط±ط¯ ط²غŒط± غŒع© ظ†ظˆط¹ ط¯ط§ط¯ظ‡ ط¯ط± ظ¾ط§غŒطھظˆظ† ظ†غŒط³طھطں',
+          options: ['List', 'Tuple', 'Array', 'Dictionary'],
+          correctAnswer: 2,
+        },
+        {
+          id: 3,
+          question: 'ط®ط±ظˆط¬غŒ ط¯ط³طھظˆط± print(2 ** 3) ع†غŒط³طھطں',
+          options: ['6', '8', '9', '23'],
+          correctAnswer: 1,
+        },
+        {
+          id: 4,
+          question:
+            'ط¯ط± ط¬ط§ظˆط§ط§ط³ع©ط±غŒظ¾طھطŒ ع©ط¯ط§ظ… ع©ظ„ظ…ظ‡ ع©ظ„غŒط¯غŒ ط¨ط±ط§غŒ طھط¹ط±غŒظپ ظ…طھط؛غŒط± ط¨ط§ ظ‚ط§ط¨ظ„غŒطھ طھط؛غŒغŒط± ط§ط³طھظپط§ط¯ظ‡ ظ…غŒâ€Œط´ظˆط¯طں',
+          options: ['const', 'let', 'final', 'static'],
+          correctAnswer: 1,
+        },
+        {
+          id: 5,
+          question: 'HTML ظ…ط®ظپظپ ع†غŒط³طھطں',
+          options: [
+            'Hyper Text Markup Language',
+            'High Tech Modern Language',
+            'Hyper Transfer Markup Language',
+            'Home Tool Markup Language',
+          ],
+          correctAnswer: 0,
+        },
+      ],
+    },
+  },
+  {
+    id: '2',
+    title: 'ط¢ط²ظ…ظˆظ† ط¢ط²ظ…ط§غŒط´غŒ ظپظ†غŒ ظˆ ط­ط±ظپظ‡â€Œط§غŒ',
+    description: 'ط®ظˆط¯طھ ط±ط§ ط¯ط± ط´ط±ط§غŒط· ظˆط§ظ‚ط¹غŒ ط¢ط²ظ…ظˆظ† ظ‚ط±ط§ط± ط¨ط¯ظ‡ ظˆ ط¢ظ…ط§ط¯ظ‡ ط´ظˆ',
+    type: 'mock',
+    typeLabel: 'ط¢ط²ظ…ط§غŒط´غŒ',
+    icon: ClipboardList,
+    color: 'teal' as const,
+    questions: 60,
+    duration: 90,
+    level: 'ظ…طھظˆط³ط·',
+    price: 150000,
+    participants: 1890,
+    rating: 4.8,
+    examData: {
+      id: '2',
+      title: 'ط¢ط²ظ…ظˆظ† ط¢ط²ظ…ط§غŒط´غŒ ظپظ†غŒ ظˆ ط­ط±ظپظ‡â€Œط§غŒ',
+      description: 'ط®ظˆط¯طھ ط±ط§ ط¯ط± ط´ط±ط§غŒط· ظˆط§ظ‚ط¹غŒ ط¢ط²ظ…ظˆظ† ظ‚ط±ط§ط± ط¨ط¯ظ‡',
+      duration: 90,
+      level: 'ظ…طھظˆط³ط·',
+      icon: 'ًں“‹',
+      questions: [
+        {
+          id: 1,
+          question: 'ع©ط¯ط§ظ… غŒع© ط§ط² ظ…ظˆط§ط±ط¯ ط²غŒط± غŒع© ط³غŒط³طھظ…â€Œط¹ط§ظ…ظ„ ظ†غŒط³طھطں',
+          options: ['Windows', 'Linux', 'macOS', 'Photoshop'],
+          correctAnswer: 3,
+        },
+        {
+          id: 2,
+          question: 'ظˆط§ط­ط¯ ط§ظ†ط¯ط§ط²ظ‡â€Œع¯غŒط±غŒ ط³ط±ط¹طھ ط§غŒظ†طھط±ظ†طھ ع†غŒط³طھطں',
+          options: ['ظ…ع¯ط§ط¨ط§غŒطھ', 'ظ…ع¯ط§ط¨غŒطھ', 'ع¯غŒع¯ط§ط¨ط§غŒطھ', 'ع©غŒظ„ظˆط¨ط§غŒطھ'],
+          correctAnswer: 1,
+        },
+        {
+          id: 3,
+          question: 'ع©ط¯ط§ظ… غŒع© ط§ط² ظ…ظˆط§ط±ط¯ ط²غŒط± ظ†ط±ظ…â€Œط§ظپط²ط§ط± ع¯ط±ط§ظپغŒع©غŒ ط§ط³طھطں',
+          options: ['Excel', 'Word', 'Photoshop', 'PowerPoint'],
+          correctAnswer: 2,
+        },
+      ],
+    },
+  },
+  {
+    id: '3',
+    title: 'ط¢ط²ظ…ظˆظ† طھط¹غŒغŒظ† ط³ط·ط­ ط²ط¨ط§ظ† ط§ظ†ع¯ظ„غŒط³غŒ',
+    description: 'ط³ط·ط­ ط²ط¨ط§ظ† ط®ظˆط¯ ط±ط§ ط¨ط³ظ†ط¬غŒط¯ ظˆ ع©ظ„ط§ط³ ظ…ظ†ط§ط³ط¨ ط±ط§ ط§ظ†طھط®ط§ط¨ ع©ظ†غŒط¯',
+    type: 'level',
+    typeLabel: 'طھط¹غŒغŒظ† ط³ط·ط­',
+    icon: Target,
+    color: 'accent' as const,
+    questions: 40,
+    duration: 50,
+    level: 'ظ‡ظ…ظ‡ ط³ط·ظˆط­',
+    price: 0,
+    participants: 4520,
+    rating: 4.9,
+    examData: {
+      id: '3',
+      title: 'ط¢ط²ظ…ظˆظ† طھط¹غŒغŒظ† ط³ط·ط­ ط²ط¨ط§ظ† ط§ظ†ع¯ظ„غŒط³غŒ',
+      description: 'ط³ط·ط­ ط²ط¨ط§ظ† ط®ظˆط¯ ط±ط§ ط¨ط³ظ†ط¬غŒط¯',
+      duration: 50,
+      level: 'ظ‡ظ…ظ‡ ط³ط·ظˆط­',
+      icon: 'ًںŒچ',
+      questions: [
+        {
+          id: 1,
+          question: 'ظ…ط¹ظ†غŒ ع©ظ„ظ…ظ‡ "Book" ع†غŒط³طھطں',
+          options: ['ع©طھط§ط¨', 'ط¯ظپطھط±', 'ظ‚ظ„ظ…', 'ظ…غŒط²'],
+          correctAnswer: 0,
+        },
+        {
+          id: 2,
+          question: 'ع©ط¯ط§ظ… ع¯ط²غŒظ†ظ‡ طµط­غŒط­ ط§ط³طھطں I ___ a student.',
+          options: ['is', 'am', 'are', 'be'],
+          correctAnswer: 1,
+        },
+        {
+          id: 3,
+          question: 'ع¯ط°ط´طھظ‡ ظپط¹ظ„ "go" ع†غŒط³طھطں',
+          options: ['goed', 'gone', 'went', 'going'],
+          correctAnswer: 2,
+        },
+      ],
+    },
+  },
+  {
+    id: '4',
+    title: 'ط¢ط²ظ…ظˆظ† ظ¾ط§غŒط§ظ†غŒ ط¯ظˆط±ظ‡ ط­ط³ط§ط¨ط¯ط§ط±غŒ',
+    description: 'ط¢ط²ظ…ظˆظ† ط¬ط§ظ…ط¹ ظ¾ط§غŒط§ظ† ط¯ظˆط±ظ‡ ط­ط³ط§ط¨ط¯ط§ط±غŒ ط¨ط§ طµط¯ظˆط± ظ…ط¯ط±ع© ظ…ط¹طھط¨ط±',
+    type: 'mock',
+    typeLabel: 'ظ¾ط§غŒط§ظ† ط¯ظˆط±ظ‡',
+    icon: Award,
+    color: 'brand' as const,
+    questions: 50,
+    duration: 75,
+    level: 'ظ¾غŒط´ط±ظپطھظ‡',
+    price: 200000,
+    participants: 890,
+    rating: 4.7,
+    examData: {
+      id: '4',
+      title: 'ط¢ط²ظ…ظˆظ† ظ¾ط§غŒط§ظ†غŒ ط¯ظˆط±ظ‡ ط­ط³ط§ط¨ط¯ط§ط±غŒ',
+      description: 'ط¢ط²ظ…ظˆظ† ط¬ط§ظ…ط¹ ظ¾ط§غŒط§ظ† ط¯ظˆط±ظ‡ ط­ط³ط§ط¨ط¯ط§ط±غŒ',
+      duration: 75,
+      level: 'ظ¾غŒط´ط±ظپطھظ‡',
+      icon: 'ًں§®',
+      questions: [
+        {
+          id: 1,
+          question: 'ظ…ط¹ط§ط¯ظ„ظ‡ ط§طµظ„غŒ ط­ط³ط§ط¨ط¯ط§ط±غŒ ع†غŒط³طھطں',
+          options: [
+            'ط¯ط§ط±ط§غŒغŒ = ط¨ط¯ظ‡غŒ + ط³ط±ظ…ط§غŒظ‡',
+            'ط¯ط§ط±ط§غŒغŒ = ط¨ط¯ظ‡غŒ - ط³ط±ظ…ط§غŒظ‡',
+            'ط³ط±ظ…ط§غŒظ‡ = ط¯ط§ط±ط§غŒغŒ + ط¨ط¯ظ‡غŒ',
+            'ط¨ط¯ظ‡غŒ = ط¯ط§ط±ط§غŒغŒ + ط³ط±ظ…ط§غŒظ‡',
+          ],
+          correctAnswer: 0,
+        },
+        {
+          id: 2,
+          question: 'ع©ط¯ط§ظ… غŒع© ط§ط² ظ…ظˆط§ط±ط¯ ط²غŒط± ط¬ط²ط، ط¯ط§ط±ط§غŒغŒâ€Œظ‡ط§ ظ†غŒط³طھطں',
+          options: ['ظ†ظ‚ط¯', 'ط¨ط§ظ†ع©', 'ط­ط³ط§ط¨â€Œظ‡ط§غŒ ظ¾ط±ط¯ط§ط®طھظ†غŒ', 'ظ…ظˆط¬ظˆط¯غŒ ع©ط§ظ„ط§'],
+          correctAnswer: 2,
+        },
+      ],
+    },
+  },
+  {
+    id: '5',
+    title: 'ط¢ط²ظ…ظˆظ† ط±ط§غŒع¯ط§ظ† ظ…ظ‡ط§ط±طھâ€Œظ‡ط§غŒ ع©ط§ظ…ظ¾غŒظˆطھط±غŒ',
+    description: 'ط³ط·ط­ ظ…ظ‡ط§ط±طھâ€Œظ‡ط§غŒ ظ¾ط§غŒظ‡ ع©ط§ظ…ظ¾غŒظˆطھط±غŒ ط®ظˆط¯ ط±ط§ ظ…ط­ع© ط¨ط²ظ†غŒط¯',
+    type: 'free',
+    typeLabel: 'ط±ط§غŒع¯ط§ظ†',
+    icon: Zap,
+    color: 'teal' as const,
+    questions: 25,
+    duration: 30,
+    level: 'ظ…ظ‚ط¯ظ…ط§طھغŒ',
+    price: 0,
+    participants: 6780,
+    rating: 4.8,
+    examData: {
+      id: '5',
+      title: 'ط¢ط²ظ…ظˆظ† ط±ط§غŒع¯ط§ظ† ظ…ظ‡ط§ط±طھâ€Œظ‡ط§غŒ ع©ط§ظ…ظ¾غŒظˆطھط±غŒ',
+      description: 'ط³ط·ط­ ظ…ظ‡ط§ط±طھâ€Œظ‡ط§غŒ ظ¾ط§غŒظ‡ ع©ط§ظ…ظ¾غŒظˆطھط±غŒ ط®ظˆط¯ ط±ط§ ظ…ط­ع© ط¨ط²ظ†غŒط¯',
+      duration: 30,
+      level: 'ظ…ظ‚ط¯ظ…ط§طھغŒ',
+      icon: 'ًں’»',
+      questions: [
+        {
+          id: 1,
+          question: 'ع©ط¯ط§ظ… ع©ظ„غŒط¯ ط¨ط±ط§غŒ ع©ظ¾غŒ ط§ط³طھظپط§ط¯ظ‡ ظ…غŒâ€Œط´ظˆط¯طں',
+          options: ['Ctrl + V', 'Ctrl + C', 'Ctrl + X', 'Ctrl + Z'],
+          correctAnswer: 1,
+        },
+        {
+          id: 2,
+          question: 'ع©ط¯ط§ظ… غŒع© ط³غŒط³طھظ…â€Œط¹ط§ظ…ظ„ ط§ط³طھطں',
+          options: ['Word', 'Excel', 'Windows', 'Photoshop'],
+          correctAnswer: 2,
+        },
+        {
+          id: 3,
+          question: 'RAM ظ…ط®ظپظپ ع†غŒط³طھطں',
+          options: [
+            'Random Access Memory',
+            'Read Access Memory',
+            'Rapid Access Memory',
+            'Real Access Memory',
+          ],
+          correctAnswer: 0,
+        },
+      ],
+    },
+  },
+  {
+    id: '6',
+    title: 'ط¢ط²ظ…ظˆظ† ط¢ط²ظ…ط§غŒط´غŒ ع¯ط±ط§ظپغŒع© ظˆ ط·ط±ط§ط­غŒ',
+    description: 'ط¯ط§ظ†ط´ ط®ظˆط¯ ط±ط§ ط¯ط± ط²ظ…غŒظ†ظ‡ ع¯ط±ط§ظپغŒع© ظˆ ط·ط±ط§ط­غŒ ظ…ط­ع© ط¨ط²ظ†غŒط¯',
+    type: 'mock',
+    typeLabel: 'ط¢ط²ظ…ط§غŒط´غŒ',
+    icon: FileText,
+    color: 'accent' as const,
+    questions: 35,
+    duration: 60,
+    level: 'ظ…طھظˆط³ط·',
+    price: 120000,
+    participants: 1240,
+    rating: 4.8,
+    examData: {
+      id: '6',
+      title: 'ط¢ط²ظ…ظˆظ† ط¢ط²ظ…ط§غŒط´غŒ ع¯ط±ط§ظپغŒع© ظˆ ط·ط±ط§ط­غŒ',
+      description: 'ط¯ط§ظ†ط´ ط®ظˆط¯ ط±ط§ ط¯ط± ط²ظ…غŒظ†ظ‡ ع¯ط±ط§ظپغŒع© ظˆ ط·ط±ط§ط­غŒ ظ…ط­ع© ط¨ط²ظ†غŒط¯',
+      duration: 60,
+      level: 'ظ…طھظˆط³ط·',
+      icon: 'ًںژ¨',
+      questions: [
+        {
+          id: 1,
+          question: 'ع©ط¯ط§ظ… ظ†ط±ظ…â€Œط§ظپط²ط§ط± ط¨ط±ط§غŒ ط·ط±ط§ط­غŒ ع¯ط±ط§ظپغŒع©غŒ ط§ط³طھظپط§ط¯ظ‡ ظ…غŒâ€Œط´ظˆط¯طں',
+          options: ['Excel', 'Photoshop', 'Word', 'Notepad'],
+          correctAnswer: 1,
+        },
+        {
+          id: 2,
+          question: 'RGB ظ…ط®ظپظپ ع†غŒط³طھطں',
+          options: [
+            'Red Green Blue',
+            'Red Gray Black',
+            'Random Green Blue',
+            'Red Gold Blue',
+          ],
+          correctAnswer: 0,
+        },
+      ],
+    },
+  },
+];
+
+const tabs: { id: FilterType; label: string; icon: string }[] = [
+  { id: 'all', label: 'ظ‡ظ…ظ‡ ط¢ط²ظ…ظˆظ†â€Œظ‡ط§', icon: 'ًں“‌' },
+  { id: 'free', label: 'ط±ط§غŒع¯ط§ظ†', icon: 'ًںژپ' },
+  { id: 'level', label: 'طھط¹غŒغŒظ† ط³ط·ط­', icon: 'ًںژ¯' },
+  { id: 'mock', label: 'ط¢ط²ظ…ط§غŒط´غŒ', icon: 'ًں“‹' },
+];
+
+export default function ExamsPage() {
+  const [activeTab, setActiveTab] = useState<FilterType>('all');
+  const [selectedExam, setSelectedExam] = useState<typeof exams[0] | null>(
+    null
+  );
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const filteredExams = useMemo(() => {
+    if (activeTab === 'all') return exams;
+    return exams.filter((e) => e.type === activeTab);
+  }, [activeTab]);
+
+  const handleOpenExam = (exam: typeof exams[0]) => {
+    setSelectedExam(exam);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setTimeout(() => setSelectedExam(null), 300);
+  };
+
+  const colorMap = {
+    brand: {
+      bg: 'bg-blue-100 dark:bg-blue-950/50',
+      icon: 'text-blue-800 dark:text-blue-300',
+      gradient: 'from-[#1e3a8a] to-[#1e40af]',
+      hoverBorder: 'hover:border-blue-800 dark:hover:border-blue-300',
+      shadow: 'shadow-blue-900/30',
+    },
+    teal: {
+      bg: 'bg-teal-100 dark:bg-teal-950/50',
+      icon: 'text-teal-600 dark:text-teal-300',
+      gradient: 'from-teal-500 to-teal-700',
+      hoverBorder: 'hover:border-teal-500 dark:hover:border-teal-300',
+      shadow: 'shadow-teal-500/30',
+    },
+    accent: {
+      bg: 'bg-orange-100 dark:bg-orange-950/50',
+      icon: 'text-orange-600 dark:text-orange-300',
+      gradient: 'from-orange-500 to-orange-700',
+      hoverBorder: 'hover:border-orange-500 dark:hover:border-orange-300',
+      shadow: 'shadow-orange-500/30',
+    },
+  };
+
+  return (
+    <div className="bg-slate-50 dark:bg-slate-950 min-h-screen">
+      {/* ===== ظ‡ط¯ط± طµظپط­ظ‡ ===== */}
+      <section className="relative pt-32 pb-16 bg-gradient-to-br from-[#1e3a8a] via-[#1e40af] to-[#0d9488] overflow-hidden">
+        {/* ط§ظ„ع¯ظˆغŒ ظ†ظ‚ط·ظ‡â€Œط§غŒ */}
+        <div
+          className="absolute inset-0 opacity-[0.07]"
+          style={{
+            backgroundImage:
+              'radial-gradient(circle, white 1px, transparent 1px)',
+            backgroundSize: '30px 30px',
+          }}
+        />
+
+        {/* ط§ظپع©طھâ€Œظ‡ط§غŒ طھط²ط¦غŒظ†غŒ */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500/20 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-orange-500/20 rounded-full blur-3xl" />
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <FadeIn>
+            <div className="text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur border border-white/20 rounded-full text-white text-sm font-bold mb-5">
+                <Sparkles className="w-4 h-4 text-orange-300" />
+                <span>ط¢ط²ظ…ظˆظ†â€Œظ‡ط§غŒ ط¢ظ†ظ„ط§غŒظ† ط³ط±ط¢ظ…ط¯</span>
+              </div>
+
+              <h1 className="text-4xl lg:text-5xl font-black text-white mb-4">
+                ط®ظˆط¯طھ ط±ط§ ظ…ط­ع© ط¨ط²ظ†!
+              </h1>
+
+              <p className="text-lg text-blue-100 max-w-2xl mx-auto leading-relaxed mb-8">
+                ط¨ط§ ط¢ط²ظ…ظˆظ†â€Œظ‡ط§غŒ ط¢ظ†ظ„ط§غŒظ† ط³ط±ط¢ظ…ط¯طŒ ط³ط·ط­ ط¯ط§ظ†ط´ ط®ظˆط¯ ط±ط§ ط¨ط³ظ†ط¬ ظˆ ظ…ط³غŒط± ظ¾غŒط´ط±ظپطھطھ
+                ط±ط§ ظ‡ظ…ظˆط§ط± ع©ظ†
+              </p>
+            </div>
+          </FadeIn>
+
+          {/* ط¢ظ…ط§ط± */}
+          <FadeIn delay={0.15}>
+            <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto">
+              <div className="group bg-white/10 backdrop-blur border border-white/20 rounded-2xl p-4 lg:p-5 hover:bg-white/15 hover:-translate-y-1 transition-all duration-300">
+                <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-teal-500/20 border border-teal-500/30 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                  <ClipboardList className="w-5 h-5 lg:w-6 lg:h-6 text-teal-400" />
+                </div>
+                <div className="text-2xl lg:text-3xl font-black text-white">
+                  غ²غµغ°+
+                </div>
+                <div className="text-xs text-blue-200 mt-1">ط¢ط²ظ…ظˆظ† ط¢ظ†ظ„ط§غŒظ†</div>
+              </div>
+
+              <div className="group bg-white/10 backdrop-blur border border-white/20 rounded-2xl p-4 lg:p-5 hover:bg-white/15 hover:-translate-y-1 transition-all duration-300">
+                <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-teal-500/20 border border-teal-500/30 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                  <TrendingUp className="w-5 h-5 lg:w-6 lg:h-6 text-teal-400" />
+                </div>
+                <div className="text-2xl lg:text-3xl font-black text-white">
+                  غ±غµظ¬غ°غ°غ°+
+                </div>
+                <div className="text-xs text-blue-200 mt-1">ط´ط±ع©طھâ€Œع©ظ†ظ†ط¯ظ‡</div>
+              </div>
+
+              <div className="group bg-white/10 backdrop-blur border border-white/20 rounded-2xl p-4 lg:p-5 hover:bg-white/15 hover:-translate-y-1 transition-all duration-300">
+                <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-teal-500/20 border border-teal-500/30 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                  <Zap className="w-5 h-5 lg:w-6 lg:h-6 text-teal-400" />
+                </div>
+                <div className="text-2xl lg:text-3xl font-black text-white">
+                  غ¹غ¸ظھ
+                </div>
+                <div className="text-xs text-blue-200 mt-1">ط±ط¶ط§غŒطھ</div>
+              </div>
+            </div>
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* ===== ظ…ط­طھظˆط§غŒ ط§طµظ„غŒ ===== */}
+      <section className="py-12 lg:py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* طھط¨â€Œظ‡ط§ */}
+          <FadeIn>
+            <div className="flex justify-center mb-10">
+              <div className="inline-flex items-center gap-1 p-1.5 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-x-auto no-scrollbar max-w-full">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={cn(
+                      'flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all',
+                      activeTab === tab.id
+                        ? 'bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white shadow-md'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-brand-800 dark:hover:text-brand-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                    )}
+                  >
+                    <span>{tab.icon}</span>
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </FadeIn>
+
+          {/* ظ†طھغŒط¬ظ‡ */}
+          <FadeIn>
+            <div className="flex items-center justify-between mb-6">
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                <span className="font-bold text-brand-800 dark:text-brand-300">
+                  {toPersianNumber(filteredExams.length)}
+                </span>{' '}
+                ط¢ط²ظ…ظˆظ† غŒط§ظپطھ ط´ط¯
+              </p>
+            </div>
+          </FadeIn>
+
+          {/* ط´ط¨ع©ظ‡ ط¢ط²ظ…ظˆظ†â€Œظ‡ط§ */}
+          {filteredExams.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredExams.map((exam, index) => {
+                const Icon = exam.icon;
+                const colors = colorMap[exam.color];
+
+                return (
+                  <FadeIn
+                    key={exam.id}
+                    delay={index * 0.1}
+                    direction="up"
+                    className="h-full"
+                  >
+                    <div
+                      className={cn(
+                        'group relative h-full bg-white dark:bg-slate-900 rounded-3xl border-2 border-slate-100 dark:border-slate-800',
+                        colors.hoverBorder,
+                        'hover:shadow-2xl hover:-translate-y-3 transition-all duration-500 overflow-hidden'
+                      )}
+                    >
+                      {/* ط¨ط®ط´ ط¨ط§ظ„ط§ */}
+                      <div className="p-7 pb-5">
+                        <div className="flex items-start justify-between mb-5">
+                          <div
+                            className={cn(
+                              'w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:rotate-6',
+                              colors.bg
+                            )}
+                          >
+                            <Icon className={cn('w-7 h-7', colors.icon)} />
+                          </div>
+
+                          {exam.price === 0 ? (
+                            <span className="px-3 py-1 bg-teal-100 dark:bg-teal-950/50 text-teal-700 dark:text-teal-300 rounded-full text-xs font-black">
+                              ًںژپ ط±ط§غŒع¯ط§ظ†
+                            </span>
+                          ) : (
+                            <span className="px-3 py-1 bg-orange-100 dark:bg-orange-950/50 text-orange-700 dark:text-orange-300 rounded-full text-xs font-black">
+                              {formatPrice(exam.price)}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="text-xs font-bold text-brand-700 dark:text-brand-300 mb-2">
+                          {exam.typeLabel}
+                        </div>
+
+                        <h3 className="text-lg font-black text-slate-800 dark:text-slate-100 leading-snug mb-3 line-clamp-2 min-h-[3.5rem] group-hover:text-brand-800 dark:group-hover:text-brand-300 transition">
+                          {exam.title}
+                        </h3>
+
+                        <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-2 min-h-[2.5rem] mb-4">
+                          {exam.description}
+                        </p>
+
+                        <div className="grid grid-cols-3 gap-2 text-xs text-slate-600 dark:text-slate-400 pb-4 border-b border-slate-100 dark:border-slate-800">
+                          <div className="flex items-center gap-1">
+                            <ClipboardList className="w-3.5 h-3.5 text-brand-700 dark:text-brand-300" />
+                            <span>
+                              {toPersianNumber(exam.questions)} ط³ظˆط§ظ„
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-3.5 h-3.5 text-brand-700 dark:text-brand-300" />
+                            <span>
+                              {toPersianNumber(exam.duration)} ط¯ظ‚غŒظ‚ظ‡
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Users className="w-3.5 h-3.5 text-brand-700 dark:text-brand-300" />
+                            <span>
+                              {toPersianNumber(exam.participants)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* ط¨ط®ط´ ظ¾ط§غŒغŒظ† */}
+                      <div className="px-7 pb-7 pt-5">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-1 text-xs">
+                            <Award className="w-3.5 h-3.5 text-yellow-500" />
+                            <span className="font-bold text-slate-700 dark:text-slate-300">
+                              {exam.rating.toLocaleString('fa-IR')}
+                            </span>
+                          </div>
+                          <div className="text-xs text-slate-500 dark:text-slate-400">
+                            ط³ط·ط­: {exam.level}
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => handleOpenExam(exam)}
+                          className={cn(
+                            'flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-white bg-gradient-to-l',
+                            colors.gradient,
+                            'hover:shadow-lg transition-all hover:gap-3'
+                          )}
+                        >
+                          <PlayCircle className="w-4 h-4" />
+                          ط´ط±ع©طھ ط¯ط± ط¢ط²ظ…ظˆظ†
+                        </button>
+                      </div>
+                    </div>
+                  </FadeIn>
+                );
+              })}
+            </div>
+          ) : (
+            <FadeIn>
+              <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800">
+                <div className="text-6xl mb-4">ًں”چ</div>
+                <h3 className="text-xl font-black text-slate-800 dark:text-slate-100 mb-2">
+                  ط¢ط²ظ…ظˆظ†غŒ غŒط§ظپطھ ظ†ط´ط¯
+                </h3>
+                <p className="text-slate-500 dark:text-slate-400 mb-6">
+                  ظپغŒظ„طھط± ط¯غŒع¯ط±غŒ ط±ط§ ط§ظ†طھط®ط§ط¨ ع©ظ†غŒط¯
+                </p>
+                <button
+                  onClick={() => setActiveTab('all')}
+                  className="px-6 py-3 bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white rounded-xl font-bold hover:shadow-lg transition"
+                >
+                  ظ†ظ…ط§غŒط´ ظ‡ظ…ظ‡ ط¢ط²ظ…ظˆظ†â€Œظ‡ط§
+                </button>
+              </div>
+            </FadeIn>
+          )}
+        </div>
+      </section>
+
+      {/* ===== CTA ===== */}
+      <section className="py-12 lg:py-16 bg-white dark:bg-slate-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <FadeIn>
+            <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-10 lg:p-14 text-center text-white relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500/20 rounded-full blur-3xl" />
+              <div className="absolute bottom-0 left-0 w-96 h-96 bg-orange-500/20 rounded-full blur-3xl" />
+
+              <div
+                className="absolute inset-0 opacity-[0.05]"
+                style={{
+                  backgroundImage:
+                    'radial-gradient(circle, white 1px, transparent 1px)',
+                  backgroundSize: '20px 20px',
+                }}
+              />
+
+              <div className="relative">
+                <div className="w-20 h-20 mx-auto rounded-2xl bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center mb-6">
+                  <Award className="w-10 h-10 text-teal-400" />
+                </div>
+
+                <h2 className="text-3xl lg:text-4xl font-black mb-4">
+                  ط¢ظ…ط§ط¯ظ‡â€Œط§غŒ ط®ظˆط¯طھ ط±ط§ ظ…ط­ع© ط¨ط²ظ†غŒطں
+                </h2>
+                <p className="text-blue-100 max-w-2xl mx-auto mb-8 leading-relaxed">
+                  ط¨ط§ ط´ط±ع©طھ ط¯ط± ط¢ط²ظ…ظˆظ†â€Œظ‡ط§غŒ ط¢ظ†ظ„ط§غŒظ† ط³ط±ط¢ظ…ط¯طŒ ط³ط·ط­ ط¯ط§ظ†ط´ ط®ظˆط¯طھ ط±ظˆ ط¨ط³ظ†ط¬ ظˆ
+                  ظ…ط¯ط±ع© ظ…ط¹طھط¨ط± ط¯ط±غŒط§ظپطھ ع©ظ†
+                </p>
+
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  <button
+                    onClick={() =>
+                      filteredExams[0] && handleOpenExam(filteredExams[0])
+                    }
+                    className="inline-flex items-center gap-2 px-7 py-3.5 bg-orange-500 hover:bg-orange-600 rounded-xl font-black shadow-xl shadow-orange-500/30 hover:scale-105 transition-all"
+                  >
+                    <PlayCircle className="w-5 h-5" />
+                    ط´ط±ظˆط¹ ط¢ط²ظ…ظˆظ†
+                  </button>
+                  <a
+                    href="https://t.me/saramad"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-7 py-3.5 bg-white/10 backdrop-blur border border-white/20 hover:bg-white/20 rounded-xl font-bold transition"
+                  >
+                    <CheckCircle2 className="w-5 h-5" />
+                    ط¹ط¶ظˆغŒطھ ط¯ط± طھظ„ع¯ط±ط§ظ…
+                  </a>
+                </div>
+              </div>
+            </div>
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* ===== Modal ط¢ط²ظ…ظˆظ† ===== */}
+      <ExamModal
+        exam={selectedExam?.examData || null}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
+    </div>
+  );
+}

@@ -24,6 +24,7 @@ type FilterType = 'all' | 'free' | 'level' | 'mock';
 const exams = [
   {
     id: '1',
+    slug: 'programming-level-test',
     title: 'آزمون تعیین سطح برنامه‌نویسی',
     description:
       'سطح دانش خود را در برنامه‌نویسی بسنجید و مسیر یادگیری مناسب را انتخاب کنید',
@@ -86,6 +87,7 @@ const exams = [
   },
   {
     id: '2',
+    slug: 'technical-mock-exam',
     title: 'آزمون آزمایشی فنی و حرفه‌ای',
     description: 'خودت را در شرایط واقعی آزمون قرار بده و آماده شو',
     type: 'mock',
@@ -129,6 +131,7 @@ const exams = [
   },
   {
     id: '3',
+    slug: 'english-level-test',
     title: 'آزمون تعیین سطح زبان انگلیسی',
     description: 'سطح زبان خود را بسنجید و کلاس مناسب را انتخاب کنید',
     type: 'level',
@@ -172,6 +175,7 @@ const exams = [
   },
   {
     id: '4',
+    slug: 'accounting-final-exam',
     title: 'آزمون پایانی دوره حسابداری',
     description: 'آزمون جامع پایان دوره حسابداری با صدور مدرک معتبر',
     type: 'mock',
@@ -214,6 +218,7 @@ const exams = [
   },
   {
     id: '5',
+    slug: 'computer-skills-free',
     title: 'آزمون رایگان مهارت‌های کامپیوتری',
     description: 'سطح مهارت‌های پایه کامپیوتری خود را محک بزنید',
     type: 'free',
@@ -262,6 +267,7 @@ const exams = [
   },
   {
     id: '6',
+    slug: 'graphic-design-mock',
     title: 'آزمون آزمایشی گرافیک و طراحی',
     description: 'دانش خود را در زمینه گرافیک و طراحی محک بزنید',
     type: 'mock',
@@ -305,7 +311,7 @@ const exams = [
 ];
 
 const tabs: { id: FilterType; label: string; icon: string }[] = [
-  { id: 'all', label: 'همه آزمون‌ها', icon: '📝' },
+  { id: 'all', label: 'همه آزمون‌ها', icon: '📌' },
   { id: 'free', label: 'رایگان', icon: '🎁' },
   { id: 'level', label: 'تعیین سطح', icon: '🎯' },
   { id: 'mock', label: 'آزمایشی', icon: '📋' },
@@ -323,9 +329,16 @@ export default function ExamsPage() {
     return exams.filter((e) => e.type === activeTab);
   }, [activeTab]);
 
+  // 🔥 تغییر مهم: آزمون رایگان → مستقیم take | آزمون پول‌دار → صفحه جزئیات
   const handleOpenExam = (exam: typeof exams[0]) => {
-    setSelectedExam(exam);
-    setIsModalOpen(true);
+    if (exam.price === 0) {
+      // آزمون رایگان → مستقیم برو به آزمون
+      window.location.href = `/exams/${exam.slug}/take`;
+      return;
+    }
+
+    // آزمون پول‌دار → صفحه جزئیات برای خرید
+    window.location.href = `/exams/${exam.slug}`;
   };
 
   const handleCloseModal = () => {
@@ -361,7 +374,6 @@ export default function ExamsPage() {
     <div className="bg-slate-50 dark:bg-slate-950 min-h-screen">
       {/* ===== هدر صفحه ===== */}
       <section className="relative pt-32 pb-16 bg-gradient-to-br from-[#1e3a8a] via-[#1e40af] to-[#0d9488] overflow-hidden">
-        {/* الگوی نقطه‌ای */}
         <div
           className="absolute inset-0 opacity-[0.07]"
           style={{
@@ -371,7 +383,6 @@ export default function ExamsPage() {
           }}
         />
 
-        {/* افکت‌های تزئینی */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500/20 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-orange-500/20 rounded-full blur-3xl" />
 
@@ -402,7 +413,7 @@ export default function ExamsPage() {
                   <ClipboardList className="w-5 h-5 lg:w-6 lg:h-6 text-teal-400" />
                 </div>
                 <div className="text-2xl lg:text-3xl font-black text-white">
-                  ۲۵۰+
+                  ۶۵۰+
                 </div>
                 <div className="text-xs text-blue-200 mt-1">آزمون آنلاین</div>
               </div>
@@ -412,7 +423,7 @@ export default function ExamsPage() {
                   <TrendingUp className="w-5 h-5 lg:w-6 lg:h-6 text-teal-400" />
                 </div>
                 <div className="text-2xl lg:text-3xl font-black text-white">
-                  ۱۵٬۰۰۰+
+                  ۱۵,۰۰۰+
                 </div>
                 <div className="text-xs text-blue-200 mt-1">شرکت‌کننده</div>
               </div>
@@ -570,7 +581,9 @@ export default function ExamsPage() {
                           )}
                         >
                           <PlayCircle className="w-4 h-4" />
-                          شرکت در آزمون
+                          {exam.price === 0
+                            ? 'شروع آزمون رایگان'
+                            : 'مشاهده و خرید'}
                         </button>
                       </div>
                     </div>
@@ -631,15 +644,6 @@ export default function ExamsPage() {
                 </p>
 
                 <div className="flex flex-wrap items-center justify-center gap-3">
-                  <button
-                    onClick={() =>
-                      filteredExams[0] && handleOpenExam(filteredExams[0])
-                    }
-                    className="inline-flex items-center gap-2 px-7 py-3.5 bg-orange-500 hover:bg-orange-600 rounded-xl font-black shadow-xl shadow-orange-500/30 hover:scale-105 transition-all"
-                  >
-                    <PlayCircle className="w-5 h-5" />
-                    شروع آزمون
-                  </button>
                   <a
                     href="https://t.me/saramad"
                     target="_blank"
@@ -655,13 +659,6 @@ export default function ExamsPage() {
           </FadeIn>
         </div>
       </section>
-
-      {/* ===== Modal آزمون ===== */}
-      <ExamModal
-        exam={selectedExam?.examData || null}
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-      />
     </div>
   );
 }
