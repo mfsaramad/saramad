@@ -16,6 +16,7 @@ import {
   Search,
   X,
   Loader2,
+  PlayCircle,
 } from 'lucide-react';
 import { useCollection } from '@/hooks/useCollection';
 import { useAuth } from '@/contexts/AuthContext';
@@ -23,7 +24,7 @@ import { toPersianNumber } from '@/lib/format';
 import FadeIn from '@/components/animations/FadeIn';
 import { cn } from '@/lib/utils';
 
-type FilterType = 'all' | 'passed' | 'failed';
+type FilterType = 'all' | 'passed' | 'failed' | 'not-taken';
 
 interface OrderItem {
   id: string;
@@ -50,18 +51,47 @@ interface Exam {
   typeLabel?: string;
   duration?: number;
   questions?: number;
+  price?: number;
   [key: string]: any;
+}
+
+interface ExamResult {
+  examId: string;
+  examSlug: string;
+  examTitle: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  score: number;
+  correct: number;
+  wrong: number;
+  total: number;
+  status: 'passed' | 'failed';
+  takenAt: string;
 }
 
 interface MyExam {
   exam: Exam;
-  score: number; // فعلاً 0 (نتیجه ثبت نشده)
+  score: number;
   correct: number;
   wrong: number;
   total: number;
   date: string;
   duration: number;
   status: 'passed' | 'failed' | 'not-taken';
+  source: 'order' | 'result';
+}
+
+const RESULTS_KEY = 'saramad_exam_results';
+
+function getExamResults(): ExamResult[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(RESULTS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
 }
 
 export default function MyExamsPage() {
@@ -74,54 +104,85 @@ export default function MyExamsPage() {
   const [activeTab, setActiveTab] = useState<FilterType>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [mounted, setMounted] = useState(false);
+  const [examResults, setExamResults] = useState<ExamResult[]>([]);
 
   useEffect(() => {
     setMounted(true);
+    setExamResults(getExamResults());
   }, []);
 
-  // استخراج آزمون‌های خریداری‌شده کاربر
+  // استخراج آزمون‌های کاربر از دو منبع
   const myExams: MyExam[] = (() => {
     if (!user) return [];
 
-    // فیلتر سفارشات کاربر
+    const result: MyExam[] = [];
+
+    // ۱. آزمون‌های پول‌دار از orders
     const userOrders = allOrders.filter(
       (o) => o.userId === user.id || o.userEmail === user.email
     );
 
-    // استخراج آیتم‌های آزمون از سفارشات
-    const examItems: { item: OrderItem; order: Order }[] = [];
     userOrders.forEach((order) => {
       order.items?.forEach((item) => {
         if (item.type === 'exam') {
-          examItems.push({ item, order });
+          const found = allExams.find(
+            (e) =>
+              e.slug === item.id ||
+              e.id === item.id ||
+              e.title === item.title
+          );
+
+          if (found && !result.some((r) => r.exam.id === found.id)) {
+            // آیا کاربر توی این آزمون شرکت کرده؟
+            const userResult = examResults.find(
+              (r) =>
+                r.examSlug === found.slug &&
+                (r.userId === user.id || r.userEmail === user.email)
+            );
+
+            result.push({
+              exam: found,
+              score: userResult?.score || 0,
+              correct: userResult?.correct || 0,
+              wrong: userResult?.wrong || 0,
+              total: userResult?.total || found.questions || 0,
+              date: userResult?.takenAt || order.createdAt,
+              duration: found.duration || 0,
+              status: userResult ? userResult.status : 'not-taken',
+              source: 'order',
+            });
+          }
         }
       });
     });
 
-    // match با exams
-    const result: MyExam[] = [];
-    examItems.forEach(({ item, order }) => {
+    // ۲. آزمون‌های رایگان از examResults
+    const userResults = examResults.filter(
+      (r) => r.userId === user.id || r.userEmail === user.email
+    );
+
+    userResults.forEach((res) => {
+      // آیا قبلاً اضافه شده؟ (از orders)
+      if (result.some((r) => r.exam.slug === res.examSlug)) {
+        return;
+      }
+
       const found = allExams.find(
-        (e) =>
-          e.slug === item.id ||
-          e.id === item.id ||
-          e.title === item.title
+        (e) => e.slug === res.examSlug || e.id === res.examId
       );
 
       if (found) {
-        // جلوگیری از تکراری
-        if (!result.some((r) => r.exam.id === found.id)) {
-          result.push({
-            exam: found,
-            score: 0,
-            correct: 0,
-            wrong: 0,
-            total: found.questions || 0,
-            date: order.createdAt,
-            duration: found.duration || 0,
-            status: 'not-taken',
-          });
-        }
+        result.push({
+          exam: found,
+          score: res.score,
+          correct: res.correct,
+          wrong: res.wrong,
+          total: res.total,
+          date: res.takenAt,
+          duration: found.duration || 0,
+          status: res.status,
+          source: 'result',
+        });
       }
     });
 
@@ -136,7 +197,8 @@ export default function MyExamsPage() {
     const matchTab =
       activeTab === 'all' ||
       (activeTab === 'passed' && exam.status === 'passed') ||
-      (activeTab === 'failed' && exam.status === 'failed');
+      (activeTab === 'failed' && exam.status === 'failed') ||
+      (activeTab === 'not-taken' && exam.status === 'not-taken');
 
     const matchSearch =
       !searchQuery.trim() ||
@@ -160,6 +222,12 @@ export default function MyExamsPage() {
       label: 'همه آزمون‌ها',
       icon: '📋',
       count: myExams.length,
+    },
+    {
+      id: 'not-taken' as FilterType,
+      label: 'در انتظار شرکت',
+      icon: '⏳',
+      count: notTaken.length,
     },
     {
       id: 'passed' as FilterType,
@@ -398,7 +466,7 @@ export default function MyExamsPage() {
                     <div className="flex items-center gap-4 flex-shrink-0">
                       {isNotTaken ? (
                         <Link
-                          href={`/exams/${exam.exam.slug}`}
+                          href={`/exams/${exam.exam.slug}/take`}
                           className="px-4 py-2 rounded-xl bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white text-xs font-black hover:shadow-lg transition"
                         >
                           شرکت در آزمون
@@ -441,6 +509,13 @@ export default function MyExamsPage() {
                           >
                             {isPassed ? 'قبول' : 'رد'}
                           </div>
+
+                          <Link
+                            href={`/exams/${exam.exam.slug}/take`}
+                            className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-black hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+                          >
+                            آزمون مجدد
+                          </Link>
                         </>
                       )}
                     </div>
@@ -456,12 +531,12 @@ export default function MyExamsPage() {
             <div className="text-6xl mb-4">📋</div>
             <h3 className="text-xl font-black text-slate-800 dark:text-slate-100 mb-2">
               {myExams.length === 0
-                ? 'هنوز آزمونی نخریده‌اید'
+                ? 'هنوز آزمونی نداری'
                 : 'آزمونی یافت نشد'}
             </h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
               {myExams.length === 0
-                ? 'برای شروع، یکی از آزمون‌های سرآمد را خریداری کنید'
+                ? 'برای شروع، یکی از آزمون‌های سرآمد را انتخاب کن'
                 : 'فیلتر یا جستجوی خود را تغییر دهید'}
             </p>
             {myExams.length === 0 ? (
@@ -484,39 +559,6 @@ export default function MyExamsPage() {
                 پاک کردن فیلترها
               </button>
             )}
-          </div>
-        </FadeIn>
-      )}
-
-      {/* CTA */}
-      {filteredExams.length > 0 && (
-        <FadeIn delay={0.3}>
-          <div className="bg-gradient-to-br from-[#1e3a8a] to-[#0d9488] rounded-3xl p-6 lg:p-8 text-white relative overflow-hidden">
-            <div className="absolute -top-20 -right-20 w-64 h-64 bg-teal-400/20 rounded-full blur-3xl" />
-
-            <div className="relative flex flex-col lg:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center">
-                  <Target className="w-7 h-7 text-orange-300" />
-                </div>
-                <div>
-                  <h3 className="font-black text-lg mb-1">
-                    آزمون‌های جدید را از دست نده
-                  </h3>
-                  <p className="text-sm text-blue-100">
-                    آزمون‌های تازه سرآمد را ببین و مسیر یادگیری‌ت رو ادامه بده
-                  </p>
-                </div>
-              </div>
-
-              <Link
-                href="/exams"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-white text-brand-800 rounded-xl font-black hover:bg-blue-50 transition-all hover:gap-3"
-              >
-                <Award className="w-4 h-4" />
-                مشاهده آزمون‌ها
-              </Link>
-            </div>
           </div>
         </FadeIn>
       )}
