@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   User,
   Mail,
@@ -15,31 +15,145 @@ import {
   Award,
   TrendingUp,
   Briefcase,
+  Loader2,
 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useCollection } from '@/hooks/useCollection';
+import { toPersianNumber } from '@/lib/format';
 import FadeIn from '@/components/animations/FadeIn';
 import { cn } from '@/lib/utils';
 
+interface Order {
+  id: string;
+  userId?: string;
+  userEmail?: string;
+  items: { type: string; title: string }[];
+  status: string;
+  createdAt: string;
+}
+
+interface ExamResult {
+  userId: string;
+  userEmail: string;
+  status: 'passed' | 'failed';
+  examTitle: string;
+}
+
+const RESULTS_KEY = 'saramad_exam_results';
+const PROFILE_KEY = 'saramad_user_profile';
+
+interface ProfileData {
+  phone: string;
+  city: string;
+  bio: string;
+}
+
+function getExamResults(): ExamResult[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(RESULTS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function getProfileOverrides(): ProfileData {
+  if (typeof window === 'undefined')
+    return { phone: '', city: '', bio: '' };
+  try {
+    const raw = localStorage.getItem(PROFILE_KEY);
+    return raw
+      ? JSON.parse(raw)
+      : { phone: '', city: '', bio: '' };
+  } catch {
+    return { phone: '', city: '', bio: '' };
+  }
+}
+
+function saveProfileOverrides(data: ProfileData) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(PROFILE_KEY, JSON.stringify(data));
+}
+
 export default function ProfilePage() {
+  const { user } = useAuth();
+  const { data: allOrders, loading: ordersLoading } =
+    useCollection<Order>('orders');
+
   const [formData, setFormData] = useState({
-    name: 'کاربر مهمان',
-    email: 'user@example.com',
-    phone: '۰۹۳۶۲۸۴۷۹۲۲',
-    city: 'تبریز',
-    bio: 'علاقه‌مند به یادگیری مهارت‌های جدید و توسعه فردی',
+    name: '',
+    email: '',
+    phone: '',
+    city: '',
+    bio: '',
   });
+
   const [saved, setSaved] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [examResults, setExamResults] = useState<ExamResult[]>([]);
+
+  // بارگذاری اطلاعات کاربر + overrideها
+  useEffect(() => {
+    setMounted(true);
+
+    if (user) {
+      const overrides = getProfileOverrides();
+      setFormData({
+        name: user.name || '',
+        email: user.email || '',
+        phone: overrides.phone || '',
+        city: overrides.city || '',
+        bio: overrides.bio || '',
+      });
+    }
+
+    setExamResults(getExamResults());
+  }, [user]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // ذخیره در localStorage
+    saveProfileOverrides({
+      phone: formData.phone,
+      city: formData.city,
+      bio: formData.bio,
+    });
+
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
+
+  // محاسبه آمار واقعی
+  const userOrders = allOrders.filter(
+    (o) =>
+      (o.userId === user?.id || o.userEmail === user?.email) &&
+      o.status === 'completed'
+  );
+
+  const completedCourses = userOrders.filter((o) =>
+    o.items?.some((i) => i.type === 'course')
+  ).length;
+
+  const userResults = examResults.filter(
+    (r) => r.userId === user?.id || r.userEmail === user?.email
+  );
+
+  const passedExams = userResults.filter(
+    (r) => r.status === 'passed'
+  ).length;
+
+  const certificates = passedExams; // هر آزمون قبول = ۱ گواهی
+
+  // تاریخ عضویت
+  const joinedDate = '۱۴۰۴/۰۷/۰۱'; // mock - بعداً از user.createdAt
 
   const accountInfo = [
     {
       icon: Calendar,
       label: 'تاریخ عضویت',
-      value: '۱۴۰۴/۰۵/۰۱',
+      value: joinedDate,
       color: 'brand' as const,
     },
     {
@@ -57,7 +171,12 @@ export default function ProfilePage() {
     {
       icon: Briefcase,
       label: 'نقش',
-      value: 'دانشجو',
+      value:
+        user?.role === 'admin'
+          ? 'مدیر'
+          : user?.role === 'instructor'
+          ? 'استاد'
+          : 'دانشجو',
       color: 'purple' as const,
     },
   ];
@@ -80,6 +199,18 @@ export default function ProfilePage() {
       icon: 'text-purple-600 dark:text-purple-300',
     },
   };
+
+  const loading = ordersLoading || !mounted;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  const avatarLetter = user?.name?.charAt(0) || 'م';
 
   return (
     <div className="space-y-6">
@@ -107,7 +238,7 @@ export default function ProfilePage() {
               پروفایل من 👤
             </h1>
             <p className="text-blue-100 text-sm lg:text-base">
-              اطلاعات شخصی و پروفایل کاربری خود را مدیریت کن
+              اطلاعات شخصی خود را مدیریت کنید و از پیشرفت تحصیلی خود مطلع شوید
             </p>
           </div>
         </div>
@@ -121,14 +252,13 @@ export default function ProfilePage() {
             <div className="relative group">
               <div className="w-28 h-28 rounded-full bg-gradient-to-br from-teal-400 via-brand-500 to-orange-500 p-1.5 shadow-2xl group-hover:scale-105 transition-transform">
                 <div className="w-full h-full rounded-full bg-white dark:bg-slate-900 flex items-center justify-center text-5xl font-black text-brand-800 dark:text-brand-300">
-                  ک
+                  {avatarLetter}
                 </div>
               </div>
               <button className="absolute bottom-1 left-1 w-10 h-10 rounded-full bg-orange-500 hover:bg-orange-600 flex items-center justify-center text-white transition shadow-lg shadow-orange-500/30 hover:scale-110">
                 <Camera className="w-4 h-4" />
               </button>
 
-              {/* نقطه آنلاین */}
               <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-green-500 border-4 border-white dark:border-slate-900" />
             </div>
 
@@ -137,7 +267,11 @@ export default function ProfilePage() {
                 {formData.name}
               </h2>
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
-                دانشجوی سرآمد
+                {user?.role === 'admin'
+                  ? 'مدیر سیستم'
+                  : user?.role === 'instructor'
+                  ? 'استاد'
+                  : 'دانشجوی سرآمد'}
               </p>
 
               <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
@@ -186,7 +320,8 @@ export default function ProfilePage() {
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
-                    className="w-full pr-11 pl-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-brand-500 focus:bg-white dark:focus:bg-slate-900 transition"
+                    dir="ltr"
+                    className="w-full pr-11 pl-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-brand-500 focus:bg-white dark:focus:bg-slate-900 transition text-left"
                   />
                   <Mail className="w-4 h-4 text-slate-400 absolute top-1/2 right-4 -translate-y-1/2" />
                 </div>
@@ -204,7 +339,9 @@ export default function ProfilePage() {
                     onChange={(e) =>
                       setFormData({ ...formData, phone: e.target.value })
                     }
-                    className="w-full pr-11 pl-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-brand-500 focus:bg-white dark:focus:bg-slate-900 transition"
+                    dir="ltr"
+                    placeholder="09123456789"
+                    className="w-full pr-11 pl-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-brand-500 focus:bg-white dark:focus:bg-slate-900 transition text-left"
                   />
                   <Phone className="w-4 h-4 text-slate-400 absolute top-1/2 right-4 -translate-y-1/2" />
                 </div>
@@ -222,6 +359,7 @@ export default function ProfilePage() {
                     onChange={(e) =>
                       setFormData({ ...formData, city: e.target.value })
                     }
+                    placeholder="مثلاً: تبریز"
                     className="w-full pr-11 pl-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-brand-500 focus:bg-white dark:focus:bg-slate-900 transition"
                   />
                   <MapPin className="w-4 h-4 text-slate-400 absolute top-1/2 right-4 -translate-y-1/2" />
@@ -240,6 +378,7 @@ export default function ProfilePage() {
                 onChange={(e) =>
                   setFormData({ ...formData, bio: e.target.value })
                 }
+                placeholder="یه توضیح کوتاه درباره خودت..."
                 className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-brand-500 focus:bg-white dark:focus:bg-slate-900 transition resize-none"
               />
             </div>
@@ -255,7 +394,7 @@ export default function ProfilePage() {
               </button>
 
               {saved && (
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-teal-100 dark:bg-teal-950/50 text-teal-700 dark:text-teal-300 rounded-xl text-sm font-bold animate-fade-up">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-teal-100 dark:bg-teal-950/50 text-teal-700 dark:text-teal-300 rounded-xl text-sm font-bold">
                   <CheckCircle2 className="w-4 h-4" />
                   ذخیره شد!
                 </div>
@@ -333,8 +472,12 @@ export default function ProfilePage() {
               <div className="w-11 h-11 rounded-xl bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center mb-3">
                 <TrendingUp className="w-5 h-5 text-teal-300" />
               </div>
-              <div className="text-3xl font-black mb-1">۵</div>
-              <div className="text-xs text-blue-100">دوره فعال</div>
+              <div className="text-3xl font-black mb-1">
+                {toPersianNumber(completedCourses)}
+              </div>
+              <div className="text-xs text-blue-100">
+                دوره‌های تکمیل‌شده
+              </div>
             </div>
           </div>
 
@@ -343,7 +486,7 @@ export default function ProfilePage() {
               <Award className="w-5 h-5 text-teal-600 dark:text-teal-300" />
             </div>
             <div className="text-3xl font-black text-slate-800 dark:text-slate-100 mb-1">
-              ۲
+              {toPersianNumber(certificates)}
             </div>
             <div className="text-xs text-slate-500 dark:text-slate-400">
               مدرک کسب‌شده
@@ -355,10 +498,10 @@ export default function ProfilePage() {
               <CheckCircle2 className="w-5 h-5 text-orange-600 dark:text-orange-300" />
             </div>
             <div className="text-3xl font-black text-slate-800 dark:text-slate-100 mb-1">
-              ۳
+              {toPersianNumber(passedExams)}
             </div>
             <div className="text-xs text-slate-500 dark:text-slate-400">
-              آزمون قبول‌شده
+              آزمون‌های قبول‌شده
             </div>
           </div>
         </div>
