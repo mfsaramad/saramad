@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Award,
@@ -14,40 +15,167 @@ import {
   TrendingUp,
   Eye,
   FileText,
+  Clock,
+  Loader2,
 } from 'lucide-react';
+import { useCollection } from '@/hooks/useCollection';
+import { useAuth } from '@/contexts/AuthContext';
 import { toPersianNumber } from '@/lib/format';
 import FadeIn from '@/components/animations/FadeIn';
 import { cn } from '@/lib/utils';
 
-const certificates = [
-  {
-    id: '1',
-    title: 'دوره برنامه‌نویسی پایتون',
-    instructor: 'دکتر علی محمدی',
-    date: '۱۴۰۴/۰۶/۲۵',
-    code: 'SRM-PY-1404-001',
-    duration: 60,
-    grade: 'عالی',
-    gradeColor: 'teal' as const,
-  },
-  {
-    id: '2',
-    title: 'دوره حسابداری مقدماتی',
-    instructor: 'استاد رضا کریمی',
-    date: '۱۴۰۴/۰۵/۱۸',
-    code: 'SRM-AC-1404-042',
-    duration: 90,
-    grade: 'خوب',
-    gradeColor: 'brand' as const,
-  },
-];
+interface OrderItem {
+  id: string;
+  type: string;
+  title: string;
+  price: number;
+  quantity: number;
+}
+
+interface Order {
+  id: string;
+  orderNumber: string;
+  userId?: string;
+  userEmail?: string;
+  items: OrderItem[];
+  status: string;
+  createdAt: string;
+}
+
+interface ExamResult {
+  examId: string;
+  examSlug: string;
+  examTitle: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  score: number;
+  correct: number;
+  wrong: number;
+  total: number;
+  status: 'passed' | 'failed';
+  takenAt: string;
+}
+
+interface Certificate {
+  id: string;
+  title: string;
+  instructor: string;
+  date: string;
+  code: string;
+  duration: number;
+  grade: string;
+  gradeColor: 'teal' | 'brand' | 'accent';
+  type: 'exam' | 'course';
+  score?: number;
+}
+
+const RESULTS_KEY = 'saramad_exam_results';
+
+function getExamResults(): ExamResult[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(RESULTS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function formatDate(isoDate: string): string {
+  try {
+    const date = new Date(isoDate);
+    const year = date.getFullYear() - 621;
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}/${month}/${day}`;
+  } catch {
+    return isoDate;
+  }
+}
 
 export default function CertificatesPage() {
+  const { user } = useAuth();
+  const { data: allOrders, loading: ordersLoading } =
+    useCollection<Order>('orders');
+
+  const [mounted, setMounted] = useState(false);
+  const [examResults, setExamResults] = useState<ExamResult[]>([]);
+
+  useEffect(() => {
+    setMounted(true);
+    setExamResults(getExamResults());
+  }, []);
+
+  // استخراج گواهی‌نامه‌ها از دو منبع
+  const certificates: Certificate[] = (() => {
+    if (!user) return [];
+
+    const result: Certificate[] = [];
+
+    // ۱. گواهی‌نامه‌های آزمون‌های قبول‌شده
+    const userResults = examResults.filter(
+      (r) =>
+        (r.userId === user.id || r.userEmail === user.email) &&
+        r.status === 'passed'
+    );
+
+    userResults.forEach((res, idx) => {
+      result.push({
+        id: `exam-${res.examSlug}`,
+        title: `گواهی‌نامه ${res.examTitle}`,
+        instructor: 'آموزشگاه سرآمد',
+        date: formatDate(res.takenAt),
+        code: `SRM-EX-${1404}-${String(idx + 1).padStart(3, '0')}`,
+        duration: 0,
+        grade: res.score >= 90 ? 'عالی' : res.score >= 75 ? 'خوب' : 'قبول',
+        gradeColor: res.score >= 90 ? 'teal' : 'brand',
+        type: 'exam',
+        score: res.score,
+      });
+    });
+
+    // ۲. گواهی‌نامه‌های دوره‌های تکمیل‌شده
+    const userOrders = allOrders.filter(
+      (o) =>
+        (o.userId === user.id || o.userEmail === user.email) &&
+        o.status === 'completed'
+    );
+
+    userOrders.forEach((order) => {
+      order.items?.forEach((item) => {
+        if (item.type === 'course') {
+          // جلوگیری از تکراری
+          if (!result.some((c) => c.title.includes(item.title))) {
+            result.push({
+              id: `course-${item.id}`,
+              title: `گواهی‌نامه ${item.title}`,
+              instructor: 'آموزشگاه سرآمد',
+              date: formatDate(order.createdAt),
+              code: `SRM-CO-1404-${String(result.length + 1).padStart(3, '0')}`,
+              duration: 60,
+              grade: 'قبول',
+              gradeColor: 'brand',
+              type: 'course',
+            });
+          }
+        }
+      });
+    });
+
+    return result;
+  })();
+
   const gradeMap = {
     teal: 'bg-teal-100 dark:bg-teal-950/50 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-900/50',
     brand:
       'bg-blue-100 dark:bg-blue-950/50 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-900/50',
+    accent:
+      'bg-orange-100 dark:bg-orange-950/50 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-900/50',
   };
+
+  const lastDate =
+    certificates.length > 0 ? certificates[0].date : '—';
 
   const stats = [
     {
@@ -58,13 +186,15 @@ export default function CertificatesPage() {
     },
     {
       icon: Trophy,
-      value: toPersianNumber(1),
-      label: 'با نمره عالی',
+      value: toPersianNumber(
+        certificates.filter((c) => c.type === 'exam').length
+      ),
+      label: 'مدارک آزمون',
       color: 'teal' as const,
     },
     {
       icon: Calendar,
-      value: '۱۴۰۴/۰۶/۲۵',
+      value: lastDate,
       label: 'آخرین مدرک',
       color: 'brand' as const,
     },
@@ -84,6 +214,8 @@ export default function CertificatesPage() {
       icon: 'text-blue-800 dark:text-blue-300',
     },
   };
+
+  const loading = ordersLoading || !mounted;
 
   return (
     <div className="space-y-6">
@@ -111,7 +243,7 @@ export default function CertificatesPage() {
               مدارک من 🏆
             </h1>
             <p className="text-blue-100 text-sm lg:text-base">
-              مدارک معتبر دوره‌هایی که با موفقیت به پایان رسانده‌ای
+              مدارک معتبر دوره‌های آموزشی که با موفقیت به پایان رسانده‌اید
             </p>
           </div>
         </div>
@@ -146,8 +278,12 @@ export default function CertificatesPage() {
         })}
       </div>
 
-      {/* Certificates List */}
-      {certificates.length > 0 ? (
+      {/* Loading */}
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        </div>
+      ) : certificates.length > 0 ? (
         <div className="space-y-4">
           {certificates.map((cert, index) => (
             <FadeIn key={cert.id} delay={index * 0.1} direction="up">
@@ -174,6 +310,11 @@ export default function CertificatesPage() {
                           <FileText className="w-3 h-3" />
                           کد: {cert.code}
                         </span>
+                        {cert.score !== undefined && (
+                          <span className="px-3 py-1 bg-teal-100 dark:bg-teal-950/50 rounded-full text-xs font-bold text-teal-700 dark:text-teal-300">
+                            امتیاز: {toPersianNumber(cert.score)}٪
+                          </span>
+                        )}
                       </div>
 
                       <h3 className="text-lg lg:text-xl font-black text-slate-800 dark:text-slate-100 mb-3 group-hover:text-brand-800 dark:group-hover:text-brand-300 transition">
@@ -189,23 +330,34 @@ export default function CertificatesPage() {
                           <Calendar className="w-3.5 h-3.5" />
                           <span>{cert.date}</span>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5" />
-                          <span>{toPersianNumber(cert.duration)} ساعت</span>
-                        </div>
+                        {cert.duration > 0 && (
+                          <div className="flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5" />
+                            <span>{toPersianNumber(cert.duration)} ساعت</span>
+                          </div>
+                        )}
                       </div>
                     </div>
 
                     {/* Actions */}
                     <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto">
-                      <button className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white rounded-xl font-bold text-sm hover:shadow-lg transition-all hover:gap-3">
+                      <button
+                        onClick={() => alert('به‌زودی: دانلود PDF')}
+                        className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white rounded-xl font-bold text-sm hover:shadow-lg transition-all hover:gap-3"
+                      >
                         <Download className="w-4 h-4" />
                         دانلود PDF
                       </button>
-                      <button className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition">
+                      <button
+                        onClick={() => alert('به‌زودی: اشتراک‌گذاری')}
+                        className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition"
+                      >
                         <Share2 className="w-4 h-4" />
                       </button>
-                      <button className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition">
+                      <button
+                        onClick={() => alert('به‌زودی: مشاهده')}
+                        className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition"
+                      >
                         <Eye className="w-4 h-4" />
                       </button>
                     </div>
@@ -235,20 +387,28 @@ export default function CertificatesPage() {
       ) : (
         <FadeIn>
           <div className="bg-white dark:bg-slate-900 rounded-3xl p-12 border border-slate-100 dark:border-slate-800 text-center">
-            <div className="text-6xl mb-4">🎓</div>
+            <div className="text-6xl mb-4">🏆</div>
             <h3 className="text-xl font-black text-slate-800 dark:text-slate-100 mb-2">
               هنوز مدرکی نداری
             </h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-              با تکمیل دوره‌ها و قبولی در آزمون‌ها، مدرک معتبر دریافت کن
+              با تکمیل دوره‌های آموزشی و قبولی در آزمون‌ها، مدرک معتبر دریافت کن
             </p>
-            <Link
-              href="/courses"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white rounded-xl font-bold hover:shadow-lg transition hover:gap-3"
-            >
-              مشاهده دوره‌ها
-              <ArrowLeft className="w-4 h-4" />
-            </Link>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <Link
+                href="/courses"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white rounded-xl font-bold hover:shadow-lg transition hover:gap-3"
+              >
+                مشاهده دوره‌ها
+                <ArrowLeft className="w-4 h-4" />
+              </Link>
+              <Link
+                href="/exams"
+                className="inline-flex items-center gap-2 px-6 py-3 border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+              >
+                شرکت در آزمون
+              </Link>
+            </div>
           </div>
         </FadeIn>
       )}
@@ -288,6 +448,3 @@ export default function CertificatesPage() {
     </div>
   );
 }
-
-// آیکون Clock برای استفاده در کامپوننت
-import { Clock } from 'lucide-react';
