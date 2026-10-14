@@ -9,8 +9,12 @@ import {
   CreditCard,
   Calendar,
   Hash,
+  CheckCircle2,
+  Clock,
+  Loader2,
 } from 'lucide-react';
 import { StatusBadge } from './StatusBadge';
+import { updateItem } from '@/lib/api/db';
 
 function formatPrice(price: number | undefined | null): string {
   if (price === undefined || price === null || isNaN(price)) {
@@ -52,14 +56,40 @@ export interface Order {
   updatedAt?: string;
 }
 
-export function OrderCard({ order }: { order: Order }) {
+interface Props {
+  order: Order;
+  onUpdate?: () => void;
+}
+
+export function OrderCard({ order, onUpdate }: Props) {
   const [expanded, setExpanded] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const items = order.items || [];
   const subtotal = order.subtotal ?? order.total ?? 0;
   const discount = order.discount ?? 0;
   const total = order.total ?? 0;
   const itemsCount = items.length;
+
+  const handlePay = async () => {
+    if (loading) return;
+    if (order.status !== 'pending') return;
+
+    setLoading(true);
+
+    // شبیه‌سازی پرداخت (تأخیر ۱.۵ ثانیه)
+    setTimeout(() => {
+      updateItem('orders', order.id, {
+        status: 'processing',
+        updatedAt: new Date().toISOString(),
+      });
+
+      setLoading(false);
+
+      if (onUpdate) onUpdate();
+      else window.location.reload();
+    }, 1500);
+  };
 
   return (
     <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden transition-all hover:shadow-lg">
@@ -171,6 +201,54 @@ export function OrderCard({ order }: { order: Order }) {
           </div>
         </div>
       )}
+
+      {/* Actions */}
+      <div className="px-4 sm:px-5 pb-4 sm:pb-5">
+        {/* Pending: دکمه پرداخت */}
+        {order.status === 'pending' && (
+          <button
+            type="button"
+            onClick={handlePay}
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-l from-blue-600 to-teal-600 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all disabled:opacity-70"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                در حال پردازش...
+              </>
+            ) : (
+              <>
+                <CreditCard className="w-4 h-4" />
+                تکمیل پرداخت
+              </>
+            )}
+          </button>
+        )}
+
+        {/* Processing: پیام */}
+        {order.status === 'processing' && (
+          <div className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-purple-50 dark:bg-purple-950/30 text-purple-700 dark:text-purple-300 text-sm font-bold border border-purple-200 dark:border-purple-900/50">
+            <Clock className="w-4 h-4" />
+            در حال پردازش توسط تیم سرآمد
+          </div>
+        )}
+
+        {/* Completed: پیام */}
+        {order.status === 'completed' && (
+          <div className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-300 text-sm font-bold border border-green-200 dark:border-green-900/50">
+            <CheckCircle2 className="w-4 h-4" />
+            سفارش تکمیل شده
+          </div>
+        )}
+
+        {/* Cancelled/Refunded: پیام */}
+        {(order.status === 'cancelled' || order.status === 'refunded') && (
+          <div className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300 text-sm font-bold border border-red-200 dark:border-red-900/50">
+            سفارش {order.status === 'cancelled' ? 'لغو شده' : 'بازگشت داده شده'}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

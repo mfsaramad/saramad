@@ -1,124 +1,15 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { ShoppingBag } from 'lucide-react';
-import { OrderCard } from '@/components/dashboard/OrderCard';
-import { OrderStatus } from '@/types';
+import { useMemo, useState, useCallback } from 'react';
+import Link from 'next/link';
+import { ShoppingBag, Loader2 } from 'lucide-react';
+import { useCollection } from '@/hooks/useCollection';
+import { useAuth } from '@/contexts/AuthContext';
+import { OrderCard, type Order } from '@/components/dashboard/OrderCard';
 
-type FilterType = 'all' | OrderStatus;
+type FilterType = 'all' | 'pending' | 'processing' | 'completed' | 'cancelled';
 
-interface OrderItem {
-  id: string;
-  title: string;
-  type: 'course' | 'exam' | 'product';
-  price: number;
-  quantity: number;
-}
-
-interface Order {
-  id: string;
-  orderNumber: string;
-  items: OrderItem[];
-  totalAmount: number;
-  discount: number;
-  finalAmount: number;
-  status: OrderStatus;
-  paymentMethod?: 'zarinpal' | 'idpay' | 'wallet';
-  trackingCode?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-const mockOrders: Order[] = [
-  {
-    id: '1',
-    orderNumber: 'SRM-14040701-001',
-    items: [
-      {
-        id: 'c1',
-        title: 'دوره جامع React و Next.js',
-        type: 'course',
-        price: 2500000,
-        quantity: 1,
-      },
-    ],
-    totalAmount: 2500000,
-    discount: 0,
-    finalAmount: 2500000,
-    status: 'completed',
-    paymentMethod: 'zarinpal',
-    trackingCode: 'ZP-987654321',
-    createdAt: '1404/07/01',
-    updatedAt: '1404/07/01',
-  },
-  {
-    id: '2',
-    orderNumber: 'SRM-14040628-002',
-    items: [
-      {
-        id: 'c2',
-        title: 'دوره Python مقدماتی',
-        type: 'course',
-        price: 1800000,
-        quantity: 1,
-      },
-      {
-        id: 'e1',
-        title: 'آزمون تعیین سطح Python',
-        type: 'exam',
-        price: 200000,
-        quantity: 1,
-      },
-    ],
-    totalAmount: 2000000,
-    discount: 200000,
-    finalAmount: 1800000,
-    status: 'processing',
-    paymentMethod: 'zarinpal',
-    createdAt: '1404/06/28',
-    updatedAt: '1404/06/29',
-  },
-  {
-    id: '3',
-    orderNumber: 'SRM-14040620-003',
-    items: [
-      {
-        id: 'p1',
-        title: 'کتاب آموزش TypeScript',
-        type: 'product',
-        price: 450000,
-        quantity: 2,
-      },
-    ],
-    totalAmount: 900000,
-    discount: 0,
-    finalAmount: 900000,
-    status: 'pending',
-    createdAt: '1404/06/20',
-    updatedAt: '1404/06/20',
-  },
-  {
-    id: '4',
-    orderNumber: 'SRM-14040615-004',
-    items: [
-      {
-        id: 'c3',
-        title: 'دوره UI/UX Design',
-        type: 'course',
-        price: 3200000,
-        quantity: 1,
-      },
-    ],
-    totalAmount: 3200000,
-    discount: 500000,
-    finalAmount: 2700000,
-    status: 'cancelled',
-    createdAt: '1404/06/15',
-    updatedAt: '1404/06/16',
-  },
-];
-
-const filters: { key: FilterType; label: string }[] = [
+const FILTERS: { key: FilterType; label: string }[] = [
   { key: 'all', label: 'همه' },
   { key: 'pending', label: 'در انتظار پرداخت' },
   { key: 'processing', label: 'در حال پردازش' },
@@ -127,15 +18,34 @@ const filters: { key: FilterType; label: string }[] = [
 ];
 
 export default function OrdersPage() {
+  const { user } = useAuth();
+  const { data: allOrders, loading } = useCollection<Order>('orders');
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  const filteredOrders = useMemo(() => {
-    if (activeFilter === 'all') return mockOrders;
-    return mockOrders.filter((o) => o.status === activeFilter);
-  }, [activeFilter]);
+  const orders = useMemo(() => {
+    let result = allOrders;
+
+    if (user) {
+      result = result.filter(
+        (o) => o.userId === user.id || o.userEmail === user.email
+      );
+    }
+
+    if (activeFilter !== 'all') {
+      result = result.filter((o) => o.status === activeFilter);
+    }
+
+    return result;
+  }, [allOrders, user, activeFilter, refreshKey]);
+
+  const handleUpdate = useCallback(() => {
+    setRefreshKey((k) => k + 1);
+  }, []);
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           سفارشات من
@@ -145,8 +55,9 @@ export default function OrdersPage() {
         </p>
       </div>
 
+      {/* Filters */}
       <div className="flex flex-wrap gap-2">
-        {filters.map((f) => (
+        {FILTERS.map((f) => (
           <button
             key={f.key}
             onClick={() => setActiveFilter(f.key)}
@@ -161,17 +72,39 @@ export default function OrdersPage() {
         ))}
       </div>
 
-      {filteredOrders.length === 0 ? (
+      {/* Orders */}
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        </div>
+      ) : orders.length === 0 ? (
         <div className="text-center py-16 bg-gray-50 dark:bg-gray-900 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700">
           <ShoppingBag className="w-12 h-12 mx-auto text-gray-400 mb-3" />
-          <p className="text-gray-500 dark:text-gray-400">
-            سفارشی در این دسته یافت نشد
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+            سفارشی یافت نشد
+          </h3>
+          <p className="text-gray-500 dark:text-gray-400 mb-6">
+            {activeFilter === 'all'
+              ? 'هنوز سفارشی ثبت نکرده‌اید'
+              : 'سفارشی در این دسته‌بندی وجود ندارد'}
           </p>
+          {activeFilter === 'all' && (
+            <Link
+              href="/courses"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium transition"
+            >
+              مشاهده دوره‌ها
+            </Link>
+          )}
         </div>
       ) : (
         <div className="space-y-4">
-          {filteredOrders.map((order) => (
-            <OrderCard key={order.id} order={order} />
+          {orders.map((order) => (
+            <OrderCard
+              key={order.id}
+              order={order}
+              onUpdate={handleUpdate}
+            />
           ))}
         </div>
       )}

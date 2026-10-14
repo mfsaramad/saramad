@@ -1,16 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   BookOpen,
-  TrendingUp,
   CheckCircle2,
   Clock,
   Sparkles,
   Search,
   X,
+  Loader2,
 } from 'lucide-react';
-import { courses } from '@/lib/data';
+import { useCollection } from '@/hooks/useCollection';
+import { useAuth } from '@/contexts/AuthContext';
 import { toPersianNumber } from '@/lib/format';
 import MyCourseCard from '@/components/dashboard/MyCourseCard';
 import FadeIn from '@/components/animations/FadeIn';
@@ -18,16 +19,104 @@ import { cn } from '@/lib/utils';
 
 type FilterType = 'all' | 'active' | 'completed';
 
+interface OrderItem {
+  id: string;
+  type: string;
+  title: string;
+  price: number;
+  quantity: number;
+}
+
+interface Order {
+  id: string;
+  orderNumber: string;
+  userId?: string;
+  userEmail?: string;
+  items: OrderItem[];
+  status: string;
+  createdAt: string;
+}
+
+interface Course {
+  id: string;
+  slug: string;
+  title: string;
+  image?: string;
+  instructor?: { id: string; name: string };
+  duration?: number;
+  sessions?: number;
+  [key: string]: any;
+}
+
+interface MyCourse {
+  course: Course;
+  progress: number;
+  status: 'active' | 'completed';
+  purchasedAt: string;
+  orderNumber: string;
+}
+
 export default function MyCoursesPage() {
+  const { user } = useAuth();
+  const { data: allOrders, loading: ordersLoading } =
+    useCollection<Order>('orders');
+  const { data: allCourses, loading: coursesLoading } =
+    useCollection<Course>('courses');
+
   const [activeTab, setActiveTab] = useState<FilterType>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [mounted, setMounted] = useState(false);
 
-  // نمونه دیتا
-  const myCourses = courses.slice(0, 5).map((course, idx) => ({
-    course,
-    progress: [65, 100, 30, 85, 45][idx] || 50,
-    status: (idx === 1 ? 'completed' : 'active') as 'active' | 'completed',
-  }));
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // استخراج دوره‌های خریداری‌شده کاربر از سفارشات
+  const myCourses: MyCourse[] = (() => {
+    if (!user) return [];
+
+    // فیلتر سفارشات کاربر
+    const userOrders = allOrders.filter(
+      (o) => o.userId === user.id || o.userEmail === user.email
+    );
+
+    // استخراج آیتم‌های دوره از سفارشات
+    const courseItems: { item: OrderItem; order: Order }[] = [];
+    userOrders.forEach((order) => {
+      order.items?.forEach((item) => {
+        if (item.type === 'course') {
+          courseItems.push({ item, order });
+        }
+      });
+    });
+
+    // match با courses
+    const result: MyCourse[] = [];
+    courseItems.forEach(({ item, order }) => {
+      // جستجو بر اساس slug یا id یا title
+      const found = allCourses.find(
+        (c) =>
+          c.slug === item.id ||
+          c.id === item.id ||
+          c.title === item.title
+      );
+
+      if (found) {
+        // جلوگیری از تکراری
+        if (!result.some((r) => r.course.id === found.id)) {
+          result.push({
+            course: found,
+            progress: 0, // چون پیگیری پیشرفت نداریم
+            status: order.status === 'completed' ? 'completed' : 'active',
+            purchasedAt: order.createdAt,
+            orderNumber: order.orderNumber,
+          });
+        }
+      }
+    });
+
+    return result;
+  })();
 
   const filteredCourses = myCourses.filter((item) => {
     const matchTab = activeTab === 'all' || item.status === activeTab;
@@ -98,6 +187,8 @@ export default function MyCoursesPage() {
       icon: 'text-teal-600 dark:text-teal-300',
     },
   };
+
+  const loading = ordersLoading || coursesLoading || !mounted;
 
   return (
     <div className="space-y-6">
@@ -208,8 +299,12 @@ export default function MyCoursesPage() {
         </div>
       </FadeIn>
 
-      {/* Courses Grid */}
-      {filteredCourses.length > 0 ? (
+      {/* Loading */}
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        </div>
+      ) : filteredCourses.length > 0 ? (
         <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
           {filteredCourses.map((item, index) => (
             <FadeIn
@@ -231,21 +326,35 @@ export default function MyCoursesPage() {
           <div className="bg-white dark:bg-slate-900 rounded-3xl p-12 border border-slate-100 dark:border-slate-800 text-center">
             <div className="text-6xl mb-4">📚</div>
             <h3 className="text-xl font-black text-slate-800 dark:text-slate-100 mb-2">
-              دوره‌ای یافت نشد
+              {myCourses.length === 0
+                ? 'هنوز دوره‌ای نخریده‌اید'
+                : 'دوره‌ای یافت نشد'}
             </h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-              فیلتر یا جستجوی خود را تغییر دهید
+              {myCourses.length === 0
+                ? 'برای شروع یادگیری، یکی از دوره‌های سرآمد را خریداری کنید'
+                : 'فیلتر یا جستجوی خود را تغییر دهید'}
             </p>
-            <button
-              onClick={() => {
-                setActiveTab('all');
-                setSearchQuery('');
-              }}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white rounded-xl font-bold hover:shadow-lg transition"
-            >
-              <X className="w-4 h-4" />
-              پاک کردن فیلترها
-            </button>
+            {myCourses.length === 0 ? (
+              <a
+                href="/courses"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white rounded-xl font-bold hover:shadow-lg transition"
+              >
+                <BookOpen className="w-4 h-4" />
+                مشاهده دوره‌ها
+              </a>
+            ) : (
+              <button
+                onClick={() => {
+                  setActiveTab('all');
+                  setSearchQuery('');
+                }}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white rounded-xl font-bold hover:shadow-lg transition"
+              >
+                <X className="w-4 h-4" />
+                پاک کردن فیلترها
+              </button>
+            )}
           </div>
         </FadeIn>
       )}
