@@ -16,6 +16,7 @@ import {
   Star,
   ShoppingBag,
   Radio,
+  Home,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toPersianNumber } from '@/lib/format';
@@ -85,6 +86,18 @@ export default function DashboardSidebar() {
   return (
     <aside className="w-full lg:w-72 flex-shrink-0">
       <div className="lg:sticky lg:top-24 space-y-4">
+
+        {/* 🏠 دکمه بازگشت به سایت */}
+        <Link
+          href="/"
+          className="group flex items-center justify-center gap-2 w-full px-5 py-3 bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-100 dark:border-slate-800 hover:border-brand-500 dark:hover:border-brand-500 hover:bg-brand-50 dark:hover:bg-brand-950/30 transition-all shadow-sm hover:shadow-md"
+        >
+          <Home className="w-5 h-5 text-brand-800 dark:text-brand-300 group-hover:scale-110 transition-transform" />
+          <span className="font-black text-brand-800 dark:text-brand-300">
+            بازگشت به سایت اصلی
+          </span>
+        </Link>
+
         {/* User Card */}
         <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
           {/* Header */}

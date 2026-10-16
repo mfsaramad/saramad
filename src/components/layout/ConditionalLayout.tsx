@@ -7,12 +7,11 @@ import Footer from '@/components/layout/Footer';
 export function ConditionalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
+  // فقط admin و dashboard نباید Header/Footer داشته باشن
+  // چون سایدبار خودشون رو دارن
   const hideLayout =
     pathname.startsWith('/admin') ||
-    pathname.startsWith('/dashboard') ||
-    pathname.startsWith('/login') ||
-    pathname.startsWith('/register') ||
-    pathname.startsWith('/forgot-password');
+    pathname.startsWith('/dashboard');
 
   if (hideLayout) {
     return <>{children}</>;

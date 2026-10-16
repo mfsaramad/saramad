@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Menu, X, User, LayoutDashboard } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { SITE_CONFIG } from '@/lib/constants';
 import SearchButton from '@/components/search/SearchButton';
 import ThemeToggle from '@/components/theme/ThemeToggle';
-import { ShoppingBag } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 
 const NAV_ITEMS = [
@@ -24,6 +24,7 @@ export default function Header() {
   const [isLoggedIn] = useState(true);
   const [mounted, setMounted] = useState(false);
   const { resolvedTheme } = useTheme();
+  const pathname = usePathname();
 
   useEffect(() => {
     setMounted(true);
@@ -41,51 +42,72 @@ export default function Header() {
   const logoSrc =
     mounted && resolvedTheme === 'dark' ? '/logo-white.png' : '/logo.png';
 
+  const isActive = (href: string) => {
+    if (href === '/') return pathname === '/';
+    return pathname.startsWith(href);
+  };
+
   return (
     <>
       <header
         className={
           isScrolled
-            ? 'fixed top-0 inset-x-0 z-50 transition-all duration-300 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg shadow-sm border-b border-slate-200 dark:border-slate-800'
-            : 'fixed top-0 inset-x-0 z-50 transition-all duration-300 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md'
+            ? 'fixed top-0 inset-x-0 z-50 transition-all duration-300 bg-white dark:bg-slate-900 shadow-lg border-b border-slate-200 dark:border-slate-800'
+            : 'fixed top-0 inset-x-0 z-50 transition-all duration-300 bg-white dark:bg-slate-900 shadow-sm border-b border-slate-100 dark:border-slate-800'
         }
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 lg:h-20">
-            {/* Logo */}
-            <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-12 h-12 lg:w-14 lg:h-14 flex items-center justify-center group-hover:scale-105 transition-transform">
+
+            {/* Logo — واضح‌تر */}
+            <Link href="/" className="flex items-center gap-3 group shrink-0">
+              <div
+                className="w-14 h-14 lg:w-16 lg:h-16 flex items-center justify-center rounded-xl overflow-hidden transition-all duration-300 group-hover:scale-110"
+                style={{
+                  background: 'transparent',
+                }}
+              >
                 <img
                   src={logoSrc}
                   alt="آموزشگاه سرآمد"
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-contain drop-shadow-md"
                 />
               </div>
-              <div>
-                <div className="text-lg lg:text-xl font-black text-brand-800 dark:text-brand-100 leading-tight">
+              <div className="hidden sm:block">
+                <div className="text-xl lg:text-2xl font-black leading-tight bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] bg-clip-text text-transparent">
                   سرآمد
                 </div>
-                <div className="text-xs lg:text-sm font-bold text-slate-700 dark:text-slate-200 mt-0.5 hidden sm:block">
+                <div className="text-[11px] lg:text-xs font-black text-slate-700 dark:text-slate-300 mt-0.5">
                   مجتمع آموزش فنی و حرفه‌ای
                 </div>
               </div>
             </Link>
 
-            {/* Desktop Nav */}
+            {/* Desktop Nav — با hover واضح */}
             <nav className="hidden lg:flex items-center gap-1">
-              {NAV_ITEMS.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="px-4 py-2 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-200 hover:text-brand-800 dark:hover:text-brand-100 hover:bg-brand-50 dark:hover:bg-slate-800 transition"
-                >
-                  {item.label}
-                </Link>
-              ))}
+              {NAV_ITEMS.map((item) => {
+                const active = isActive(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`
+                      relative px-5 py-2.5 rounded-xl text-base font-black transition-all duration-200
+                      ${
+                        active
+                          ? 'text-white bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] shadow-md shadow-blue-900/20'
+                          : 'text-slate-800 dark:text-slate-100 hover:text-white hover:bg-gradient-to-l hover:from-[#1e3a8a] hover:to-[#0d9488] hover:shadow-md hover:shadow-blue-900/20 hover:-translate-y-0.5'
+                      }
+                    `}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
             </nav>
 
             {/* Desktop Buttons */}
-            <div className="hidden lg:flex items-center gap-2">
+            <div className="hidden lg:flex items-center gap-3">
               <ThemeToggle />
               <SearchButton />
 
@@ -93,7 +115,7 @@ export default function Header() {
                 <>
                   <Link
                     href="/dashboard"
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-brand-800 dark:text-brand-100 hover:bg-brand-50 dark:hover:bg-slate-800 rounded-lg transition"
+                    className="flex items-center gap-2 px-5 py-2.5 text-sm font-black text-white bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] rounded-xl shadow-md shadow-blue-900/30 hover:shadow-lg hover:shadow-blue-900/40 hover:scale-105 hover:-translate-y-0.5 transition-all duration-200"
                   >
                     <LayoutDashboard className="w-4 h-4" />
                     پنل کاربری
@@ -101,7 +123,7 @@ export default function Header() {
 
                   <Link
                     href="/dashboard/profile"
-                    className="w-10 h-10 rounded-full bg-gradient-to-br from-[#1e3a8a] to-[#0d9488] flex items-center justify-center text-white font-black shadow-lg hover:scale-105 transition-transform"
+                    className="w-11 h-11 rounded-full bg-gradient-to-br from-[#1e3a8a] to-[#0d9488] flex items-center justify-center text-white font-black text-lg shadow-lg hover:scale-110 hover:shadow-xl transition-all duration-200 ring-2 ring-white dark:ring-slate-900"
                     title="پروفایل من"
                   >
                     ک
@@ -111,14 +133,14 @@ export default function Header() {
                 <>
                   <Link
                     href="/login"
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-brand-800 dark:text-brand-100 hover:bg-brand-50 dark:hover:bg-slate-800 rounded-lg transition"
+                    className="flex items-center gap-2 px-5 py-2.5 text-sm font-black text-[#1e3a8a] dark:text-white border-2 border-[#1e3a8a] dark:border-slate-700 rounded-xl hover:bg-[#1e3a8a] hover:text-white dark:hover:bg-white dark:hover:text-[#1e3a8a] transition-all duration-200"
                   >
                     <User className="w-4 h-4" />
                     ورود
                   </Link>
                   <Link
                     href="/register"
-                    className="px-5 py-2.5 text-sm font-bold text-white rounded-lg gradient-accent hover:shadow-lg transition-all"
+                    className="px-5 py-2.5 text-sm font-black text-white rounded-xl bg-gradient-to-l from-[#f97316] to-[#ea580c] shadow-md shadow-orange-500/30 hover:shadow-lg hover:scale-105 hover:-translate-y-0.5 transition-all duration-200"
                   >
                     ثبت‌نام
                   </Link>
@@ -150,36 +172,46 @@ export default function Header() {
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 top-16 lg:hidden z-40 bg-white dark:bg-slate-900 overflow-y-auto">
-          <nav className="px-4 py-4 space-y-1">
-            {NAV_ITEMS.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="block px-4 py-3 rounded-xl text-base font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
-              >
-                {item.label}
-              </Link>
-            ))}
+          <nav className="px-4 py-4 space-y-2">
+            {NAV_ITEMS.map((item) => {
+              const active = isActive(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`
+                    block px-4 py-3 rounded-xl text-base font-black transition-all
+                    ${
+                      active
+                        ? 'text-white bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] shadow-md'
+                        : 'text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+                    }
+                  `}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
 
             <Link
               href="/exams"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="block px-4 py-3 rounded-xl text-base font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+              className="block px-4 py-3 rounded-xl text-base font-black text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition"
             >
               آزمون آنلاین
             </Link>
             <Link
               href="/shop"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="block px-4 py-3 rounded-xl text-base font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+              className="block px-4 py-3 rounded-xl text-base font-black text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition"
             >
               فروشگاه
             </Link>
             <Link
               href="/branches"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="block px-4 py-3 rounded-xl text-base font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+              className="block px-4 py-3 rounded-xl text-base font-black text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition"
             >
               شعبه‌ها
             </Link>
@@ -188,31 +220,31 @@ export default function Header() {
               <Link
                 href="/dashboard"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-base font-bold bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white transition"
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-base font-black bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white transition shadow-md mt-4"
               >
                 <LayoutDashboard className="w-5 h-5" />
                 پنل کاربری
               </Link>
             ) : (
-              <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex gap-2">
+              <div className="pt-4 mt-4 border-t border-slate-200 dark:border-slate-800 flex gap-2">
                 <Link
                   href="/login"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex-1 text-center px-4 py-3 text-sm font-bold text-brand-800 dark:text-brand-100 border-2 border-brand-200 dark:border-brand-800 rounded-xl hover:bg-brand-50 dark:hover:bg-slate-800 transition"
+                  className="flex-1 text-center px-4 py-3 text-sm font-black text-[#1e3a8a] dark:text-white border-2 border-[#1e3a8a] dark:border-slate-700 rounded-xl hover:bg-blue-50 dark:hover:bg-slate-800 transition"
                 >
                   ورود
                 </Link>
                 <Link
                   href="/register"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex-1 text-center px-4 py-3 text-sm font-bold text-white rounded-xl gradient-accent"
+                  className="flex-1 text-center px-4 py-3 text-sm font-black text-white rounded-xl bg-gradient-to-l from-[#f97316] to-[#ea580c] shadow-md"
                 >
                   ثبت‌نام
                 </Link>
               </div>
             )}
 
-            <div className="pt-6 mt-6 border-t border-slate-200 dark:border-slate-800 space-y-2 text-sm text-slate-600 dark:text-slate-400">
+            <div className="pt-6 mt-6 border-t border-slate-200 dark:border-slate-800 space-y-2 text-sm font-bold text-slate-800 dark:text-slate-200">
               <div className="flex items-center gap-2">
                 <span>📞</span>
                 <span>{SITE_CONFIG.phone}</span>
