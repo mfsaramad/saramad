@@ -152,19 +152,86 @@ export default function Hero() {
               </span>
             </motion.h1>
 
-            {/* توضیح */}
-            <motion.p
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.2 }}
-              className="text-lg lg:text-xl text-blue-100 leading-relaxed mb-8 max-w-xl"
-              style={{ textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}
-            >
-              مجتمع آموزش فنی و حرفه‌ای سرآمد با برگزاری دوره‌های{' '}
-              <strong className="text-white">حضوری، آنلاین و ترکیبی</strong>،
-              شما را برای ورود به بازار کار آماده می‌کند.
-            </motion.p>
-
+            {/* توضیح — کلمات «حضوری، آنلاین، ترکیبی» بزرگ‌تر، ضخیم‌تر و سه‌بعدی */}
+{/* توضیح — کامل سفید و واضح */}
+<motion.p
+  initial={{ opacity: 0, y: 30 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.7, delay: 0.2 }}
+  className="text-lg lg:text-xl leading-loose mb-8 max-w-xl font-bold"
+  style={{
+    color: '#ffffff',
+    textShadow: '0 2px 8px rgba(0,0,0,0.7), 0 4px 16px rgba(0,0,0,0.5)',
+  }}
+>
+  مجتمع آموزش فنی و حرفه‌ای سرآمد با برگزاری دوره‌های{' '}
+  <span
+    className="font-black inline-block text-2xl lg:text-3xl leading-none align-middle"
+    style={{
+      color: '#ffffff',
+      textShadow: `
+        0 1px 0 #f1f5f9,
+        0 2px 0 #cbd5e1,
+        0 3px 0 #94a3b8,
+        0 4px 0 #64748b,
+        0 5px 0 #475569,
+        0 6px 12px rgba(0,0,0,0.7),
+        0 8px 20px rgba(0,0,0,0.5)
+      `,
+      padding: '0 6px',
+    }}
+  >
+    حضوری
+  </span>
+  ،{' '}
+  <span
+    className="font-black inline-block text-2xl lg:text-3xl leading-none align-middle"
+    style={{
+      color: '#ffffff',
+      textShadow: `
+        0 1px 0 #f1f5f9,
+        0 2px 0 #cbd5e1,
+        0 3px 0 #94a3b8,
+        0 4px 0 #64748b,
+        0 5px 0 #475569,
+        0 6px 12px rgba(0,0,0,0.7),
+        0 8px 20px rgba(0,0,0,0.5)
+      `,
+      padding: '0 6px',
+    }}
+  >
+    آنلاین
+  </span>{' '}
+  و{' '}
+  <span
+    className="font-black inline-block text-2xl lg:text-3xl leading-none align-middle"
+    style={{
+      color: '#ffffff',
+      textShadow: `
+        0 1px 0 #f1f5f9,
+        0 2px 0 #cbd5e1,
+        0 3px 0 #94a3b8,
+        0 4px 0 #64748b,
+        0 5px 0 #475569,
+        0 6px 12px rgba(0,0,0,0.7),
+        0 8px 20px rgba(0,0,0,0.5)
+      `,
+      padding: '0 6px',
+    }}
+  >
+    ترکیبی
+  </span>
+  ،{' '}
+  <span
+    className="font-black"
+    style={{
+      color: '#ffffff',
+      textShadow: '0 2px 8px rgba(0,0,0,0.7), 0 4px 16px rgba(0,0,0,0.5)',
+    }}
+  >
+    شما را برای ورود به بازار کار آماده می‌کند.
+  </span>
+</motion.p>
             {/* دکمه‌ها */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -225,13 +292,13 @@ export default function Hero() {
             </motion.div>
           </div>
 
-          {/* ============ کارت‌ها — فاصله مناسب بین کارت‌ها ============ */}
+          {/* ============ کارت‌ها ============ */}
           <div
             className="relative hidden lg:block h-[760px] -mt-22"
             style={{ perspective: '1500px' }}
           >
 
-            {/* ✨ کارت ۱: کلاس حضوری — آبی (بالا-راست) */}
+            {/* ✨ کارت ۱: کلاس حضوری — آبی */}
             <motion.div
               initial={{ opacity: 0, x: 60, rotateY: -25 }}
               animate={{
@@ -361,7 +428,7 @@ export default function Hero() {
               </Link>
             </motion.div>
 
-            {/* ✨ کارت ۲: کلاس آنلاین — فیروزه‌ای (وسط-چپ) */}
+            {/* ✨ کارت ۲: کلاس آنلاین — فیروزه‌ای */}
             <motion.div
               initial={{ opacity: 0, x: -60, rotateY: 25 }}
               animate={{
@@ -492,7 +559,7 @@ export default function Hero() {
               </Link>
             </motion.div>
 
-            {/* ✨ کارت ۳: دوره ترکیبی — نارنجی (پایین-راست) */}
+            {/* ✨ کارت ۳: دوره ترکیبی — نارنجی */}
             <motion.div
               initial={{ opacity: 0, x: 60, rotateY: -25 }}
               animate={{
