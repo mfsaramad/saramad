@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import {
   ShoppingBag,
@@ -18,10 +18,13 @@ import {
   TrendingUp,
   Award,
   Receipt,
+  Loader2,
 } from 'lucide-react';
 import { toPersianNumber, formatPrice } from '@/lib/format';
 import FadeIn from '@/components/animations/FadeIn';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext'; // 👈 اضافه شد
+import { supabase } from '@/lib/supabase'; // 👈 اضافه شد
 
 type OrderStatus = 'pending' | 'paid' | 'completed' | 'cancelled';
 type FilterType = 'all' | OrderStatus;
@@ -42,99 +45,6 @@ interface Order {
   items: { title: string; price: number }[];
 }
 
-const orders: Order[] = [
-  {
-    id: '1',
-    orderNumber: 'SRM-1404-1248',
-    title: 'برنامه‌نویسی پایتون از صفر تا پیشرفته',
-    type: 'course',
-    typeLabel: 'دوره آموزشی',
-    price: 3200000,
-    discount: 320000,
-    tax: 259200,
-    finalPrice: 3139200,
-    status: 'completed',
-    date: '۱۴۰۴/۰۶/۱۵',
-    paymentMethod: 'پرداخت آنلاین',
-    items: [{ title: 'برنامه‌نویسی پایتون', price: 3200000 }],
-  },
-  {
-    id: '2',
-    orderNumber: 'SRM-1404-1195',
-    title: 'پکیج سوالات آزمون فنی و حرفه‌ای',
-    type: 'product',
-    typeLabel: 'محصول',
-    price: 350000,
-    discount: 50000,
-    tax: 27000,
-    finalPrice: 327000,
-    status: 'paid',
-    date: '۱۴۰۴/۰۶/۰۸',
-    paymentMethod: 'کیف پول',
-    items: [{ title: 'پکیج سوالات آزمون', price: 350000 }],
-  },
-  {
-    id: '3',
-    orderNumber: 'SRM-1404-1102',
-    title: 'آزمون آزمایشی فنی و حرفه‌ای',
-    type: 'exam',
-    typeLabel: 'آزمون',
-    price: 150000,
-    discount: 0,
-    tax: 13500,
-    finalPrice: 163500,
-    status: 'pending',
-    date: '۱۴۰۴/۰۵/۲۵',
-    paymentMethod: 'در انتظار پرداخت',
-    items: [{ title: 'آزمون آزمایشی', price: 150000 }],
-  },
-  {
-    id: '4',
-    orderNumber: 'SRM-1404-1050',
-    title: 'ویدیوهای آموزش اکسل پیشرفته',
-    type: 'product',
-    typeLabel: 'محصول',
-    price: 950000,
-    discount: 190000,
-    tax: 68400,
-    finalPrice: 828400,
-    status: 'cancelled',
-    date: '۱۴۰۴/۰۵/۱۰',
-    paymentMethod: 'لغو شده',
-    items: [{ title: 'ویدیوهای اکسل پیشرفته', price: 950000 }],
-  },
-  {
-    id: '5',
-    orderNumber: 'SRM-1404-0987',
-    title: 'مکالمه زبان انگلیسی فشرده',
-    type: 'course',
-    typeLabel: 'دوره آموزشی',
-    price: 2800000,
-    discount: 280000,
-    tax: 226800,
-    finalPrice: 2746800,
-    status: 'completed',
-    date: '۱۴۰۴/۰۴/۲۸',
-    paymentMethod: 'پرداخت آنلاین',
-    items: [{ title: 'مکالمه انگلیسی فشرده', price: 2800000 }],
-  },
-  {
-    id: '6',
-    orderNumber: 'SRM-1404-0921',
-    title: 'جزوه جامع برنامه‌نویسی پایتون',
-    type: 'product',
-    typeLabel: 'محصول',
-    price: 280000,
-    discount: 0,
-    tax: 25200,
-    finalPrice: 305200,
-    status: 'paid',
-    date: '۱۴۰۴/۰۴/۱۵',
-    paymentMethod: 'کیف پول',
-    items: [{ title: 'جزوه پایتون', price: 280000 }],
-  },
-];
-
 const statusConfig: Record<
   OrderStatus,
   {
@@ -150,8 +60,77 @@ const statusConfig: Record<
 };
 
 export default function OrdersPage() {
+  const { user } = useAuth();
+  const [orders, setOrders] = useState<Order[]>([]); // 👈 استیت برای سفارشات
+  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<FilterType>('all');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // 👈 دریافت سفارشات از Supabase
+  useEffect(() => {
+    const fetchOrders = async () => {
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        if (data) {
+          // تبدیل دیتای Supabase به ساختاری که UI انتظار دارد
+          const formattedOrders: Order[] = data.map((item: any) => {
+            const orderItems = item.items || [];
+            const firstItem = orderItems[0] || {};
+            
+            // تشخیص نوع سفارش از روی اولین آیتم
+            let orderType: 'course' | 'product' | 'exam' = 'product';
+            let typeLabel = 'محصول';
+            if (firstItem.type === 'course') {
+              orderType = 'course';
+              typeLabel = 'دوره آموزشی';
+            } else if (firstItem.type === 'exam') {
+              orderType = 'exam';
+              typeLabel = 'آزمون';
+            }
+
+            return {
+              id: item.id,
+              orderNumber: item.order_number,
+              title: orderItems.length > 1 
+                ? `${firstItem.title} و ${orderItems.length - 1} آیتم دیگر` 
+                : firstItem.title || 'سفارش',
+              type: orderType,
+              typeLabel: typeLabel,
+              price: item.total_amount,
+              discount: 0,
+              tax: 0,
+              finalPrice: item.total_amount,
+              status: (item.status as OrderStatus) || 'pending',
+              date: new Date(item.created_at).toLocaleDateString('fa-IR'),
+              paymentMethod: item.payment_method === 'zarinpal' ? 'زرین‌پال' : 
+                             item.payment_method === 'idpay' ? 'آیدی‌پی' : 
+                             item.payment_method === 'wallet' ? 'کیف پول' : 'پرداخت آنلاین',
+              items: orderItems.map((i: any) => ({ title: i.title, price: i.price })),
+            };
+          });
+          setOrders(formattedOrders);
+        }
+      } catch (error) {
+        console.error('خطا در دریافت سفارشات:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, [user]);
 
   const filteredOrders = useMemo(() => {
     let result = [...orders];
@@ -170,7 +149,7 @@ export default function OrdersPage() {
     }
 
     return result;
-  }, [activeTab, searchQuery]);
+  }, [orders, activeTab, searchQuery]);
 
   const counts = {
     all: orders.length,
@@ -186,85 +165,42 @@ export default function OrdersPage() {
 
   const tabs = [
     { id: 'all' as FilterType, label: 'همه', icon: '📦', count: counts.all },
-    {
-      id: 'completed' as FilterType,
-      label: 'تکمیل شده',
-      icon: '✅',
-      count: counts.completed,
-    },
-    {
-      id: 'paid' as FilterType,
-      label: 'پرداخت شده',
-      icon: '💳',
-      count: counts.paid,
-    },
-    {
-      id: 'pending' as FilterType,
-      label: 'در انتظار',
-      icon: '⏳',
-      count: counts.pending,
-    },
-    {
-      id: 'cancelled' as FilterType,
-      label: 'لغو شده',
-      icon: '❌',
-      count: counts.cancelled,
-    },
+    { id: 'completed' as FilterType, label: 'تکمیل شده', icon: '✅', count: counts.completed },
+    { id: 'paid' as FilterType, label: 'پرداخت شده', icon: '💳', count: counts.paid },
+    { id: 'pending' as FilterType, label: 'در انتظار', icon: '⏳', count: counts.pending },
+    { id: 'cancelled' as FilterType, label: 'لغو شده', icon: '❌', count: counts.cancelled },
   ];
 
   const stats = [
-    {
-      icon: ShoppingBag,
-      value: toPersianNumber(orders.length),
-      label: 'کل سفارشات',
-      color: 'brand' as const,
-    },
-    {
-      icon: CheckCircle2,
-      value: toPersianNumber(counts.completed),
-      label: 'تکمیل شده',
-      color: 'teal' as const,
-    },
-    {
-      icon: Clock,
-      value: toPersianNumber(counts.pending),
-      label: 'در انتظار',
-      color: 'accent' as const,
-    },
-    {
-      icon: TrendingUp,
-      value: formatPrice(totalSpent),
-      label: 'مجموع خرید',
-      color: 'purple' as const,
-    },
+    { icon: ShoppingBag, value: toPersianNumber(orders.length), label: 'کل سفارشات', color: 'brand' as const },
+    { icon: CheckCircle2, value: toPersianNumber(counts.completed), label: 'تکمیل شده', color: 'teal' as const },
+    { icon: Clock, value: toPersianNumber(counts.pending), label: 'در انتظار', color: 'accent' as const },
+    { icon: TrendingUp, value: formatPrice(totalSpent), label: 'مجموع خرید', color: 'purple' as const },
   ];
 
   const statColorMap = {
-    brand: {
-      bg: 'bg-blue-100 dark:bg-blue-950/50',
-      icon: 'text-blue-800 dark:text-blue-300',
-    },
-    teal: {
-      bg: 'bg-teal-100 dark:bg-teal-950/50',
-      icon: 'text-teal-600 dark:text-teal-300',
-    },
-    accent: {
-      bg: 'bg-orange-100 dark:bg-orange-950/50',
-      icon: 'text-orange-600 dark:text-orange-300',
-    },
-    purple: {
-      bg: 'bg-purple-100 dark:bg-purple-950/50',
-      icon: 'text-purple-600 dark:text-purple-300',
-    },
+    brand: { bg: 'bg-blue-100 dark:bg-blue-950/50', icon: 'text-blue-800 dark:text-blue-300' },
+    teal: { bg: 'bg-teal-100 dark:bg-teal-950/50', icon: 'text-teal-600 dark:text-teal-300' },
+    accent: { bg: 'bg-orange-100 dark:bg-orange-950/50', icon: 'text-orange-600 dark:text-orange-300' },
+    purple: { bg: 'bg-purple-100 dark:bg-purple-950/50', icon: 'text-purple-600 dark:text-purple-300' },
   };
 
   const statusColorMap = {
     teal: 'bg-teal-100 dark:bg-teal-950/50 text-teal-700 dark:text-teal-300',
     brand: 'bg-blue-100 dark:bg-blue-950/50 text-blue-800 dark:text-blue-300',
-    accent:
-      'bg-orange-100 dark:bg-orange-950/50 text-orange-700 dark:text-orange-300',
+    accent: 'bg-orange-100 dark:bg-orange-950/50 text-orange-700 dark:text-orange-300',
     red: 'bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-300',
   };
+
+  // 👈 حالت لودینگ
+  if (isLoading) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center">
+        <Loader2 className="w-10 h-10 text-brand-800 dark:text-brand-400 animate-spin mb-4" />
+        <p className="text-slate-500 dark:text-slate-400 font-bold">در حال دریافت سفارشات...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -490,18 +426,30 @@ export default function OrdersPage() {
                 سفارشی یافت نشد
               </h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                فیلتر یا جستجوی خود را تغییر دهید
+                {orders.length === 0 
+                  ? 'شما هنوز هیچ سفارشی ثبت نکرده‌اید.' 
+                  : 'فیلتر یا جستجوی خود را تغییر دهید.'}
               </p>
-              <button
-                onClick={() => {
-                  setActiveTab('all');
-                  setSearchQuery('');
-                }}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white rounded-xl font-bold hover:shadow-lg transition hover:gap-3"
-              >
-                <X className="w-4 h-4" />
-                پاک کردن فیلترها
-              </button>
+              {orders.length === 0 ? (
+                <Link
+                  href="/courses"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white rounded-xl font-bold hover:shadow-lg transition hover:gap-3"
+                >
+                  مشاهده دوره‌ها
+                  <ArrowLeft className="w-4 h-4" />
+                </Link>
+              ) : (
+                <button
+                  onClick={() => {
+                    setActiveTab('all');
+                    setSearchQuery('');
+                  }}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white rounded-xl font-bold hover:shadow-lg transition hover:gap-3"
+                >
+                  <X className="w-4 h-4" />
+                  پاک کردن فیلترها
+                </button>
+              )}
             </div>
           </FadeIn>
         )}

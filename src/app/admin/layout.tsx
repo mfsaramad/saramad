@@ -1,15 +1,17 @@
-import type { Metadata } from 'next';
-import type { ReactNode } from 'react';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
-export const metadata: Metadata = {
-  title: 'پنل مدیریت',
-  description: 'پنل مدیریت آموزشگاه سرآمد',
-  robots: {
-    index: false,
-    follow: false,
-  },
-};
-
-export default function AdminLayout({ children }: { children: ReactNode }) {
-  return <>{children}</>;
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-20">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <ProtectedRoute requireAdmin={true}>
+          {children}
+        </ProtectedRoute>
+      </div>
+    </div>
+  );
 }

@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   User,
-  Mail,
   Phone,
   MapPin,
   CreditCard,
@@ -14,12 +13,11 @@ import {
   ArrowLeft,
   ShoppingBag,
   Shield,
-  Trash2,
   Loader2,
 } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { useDb } from '@/hooks/useDb';
+import { supabase } from '@/lib/supabase'; // 👈 ایمپورت Supabase
 import { toPersianNumber, formatPrice } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
@@ -34,29 +32,10 @@ interface OrderItem {
   mode?: string;
 }
 
-interface Order {
-  id: string;
-  orderNumber: string;
-  userId: string;
-  userName: string;
-  userEmail: string;
-  userPhone: string;
-  items: OrderItem[];
-  subtotal: number;
-  discount: number;
-  total: number;
-  status: string;
-  paymentMethod: string;
-  trackingCode: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export default function CheckoutPage() {
   const router = useRouter();
   const { user } = useAuth();
   const { items, totalPrice, clearCart } = useCart();
-  const { add: addOrder } = useDb<Order>('orders');
 
   const [step, setStep] = useState<Step>(1);
   const [loading, setLoading] = useState(false);
@@ -72,14 +51,6 @@ export default function CheckoutPage() {
   });
 
   const [paymentMethod, setPaymentMethod] = useState('zarinpal');
-
-  const formatDate = () => {
-    const now = new Date();
-    const year = now.getFullYear() - 621;
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    return `${year}/${month}/${day}`;
-  };
 
   const handleNext = () => {
     setError('');
@@ -120,39 +91,35 @@ export default function CheckoutPage() {
         mode: item.mode,
       }));
 
-      const date = formatDate();
+      // 👈 ثبت سفارش در Supabase
+      const { error: dbError } = await supabase
+        .from('orders')
+        .insert([
+          {
+            user_id: user?.id || null, // اگر کاربر لاگین نکرده باشه، null ثبت میشه
+            order_number: orderNum,
+            total_amount: totalPrice,
+            status: 'pending',
+            payment_method: paymentMethod,
+            items: orderItems, // به صورت JSONB در دیتابیس ذخیره میشه
+          },
+        ]);
 
-      // ساخت سفارش
-      const newOrder: Omit<Order, 'id'> & { id?: string } = {
-        orderNumber: orderNum,
-        userId: user?.id || 'guest',
-        userName: personalInfo.name,
-        userEmail: personalInfo.email,
-        userPhone: personalInfo.phone,
-        items: orderItems,
-        subtotal: totalPrice,
-        discount: 0,
-        total: totalPrice,
-        status: 'pending',
-        paymentMethod,
-        trackingCode: `TRK-${Date.now().toString().slice(-10)}`,
-        createdAt: date,
-        updatedAt: date,
-      };
+      if (dbError) {
+        throw new Error(dbError.message);
+      }
 
-      // ثبت سفارش
-      addOrder(newOrder as any);
-
-      // پاک کردن سبد
+      // پاک کردن سبد خرید بعد از ثبت موفق
       clearCart();
 
       // نمایش موفقیت
       setOrderNumber(orderNum);
       setSuccess(true);
-      setLoading(false);
+      
     } catch (err: any) {
       console.error('خطا در ثبت سفارش:', err);
-      setError('خطا در ثبت سفارش. لطفاً دوباره تلاش کنید.');
+      setError(err.message || 'خطا در ثبت سفارش. لطفاً دوباره تلاش کنید.');
+    } finally {
       setLoading(false);
     }
   };

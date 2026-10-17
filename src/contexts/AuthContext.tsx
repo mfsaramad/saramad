@@ -7,13 +7,7 @@ import {
   useState,
   ReactNode,
 } from 'react';
-import { hashPassword, verifyPassword, generateToken } from '@/lib/auth/crypto';
-import {
-  USERS,
-  SESSION_DURATION,
-  STORAGE_KEYS,
-  type AuthUser,
-} from '@/lib/auth/constants';
+import { supabase } from '@/lib/supabase';
 
 export type UserRole = 'user' | 'admin' | 'instructor';
 
@@ -24,138 +18,147 @@ export interface User {
   role: UserRole;
 }
 
-interface Session {
-  user: User;
-  token: string;
-  expiresAt: number;
-}
-
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   isAdmin: boolean;
-  login: (
-    email: string,
-    password: string,
-    rememberMe?: boolean
-  ) => Promise<{ success: boolean; error?: string }>;
-  logout: () => void;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string; user?: User }>;
+  signUp: (email: string, password: string, name: string, phone: string) => Promise<{ success: boolean; error?: string }>;
+  resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-/**
- * Session رو از هر دو storage می‌خونه
- * (چون Remember Me ممکنه توی localStorage باشه)
- */
-function readSession(): Session | null {
-  if (typeof window === 'undefined') return null;
-
-  try {
-    // اول localStorage (Remember Me)
-    const raw =
-      localStorage.getItem(STORAGE_KEYS.SESSION) ||
-      sessionStorage.getItem(STORAGE_KEYS.SESSION);
-
-    if (!raw) return null;
-
-    const session: Session = JSON.parse(raw);
-
-    // چک انقضا
-    if (session.expiresAt <= Date.now()) {
-      localStorage.removeItem(STORAGE_KEYS.SESSION);
-      sessionStorage.removeItem(STORAGE_KEYS.SESSION);
-      return null;
-    }
-
-    return session;
-  } catch {
-    return null;
-  }
-}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // بارگذاری اولیه session
+  const mapSupabaseUser = (sbUser: any): User => {
+    return {
+      id: sbUser.id,
+      name: sbUser.user_metadata?.name || 'کاربر سرآمد',
+      email: sbUser.email || '',
+      role: (sbUser.user_metadata?.role as UserRole) || 'user',
+    };
+  };
+
   useEffect(() => {
-    const session = readSession();
-    if (session) setUser(session.user);
-    setIsLoading(false);
+    const getInitialSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          setUser(mapSupabaseUser(session.user));
+        }
+      } catch (error) {
+        console.error('Error getting session:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    getInitialSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        if (session?.user) {
+          setUser(mapSupabaseUser(session.user));
+        } else {
+          setUser(null);
+        }
+        setIsLoading(false);
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  // چک خودکار انقضا (هر ۱ دقیقه)
-  useEffect(() => {
-    if (!user) return;
+  const signUp = async (
+    email: string,
+    password: string,
+    name: string,
+    phone: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name: name,
+            phone: phone,
+          },
+        },
+      });
 
-    const interval = setInterval(() => {
-      const session = readSession();
-      if (!session) {
-        setUser(null);
-      }
-    }, 60 * 1000);
+      if (error) return { success: false, error: error.message };
 
-    return () => clearInterval(interval);
-  }, [user]);
+      if (data.user) setUser(mapSupabaseUser(data.user));
+
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'خطای غیرمنتظره رخ داد' };
+    }
+  };
 
   const login = async (
     email: string,
-    password: string,
-    rememberMe = false
-  ): Promise<{ success: boolean; error?: string }> => {
-    // شبیه‌سازی تأخیر شبکه
-    await new Promise((r) => setTimeout(r, 400));
+    password: string
+  ): Promise<{ success: boolean; error?: string; user?: User }> => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    // پیدا کردن کاربر
-    const found = USERS.find(
-      (u) => u.email.toLowerCase() === email.toLowerCase()
-    );
+      if (error) return { success: false, error: 'ایمیل یا رمز عبور اشتباه است' };
 
-    if (!found) {
-      return { success: false, error: 'ایمیل یا رمز عبور اشتباه است' };
+      let userData = null;
+      if (data.user) {
+        userData = mapSupabaseUser(data.user);
+        setUser(userData);
+      }
+
+      return { success: true, user: userData || undefined };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'خطای غیرمنتظره رخ داد' };
     }
-
-    // تأیید رمز عبور
-    const isValid = await verifyPassword(password, found.passwordHash);
-    if (!isValid) {
-      return { success: false, error: 'ایمیل یا رمز عبور اشتباه است' };
-    }
-
-    // ساخت session
-    const userData: User = {
-      id: found.id,
-      name: found.name,
-      email: found.email,
-      role: found.role,
-    };
-
-    const session: Session = {
-      user: userData,
-      token: generateToken(),
-      expiresAt: Date.now() + SESSION_DURATION,
-    };
-
-    // انتخاب storage بر اساس Remember Me
-    // - Remember Me: localStorage (با بستن مرورگر پاک نمیشه)
-    // - بدون Remember Me: sessionStorage (با بستن مرورگر پاک میشه)
-    const storage = rememberMe ? localStorage : sessionStorage;
-
-    // پاک کردن storage دیگه برای جلوگیری از تداخل
-    const otherStorage = rememberMe ? sessionStorage : localStorage;
-    otherStorage.removeItem(STORAGE_KEYS.SESSION);
-
-    storage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
-    setUser(userData);
-
-    return { success: true };
   };
 
-  const logout = () => {
-    localStorage.removeItem(STORAGE_KEYS.SESSION);
-    sessionStorage.removeItem(STORAGE_KEYS.SESSION);
-    setUser(null);
+  const resetPassword = async (email: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) return { success: false, error: error.message };
+
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'خطای غیرمنتظره رخ داد' };
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error('خطا در خروج از Supabase:', error);
+    } finally {
+      setUser(null);
+
+      if (typeof window !== 'undefined') {
+        Object.keys(localStorage).forEach((key) => {
+          if (key.startsWith('sb-')) {
+            localStorage.removeItem(key);
+          }
+        });
+        window.location.href = '/';
+      }
+    }
   };
 
   const isAuthenticated = !!user;
@@ -163,7 +166,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, isLoading, isAuthenticated, isAdmin, login, logout }}
+      value={{ 
+        user, 
+        isLoading, 
+        isAuthenticated, 
+        isAdmin, 
+        login, 
+        signUp, 
+        resetPassword, 
+        logout 
+      }}
     >
       {children}
     </AuthContext.Provider>

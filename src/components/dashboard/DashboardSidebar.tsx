@@ -78,9 +78,9 @@ export default function DashboardSidebar() {
     return pathname.startsWith(href);
   };
 
-  const handleLogout = () => {
-    logout();
-    window.location.href = '/';
+  // 👈 اصلاح تابع خروج
+  const handleLogout = async () => {
+    await logout(); // صبر می‌کنیم تا خروج کامل انجام شود و خودش رفرش می‌کند
   };
 
   return (

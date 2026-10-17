@@ -1,78 +1,85 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { WishlistItem } from '@/types';
-import { mockWishlist } from '@/data/wishlist';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from './AuthContext';
 
 interface WishlistContextType {
-  items: WishlistItem[];
-  add: (item: WishlistItem) => void;
-  remove: (id: string) => void;
-  toggle: (item: WishlistItem) => void;
-  has: (id: string) => boolean;
-  clear: () => void;
-  count: number;
+  wishlistIds: string[];
+  toggleWishlist: (itemId: string, itemType: 'course' | 'product') => Promise<void>;
+  isInWishlist: (itemId: string) => boolean;
+  isLoading: boolean;
 }
 
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'saramad_wishlist';
-
 export function WishlistProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<WishlistItem[]>([]);
-  const [mounted, setMounted] = useState(false);
+  const { user } = useAuth();
+  const [wishlistIds, setWishlistIds] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        setItems(JSON.parse(saved));
-      } else {
-        setItems(mockWishlist);
+    if (!user) {
+      setWishlistIds([]);
+      setIsLoading(false);
+      return;
+    }
+
+    const fetchWishlist = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('wishlists')
+          .select('item_id')
+          .eq('user_id', user.id);
+
+        if (data) {
+          setWishlistIds(data.map((item) => item.item_id));
+        }
+      } catch (error) {
+        console.error('خطا در دریافت علاقه‌مندی‌ها:', error);
+      } finally {
+        setIsLoading(false);
       }
-    } catch {
-      setItems(mockWishlist);
+    };
+
+    fetchWishlist();
+  }, [user]);
+
+  const toggleWishlist = async (itemId: string, itemType: 'course' | 'product') => {
+    if (!user) {
+      alert('برای افزودن به علاقه‌مندی‌ها ابتدا وارد حساب کاربری خود شوید.');
+      return;
     }
-    setMounted(true);
-  }, []);
 
-  useEffect(() => {
-    if (mounted) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    const isCurrentlyIn = wishlistIds.includes(itemId);
+
+    // آپدیت خوش‌بینانه (Optimistic Update)
+    if (isCurrentlyIn) {
+      setWishlistIds((prev) => prev.filter((id) => id !== itemId));
+      await supabase
+        .from('wishlists')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('item_id', itemId);
+    } else {
+      setWishlistIds((prev) => [...prev, itemId]);
+      await supabase
+        .from('wishlists')
+        .insert({ user_id: user.id, item_id: itemId, item_type: itemType });
     }
-  }, [items, mounted]);
-
-  const add = (item: WishlistItem) => {
-    setItems((prev) => (prev.some((i) => i.id === item.id) ? prev : [...prev, item]));
   };
 
-  const remove = (id: string) => {
-    setItems((prev) => prev.filter((i) => i.id !== id));
-  };
-
-  const toggle = (item: WishlistItem) => {
-    setItems((prev) =>
-      prev.some((i) => i.id === item.id)
-        ? prev.filter((i) => i.id !== item.id)
-        : [...prev, item]
-    );
-  };
-
-  const has = (id: string) => items.some((i) => i.id === id);
-
-  const clear = () => setItems([]);
+  const isInWishlist = (itemId: string) => wishlistIds.includes(itemId);
 
   return (
-    <WishlistContext.Provider
-      value={{ items, add, remove, toggle, has, clear, count: items.length }}
-    >
+    <WishlistContext.Provider value={{ wishlistIds, toggleWishlist, isInWishlist, isLoading }}>
       {children}
     </WishlistContext.Provider>
   );
 }
 
 export function useWishlist() {
-  const ctx = useContext(WishlistContext);
-  if (!ctx) throw new Error('useWishlist must be used within WishlistProvider');
-  return ctx;
+  const context = useContext(WishlistContext);
+  if (!context) throw new Error('useWishlist must be used within WishlistProvider');
+  return context;
 }
