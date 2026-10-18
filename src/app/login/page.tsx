@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -24,7 +24,7 @@ import FadeIn from '@/components/animations/FadeIn';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuth(); // 👈 تغییر از signIn به login
+  const { login, isAuthenticated, isAdmin } = useAuth(); // 👈 اضافه شد
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,13 +34,24 @@ export default function LoginPage() {
     remember: false,
   });
 
+  // 👈 اگر کاربر از قبل لاگین بود، خودکار هدایتش کن
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (isAdmin) {
+        router.push('/admin');
+      } else {
+        router.push('/dashboard');
+      }
+    }
+  }, [isAuthenticated, isAdmin, router]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
 
     try {
-      const { error: loginError, success } = await login(
+      const { error: loginError, success, user } = await login(
         formData.email,
         formData.password
       );
@@ -50,8 +61,12 @@ export default function LoginPage() {
         return;
       }
 
-      // موفق — برو به داشبورد
-      router.push('/dashboard');
+      // هدایت بر اساس نقش کاربر
+      if (user?.role === 'admin') {
+        router.push('/admin');
+      } else {
+        router.push('/dashboard');
+      }
     } catch (err) {
       setError('خطا در برقراری ارتباط با سرور.');
     } finally {
