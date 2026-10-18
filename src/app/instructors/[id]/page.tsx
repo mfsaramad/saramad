@@ -12,18 +12,24 @@ import {
   CheckCircle2,
   GraduationCap,
   Sparkles,
-  TrendingUp,
   Trophy,
-  Target,
 } from 'lucide-react';
-import { instructors, courses } from '@/lib/data';
+import { supabase } from '@/lib/supabase';
 import { toPersianNumber } from '@/lib/format';
 import CourseCard from '@/components/shared/CourseCard';
 import FadeIn from '@/components/animations/FadeIn';
-import { cn } from '@/lib/utils';
 
-// ✅ برای Static Export
-export function generateStaticParams() {
+// ✅ دریافت ID اساتید از دیتابیس در زمان بیلد
+export async function generateStaticParams() {
+  const { data: instructors } = await supabase
+    .from('users')
+    .select('id')
+    .eq('role', 'instructor');
+
+  if (!instructors || instructors.length === 0) {
+    return [{ id: 'placeholder' }];
+  }
+
   return instructors.map((instructor) => ({
     id: instructor.id,
   }));
@@ -37,15 +43,48 @@ export default async function InstructorProfilePage({
   params,
 }: InstructorProfilePageProps) {
   const { id } = await params;
-  const instructor = instructors.find((i) => i.id === id);
 
-  if (!instructor) {
+  // 1. دریافت اطلاعات استاد از دیتابیس
+  const { data: instructorData } = await supabase
+    .from('users')
+    .select('*')
+    .eq('id', id)
+    .eq('role', 'instructor')
+    .single();
+
+  if (!instructorData) {
     notFound();
   }
 
-  const instructorCourses = courses.filter(
-    (c) => c.instructor.id === instructor.id
-  );
+  // 2. دریافت دوره‌های این استاد از دیتابیس
+  const { data: coursesData } = await supabase
+    .from('courses')
+    .select('*')
+    .eq('instructor_id', id)
+    .eq('is_active', true);
+
+  // مپ کردن اطلاعات به ساختاری که UI انتظار دارد
+  const instructor = {
+    id: instructorData.id,
+    name: instructorData.name || 'استاد سرآمد',
+    title: 'مدرس دوره‌های تخصصی', // مقدار پیش‌فرض
+    bio: 'توضیحات تکمیلی برای این استاد ثبت نشده است.', // مقدار پیش‌فرض
+    specialties: ['فنی و حرفه‌ای', 'آموزش تخصصی'], // مقدار پیش‌فرض
+    rating: 5.0,
+    studentsCount: 0, // در صورت نیاز به محاسبه، باید از جدول سفارشات استخراج شود
+    coursesCount: coursesData?.length || 0,
+    email: instructorData.email || 'info@saramad.ir',
+    phone: instructorData.phone || '۰۹۳۶۲۸۴۷۹۲۲',
+  };
+
+  const instructorCourses = (coursesData || []).map((c: any) => ({
+    ...c,
+    studentsCount: c.students_count || 0,
+    shortDescription: c.short_description || '',
+    remainingCapacity: c.remaining_capacity || 0,
+    certificate: c.certificate || false,
+    instructor: { name: instructor.name },
+  }));
 
   const achievements = [
     'مدرس برتر سال ۱۴۰۳',
@@ -76,18 +115,9 @@ export default async function InstructorProfilePage({
   ];
 
   const statColorMap = {
-    brand: {
-      bg: 'bg-blue-100 dark:bg-blue-950/50',
-      icon: 'text-blue-800 dark:text-blue-300',
-    },
-    teal: {
-      bg: 'bg-teal-100 dark:bg-teal-950/50',
-      icon: 'text-teal-600 dark:text-teal-300',
-    },
-    accent: {
-      bg: 'bg-orange-100 dark:bg-orange-950/50',
-      icon: 'text-orange-600 dark:text-orange-300',
-    },
+    brand: { bg: 'bg-blue-100 dark:bg-blue-950/50', icon: 'text-blue-800 dark:text-blue-300' },
+    teal: { bg: 'bg-teal-100 dark:bg-teal-950/50', icon: 'text-teal-600 dark:text-teal-300' },
+    accent: { bg: 'bg-orange-100 dark:bg-orange-950/50', icon: 'text-orange-600 dark:text-orange-300' },
   };
 
   return (
@@ -97,8 +127,7 @@ export default async function InstructorProfilePage({
         <div
           className="absolute inset-0 opacity-[0.07]"
           style={{
-            backgroundImage:
-              'radial-gradient(circle, white 1px, transparent 1px)',
+            backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)',
             backgroundSize: '30px 30px',
           }}
         />
@@ -110,16 +139,9 @@ export default async function InstructorProfilePage({
           {/* Breadcrumb */}
           <FadeIn>
             <div className="flex items-center gap-2 text-sm text-blue-100 mb-8">
-              <Link href="/" className="hover:text-white transition">
-                خانه
-              </Link>
+              <Link href="/" className="hover:text-white transition">خانه</Link>
               <span>/</span>
-              <Link
-                href="/instructors"
-                className="hover:text-white transition"
-              >
-                اساتید
-              </Link>
+              <Link href="/instructors" className="hover:text-white transition">اساتید</Link>
               <span>/</span>
               <span className="text-white font-bold">{instructor.name}</span>
             </div>
@@ -155,13 +177,9 @@ export default async function InstructorProfilePage({
                 <span>استاد برتر سرآمد</span>
               </div>
 
-              <h1 className="text-3xl lg:text-5xl font-black mb-3">
-                {instructor.name}
-              </h1>
+              <h1 className="text-3xl lg:text-5xl font-black mb-3">{instructor.name}</h1>
 
-              <p className="text-lg lg:text-xl text-teal-300 font-bold mb-6">
-                {instructor.title}
-              </p>
+              <p className="text-lg lg:text-xl text-teal-300 font-bold mb-6">{instructor.title}</p>
 
               <p className="text-blue-100 leading-relaxed mb-8 max-w-2xl lg:mx-0 mx-auto">
                 {instructor.bio}
@@ -205,13 +223,9 @@ export default async function InstructorProfilePage({
                     <div className="w-12 h-12 rounded-xl bg-brand-100 dark:bg-brand-950/50 flex items-center justify-center">
                       <GraduationCap className="w-6 h-6 text-brand-800 dark:text-brand-300" />
                     </div>
-                    <h2 className="text-xl font-black text-slate-800 dark:text-slate-100">
-                      درباره استاد
-                    </h2>
+                    <h2 className="text-xl font-black text-slate-800 dark:text-slate-100">درباره استاد</h2>
                   </div>
-                  <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                    {instructor.bio}
-                  </p>
+                  <p className="text-slate-600 dark:text-slate-400 leading-relaxed">{instructor.bio}</p>
                 </div>
               </FadeIn>
 
@@ -222,9 +236,7 @@ export default async function InstructorProfilePage({
                     <div className="w-12 h-12 rounded-xl bg-teal-100 dark:bg-teal-950/50 flex items-center justify-center">
                       <Award className="w-6 h-6 text-teal-600 dark:text-teal-300" />
                     </div>
-                    <h2 className="text-xl font-black text-slate-800 dark:text-slate-100">
-                      تخصص‌ها و مهارت‌ها
-                    </h2>
+                    <h2 className="text-xl font-black text-slate-800 dark:text-slate-100">تخصص‌ها و مهارت‌ها</h2>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {instructor.specialties.map((specialty, index) => (
@@ -249,9 +261,7 @@ export default async function InstructorProfilePage({
                           <BookOpen className="w-6 h-6 text-orange-600 dark:text-orange-300" />
                         </div>
                         <div>
-                          <h2 className="text-xl font-black text-slate-800 dark:text-slate-100">
-                            دوره‌های این استاد
-                          </h2>
+                          <h2 className="text-xl font-black text-slate-800 dark:text-slate-100">دوره‌های این استاد</h2>
                           <p className="text-xs text-slate-500 dark:text-slate-400">
                             {toPersianNumber(instructorCourses.length)} دوره
                           </p>
@@ -260,13 +270,8 @@ export default async function InstructorProfilePage({
                     </div>
 
                     <div className="grid sm:grid-cols-2 gap-5">
-                      {instructorCourses.map((course, index) => (
-                        <FadeIn
-                          key={course.id}
-                          delay={index * 0.1}
-                          direction="up"
-                          className="h-full"
-                        >
+                      {instructorCourses.map((course: any, index: number) => (
+                        <FadeIn key={course.id} delay={index * 0.1} direction="up" className="h-full">
                           <CourseCard course={course} />
                         </FadeIn>
                       ))}
@@ -291,12 +296,8 @@ export default async function InstructorProfilePage({
                         <Mail className="w-5 h-5 text-brand-800 dark:text-brand-300" />
                       </div>
                       <div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">
-                          ایمیل
-                        </div>
-                        <div className="text-sm font-bold text-slate-800 dark:text-slate-100">
-                          info@saramad.ir
-                        </div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">ایمیل</div>
+                        <div className="text-sm font-bold text-slate-800 dark:text-slate-100">{instructor.email}</div>
                       </div>
                     </div>
 
@@ -305,12 +306,8 @@ export default async function InstructorProfilePage({
                         <Phone className="w-5 h-5 text-teal-600 dark:text-teal-300" />
                       </div>
                       <div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">
-                          تلفن
-                        </div>
-                        <div className="text-sm font-bold text-slate-800 dark:text-slate-100">
-                          ۰۹۳۶۲۸۴۷۹۲۲
-                        </div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">تلفن</div>
+                        <div className="text-sm font-bold text-slate-800 dark:text-slate-100">{instructor.phone}</div>
                       </div>
                     </div>
 
@@ -319,20 +316,15 @@ export default async function InstructorProfilePage({
                         <Send className="w-5 h-5 text-orange-600 dark:text-orange-300" />
                       </div>
                       <div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">
-                          تلگرام
-                        </div>
-                        <div className="text-sm font-bold text-slate-800 dark:text-slate-100">
-                          @saramad
-                        </div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">تلگرام</div>
+                        <div className="text-sm font-bold text-slate-800 dark:text-slate-100">@saramad</div>
                       </div>
                     </div>
                   </div>
 
                   <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
                     <button className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white rounded-xl font-bold hover:shadow-xl transition-all hover:gap-3">
-                      <Mail className="w-4 h-4" />
-                      ارسال پیام
+                      <Mail className="w-4 h-4" /> ارسال پیام
                     </button>
                   </div>
                 </div>

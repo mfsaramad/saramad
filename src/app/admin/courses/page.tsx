@@ -11,22 +11,22 @@ import {
   BookOpen,
   Loader2,
 } from 'lucide-react';
-import { useDb } from '@/hooks/useDb';
+import { supabase } from '@/lib/supabase';
 
 interface AdminCourse {
   id: string;
   slug: string;
   title: string;
-  instructor?: { id: string; name: string };
-  instructorId?: string;
+  instructor_id?: string;
+  instructor_name?: string;
   price: {
     'in-person'?: number;
     online?: number;
     hybrid?: number;
   };
-  studentsCount?: number;
+  students_count?: number;
   mode: 'in-person' | 'online' | 'hybrid';
-  isActive?: boolean;
+  is_active?: boolean;
 }
 
 const modeLabels = {
@@ -38,25 +38,40 @@ const modeLabels = {
 export default function AdminCoursesPage() {
   const [search, setSearch] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [courses, setCourses] = useState<AdminCourse[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const {
-    items: courses,
-    remove,
-    isLoading,
-    refresh,
-  } = useDb<AdminCourse>('courses');
+  const fetchCourses = async () => {
+    try {
+      setIsLoading(true);
+      // دریافت دوره‌ها و اتصال به جدول کاربران برای گرفتن اسم استاد
+      const { data, error } = await supabase
+        .from('courses')
+        .select(`
+          *,
+          users:instructor_id (name)
+        `)
+        .order('created_at', { ascending: false });
 
-  // ✅ رفرش خودکار وقتی صفحه باز می‌شه
+      if (error) throw error;
+
+      if (data) {
+        const mapped: AdminCourse[] = data.map((c: any) => ({
+          ...c,
+          instructor_name: c.users?.name || 'نامشخص',
+        }));
+        setCourses(mapped);
+      }
+    } catch (error) {
+      console.error('خطا در دریافت دوره‌ها:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    refresh();
-  }, [refresh]);
-
-  // ✅ رفرش خودکار وقتی صفحه focus می‌شه (وقتی از new برگشتی)
-  useEffect(() => {
-    const onFocus = () => refresh();
-    window.addEventListener('focus', onFocus);
-    return () => window.removeEventListener('focus', onFocus);
-  }, [refresh]);
+    fetchCourses();
+  }, []);
 
   const filtered = useMemo(() => {
     if (!search) return courses;
@@ -68,17 +83,22 @@ export default function AdminCoursesPage() {
   const handleDelete = async (id: string, title: string) => {
     if (!confirm(`آیا از حذف «${title}» مطمئن هستی؟`)) return;
     setDeletingId(id);
-    remove(id);
-    setDeletingId(null);
+    
+    try {
+      const { error } = await supabase.from('courses').delete().eq('id', id);
+      if (error) throw error;
+      setCourses((prev) => prev.filter((c) => c.id !== id));
+    } catch (error) {
+      console.error('خطا در حذف دوره:', error);
+      alert('خطا در حذف دوره');
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const getPrice = (course: AdminCourse): number => {
     const p = course.price || {};
     return p['in-person'] || p.online || p.hybrid || 0;
-  };
-
-  const getInstructorName = (course: AdminCourse): string => {
-    return course.instructor?.name || '—';
   };
 
   if (isLoading) {
@@ -140,85 +160,34 @@ export default function AdminCoursesPage() {
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
               {filtered.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={7}
-                    className="px-5 py-16 text-center text-gray-500 dark:text-gray-400"
-                  >
+                  <td colSpan={7} className="px-5 py-16 text-center text-gray-500 dark:text-gray-400">
                     <BookOpen className="w-10 h-10 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
                     دوره‌ای یافت نشد
-                    {courses.length === 0 && (
-                      <div className="mt-3">
-                        <Link
-                          href="/admin/courses/new"
-                          className="text-blue-600 dark:text-blue-400 hover:underline"
-                        >
-                          افزودن اولین دوره
-                        </Link>
-                      </div>
-                    )}
                   </td>
                 </tr>
               ) : (
                 filtered.map((course) => (
-                  <tr
-                    key={course.id}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition"
-                  >
-                    <td className="px-5 py-4 font-medium text-gray-900 dark:text-white">
-                      {course.title}
-                    </td>
-                    <td className="px-5 py-4 text-gray-600 dark:text-gray-300">
-                      {getInstructorName(course)}
-                    </td>
-                    <td className="px-5 py-4 text-gray-600 dark:text-gray-300">
-                      {modeLabels[course.mode] || course.mode}
-                    </td>
-                    <td className="px-5 py-4 text-gray-900 dark:text-white">
-                      {getPrice(course).toLocaleString('fa-IR')} تومان
-                    </td>
-                    <td className="px-5 py-4 text-gray-600 dark:text-gray-300">
-                      {(course.studentsCount || 0).toLocaleString('fa-IR')}
-                    </td>
+                  <tr key={course.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition">
+                    <td className="px-5 py-4 font-medium text-gray-900 dark:text-white">{course.title}</td>
+                    <td className="px-5 py-4 text-gray-600 dark:text-gray-300">{course.instructor_name}</td>
+                    <td className="px-5 py-4 text-gray-600 dark:text-gray-300">{modeLabels[course.mode] || course.mode}</td>
+                    <td className="px-5 py-4 text-gray-900 dark:text-white">{getPrice(course).toLocaleString('fa-IR')} تومان</td>
+                    <td className="px-5 py-4 text-gray-600 dark:text-gray-300">{(course.students_count || 0).toLocaleString('fa-IR')}</td>
                     <td className="px-5 py-4">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          course.isActive !== false
-                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                            : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400'
-                        }`}
-                      >
-                        {course.isActive !== false ? 'منتشر شده' : 'پیش‌نویس'}
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${course.is_active !== false ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400'}`}>
+                        {course.is_active !== false ? 'منتشر شده' : 'پیش‌نویس'}
                       </span>
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-1">
-                        <Link
-                          href={`/courses/${course.slug}`}
-                          target="_blank"
-                          className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition"
-                          aria-label="مشاهده"
-                        >
+                        <Link href={`/courses/${course.slug}`} target="_blank" className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition">
                           <Eye className="w-4 h-4" />
                         </Link>
-                        <Link
-                          href={`/admin/courses/edit?id=${course.id}`}
-                          className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition"
-                          aria-label="ویرایش"
-                        >
+                        <Link href={`/admin/courses/edit?id=${course.id}`} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition">
                           <Edit className="w-4 h-4" />
                         </Link>
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(course.id, course.title)}
-                          disabled={deletingId === course.id}
-                          className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition disabled:opacity-50"
-                          aria-label="حذف"
-                        >
-                          {deletingId === course.id ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Trash2 className="w-4 h-4" />
-                          )}
+                        <button onClick={() => handleDelete(course.id, course.title)} disabled={deletingId === course.id} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition disabled:opacity-50">
+                          {deletingId === course.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                         </button>
                       </div>
                     </td>

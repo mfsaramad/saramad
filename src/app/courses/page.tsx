@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Search,
   SlidersHorizontal,
@@ -12,8 +12,9 @@ import {
   Users,
   Award,
   TrendingUp,
+  Loader2,
 } from 'lucide-react';
-import { useCollection } from '@/hooks/useCollection';
+import { supabase } from '@/lib/supabase'; // 👈 اضافه شد
 import { toPersianNumber } from '@/lib/format';
 import CourseCard from '@/components/shared/CourseCard';
 import FadeIn from '@/components/animations/FadeIn';
@@ -27,7 +28,8 @@ type SortOption = 'newest' | 'popular' | 'cheapest' | 'expensive' | 'rating';
 const ITEMS_PER_PAGE = 6;
 
 export default function CoursesPage() {
-  const { data: courses } = useCollection<any>('courses');
+  const [courses, setCourses] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [modeFilter, setModeFilter] = useState<ModeFilter>('all');
   const [levelFilter, setLevelFilter] = useState<LevelFilter>('all');
@@ -36,12 +38,50 @@ export default function CoursesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
-  const getMinPrice = (course: any) =>
-    Math.min(
-      ...Object.values(course.price || {}).filter(
-        (p): p is number => p !== undefined
-      )
+  // دریافت دوره‌ها از دیتابیس
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('courses')
+          .select(`
+            *,
+            users:instructor_id (name)
+          `)
+          .eq('is_active', true)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        if (data) {
+          // مپ کردن دیتای دیتابیس به فرمت مورد نیاز فرانت‌اند
+          const mappedCourses = data.map((c: any) => ({
+            ...c,
+            studentsCount: c.students_count || 0,
+            shortDescription: c.short_description || '',
+            remainingCapacity: c.remaining_capacity || 0,
+            certificate: c.certificate || false,
+            instructor: { name: c.users?.name || 'استاد' },
+          }));
+          setCourses(mappedCourses);
+        }
+      } catch (error) {
+        console.error('خطا در دریافت دوره‌ها:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
+
+  const getMinPrice = (course: any) => {
+    if (!course.price || typeof course.price !== 'object') return 0;
+    const prices = Object.values(course.price).filter(
+      (p): p is number => typeof p === 'number' && p > 0
     );
+    return prices.length > 0 ? Math.min(...prices) : 0;
+  };
 
   const filteredCourses = useMemo(() => {
     let result = [...courses];
@@ -51,8 +91,8 @@ export default function CoursesPage() {
       result = result.filter(
         (c) =>
           c.title.toLowerCase().includes(q) ||
-          c.description.toLowerCase().includes(q) ||
-          c.tags.some((tag: string) => tag.toLowerCase().includes(q))
+          (c.description && c.description.toLowerCase().includes(q)) ||
+          (c.tags && c.tags.some((tag: string) => tag.toLowerCase().includes(q)))
       );
     }
 
@@ -76,7 +116,7 @@ export default function CoursesPage() {
 
     switch (sortBy) {
       case 'popular':
-        result.sort((a, b) => b.studentsCount - a.studentsCount);
+        result.sort((a, b) => (b.studentsCount || 0) - (a.studentsCount || 0));
         break;
       case 'cheapest':
         result.sort((a, b) => getMinPrice(a) - getMinPrice(b));
@@ -85,10 +125,11 @@ export default function CoursesPage() {
         result.sort((a, b) => getMinPrice(b) - getMinPrice(a));
         break;
       case 'rating':
-        result.sort((a, b) => b.rating - a.rating);
+        result.sort((a, b) => (b.rating || 0) - (a.rating || 0));
         break;
       default:
-        result.sort((a, b) => parseInt(b.id) - parseInt(a.id));
+        // مرتب‌سازی بر اساس تاریخ ایجاد
+        result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     }
 
     return result;
@@ -134,10 +175,7 @@ export default function CoursesPage() {
             { id: 'online', label: 'آنلاین', icon: '💻' },
             { id: 'hybrid', label: 'ترکیبی', icon: '🔄' },
           ].map((item) => (
-            <label
-              key={item.id}
-              className="flex items-center gap-3 cursor-pointer group"
-            >
+            <label key={item.id} className="flex items-center gap-3 cursor-pointer group">
               <input
                 type="radio"
                 name="mode"
@@ -168,10 +206,7 @@ export default function CoursesPage() {
             { id: 'intermediate', label: 'متوسط' },
             { id: 'advanced', label: 'پیشرفته' },
           ].map((item) => (
-            <label
-              key={item.id}
-              className="flex items-center gap-3 cursor-pointer group"
-            >
+            <label key={item.id} className="flex items-center gap-3 cursor-pointer group">
               <input
                 type="radio"
                 name="level"
@@ -203,10 +238,7 @@ export default function CoursesPage() {
             { id: 'high', label: '۴.۵ تا ۶ میلیون' },
             { id: 'premium', label: 'بالای ۶ میلیون' },
           ].map((item) => (
-            <label
-              key={item.id}
-              className="flex items-center gap-3 cursor-pointer group"
-            >
+            <label key={item.id} className="flex items-center gap-3 cursor-pointer group">
               <input
                 type="radio"
                 name="price"
@@ -236,6 +268,14 @@ export default function CoursesPage() {
       )}
     </>
   );
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+        <Loader2 className="w-12 h-12 text-brand-800 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="bg-slate-50 dark:bg-slate-950 min-h-screen">

@@ -1,33 +1,83 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { useCollection } from '@/hooks/useCollection';
+import { useState, useMemo, useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 import { toPersianNumber } from '@/lib/format';
 import InstructorCard from '@/components/shared/InstructorCard';
 
 export default function InstructorsPage() {
-  const { data: instructors } = useCollection<any>('instructors');
+  const [instructors, setInstructors] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // دریافت لیست اساتید از دیتابیس
+  useEffect(() => {
+    const fetchInstructors = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('role', 'instructor')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        if (data) {
+          // مپ کردن دیتای دیتابیس به فرمت مورد نیاز کارت اساتید
+          const mappedInstructors = data.map((u: any) => ({
+            id: u.id,
+            name: u.name || 'استاد سرآمد',
+            title: 'مدرس دوره‌های تخصصی', // مقدار پیش‌فرض چون در دیتابیس نداریم
+            bio: '', 
+            specialties: ['فنی و حرفه‌ای'], // مقدار پیش‌فرض
+            studentsCount: 0, // فعلاً صفر در نظر می‌گیریم
+            coursesCount: 0, 
+            avatar: u.avatar || '',
+            email: u.email,
+            phone: u.phone,
+          }));
+          setInstructors(mappedInstructors);
+        }
+      } catch (err) {
+        console.error('خطا در دریافت اساتید:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchInstructors();
+  }, []);
 
   const filteredInstructors = useMemo(() => {
     if (!searchQuery.trim()) return instructors;
     const query = searchQuery.toLowerCase();
-    return instructors.filter(
-      (i) =>
-        i.name.toLowerCase().includes(query) ||
-        i.title.toLowerCase().includes(query) ||
-        i.specialties.some((s: string) => s.toLowerCase().includes(query))
-    );
+    
+    return instructors.filter((i) => {
+      const nameMatch = i.name.toLowerCase().includes(query);
+      const titleMatch = i.title && i.title.toLowerCase().includes(query);
+      const specialtyMatch = i.specialties && i.specialties.some((s: string) => s.toLowerCase().includes(query));
+      
+      return nameMatch || titleMatch || specialtyMatch;
+    });
   }, [instructors, searchQuery]);
 
   const totalStudents = instructors.reduce(
-    (sum, i) => sum + i.studentsCount,
+    (sum, i) => sum + (i.studentsCount || 0),
     0
   );
   const totalCourses = instructors.reduce(
-    (sum, i) => sum + i.coursesCount,
+    (sum, i) => sum + (i.coursesCount || 0),
     0
   );
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+        <Loader2 className="w-12 h-12 text-brand-800 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="bg-slate-50 dark:bg-slate-950 min-h-screen">

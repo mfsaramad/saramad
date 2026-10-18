@@ -23,8 +23,8 @@ import {
 import { toPersianNumber, formatPrice } from '@/lib/format';
 import FadeIn from '@/components/animations/FadeIn';
 import { cn } from '@/lib/utils';
-import { useAuth } from '@/contexts/AuthContext'; // 👈 اضافه شد
-import { supabase } from '@/lib/supabase'; // 👈 اضافه شد
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
 
 type OrderStatus = 'pending' | 'paid' | 'completed' | 'cancelled';
 type FilterType = 'all' | OrderStatus;
@@ -61,76 +61,103 @@ const statusConfig: Record<
 
 export default function OrdersPage() {
   const { user } = useAuth();
-  const [orders, setOrders] = useState<Order[]>([]); // 👈 استیت برای سفارشات
+  const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isPaying, setIsPaying] = useState<string | null>(null); // 👈 برای نمایش لودینگ دکمه پرداخت
   const [activeTab, setActiveTab] = useState<FilterType>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // 👈 دریافت سفارشات از Supabase
+  const fetchOrders = async () => {
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      if (data) {
+        const formattedOrders: Order[] = data.map((item: any) => {
+          const orderItems = item.items || [];
+          const firstItem = orderItems[0] || {};
+          
+          let orderType: 'course' | 'product' | 'exam' = 'product';
+          let typeLabel = 'محصول';
+          if (firstItem.type === 'course') {
+            orderType = 'course';
+            typeLabel = 'دوره آموزشی';
+          } else if (firstItem.type === 'exam') {
+            orderType = 'exam';
+            typeLabel = 'آزمون';
+          }
+
+          return {
+            id: item.id,
+            orderNumber: item.order_number,
+            title: orderItems.length > 1 
+              ? `${firstItem.title} و ${orderItems.length - 1} آیتم دیگر` 
+              : firstItem.title || 'سفارش',
+            type: orderType,
+            typeLabel: typeLabel,
+            price: item.total_amount,
+            discount: 0,
+            tax: 0,
+            finalPrice: item.total_amount,
+            status: (item.status as OrderStatus) || 'pending',
+            date: new Date(item.created_at).toLocaleDateString('fa-IR'),
+            paymentMethod: item.payment_method === 'zarinpal' ? 'زرین‌پال' : 
+                           item.payment_method === 'idpay' ? 'آیدی‌پی' : 
+                           item.payment_method === 'wallet' ? 'کیف پول' : 'پرداخت آنلاین',
+            items: orderItems.map((i: any) => ({ title: i.title, price: i.price })),
+          };
+        });
+        setOrders(formattedOrders);
+      }
+    } catch (error) {
+      console.error('خطا در دریافت سفارشات:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchOrders = async () => {
-      if (!user) {
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        const { data, error } = await supabase
-          .from('orders')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-
-        if (data) {
-          // تبدیل دیتای Supabase به ساختاری که UI انتظار دارد
-          const formattedOrders: Order[] = data.map((item: any) => {
-            const orderItems = item.items || [];
-            const firstItem = orderItems[0] || {};
-            
-            // تشخیص نوع سفارش از روی اولین آیتم
-            let orderType: 'course' | 'product' | 'exam' = 'product';
-            let typeLabel = 'محصول';
-            if (firstItem.type === 'course') {
-              orderType = 'course';
-              typeLabel = 'دوره آموزشی';
-            } else if (firstItem.type === 'exam') {
-              orderType = 'exam';
-              typeLabel = 'آزمون';
-            }
-
-            return {
-              id: item.id,
-              orderNumber: item.order_number,
-              title: orderItems.length > 1 
-                ? `${firstItem.title} و ${orderItems.length - 1} آیتم دیگر` 
-                : firstItem.title || 'سفارش',
-              type: orderType,
-              typeLabel: typeLabel,
-              price: item.total_amount,
-              discount: 0,
-              tax: 0,
-              finalPrice: item.total_amount,
-              status: (item.status as OrderStatus) || 'pending',
-              date: new Date(item.created_at).toLocaleDateString('fa-IR'),
-              paymentMethod: item.payment_method === 'zarinpal' ? 'زرین‌پال' : 
-                             item.payment_method === 'idpay' ? 'آیدی‌پی' : 
-                             item.payment_method === 'wallet' ? 'کیف پول' : 'پرداخت آنلاین',
-              items: orderItems.map((i: any) => ({ title: i.title, price: i.price })),
-            };
-          });
-          setOrders(formattedOrders);
-        }
-      } catch (error) {
-        console.error('خطا در دریافت سفارشات:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchOrders();
   }, [user]);
+
+  // 👈 تابع شبیه‌سازی پرداخت
+  const handlePay = async (orderId: string, orderNumber: string) => {
+    if (!confirm(`آیا از پرداخت سفارش ${orderNumber} مطمئن هستید؟`)) return;
+
+    setIsPaying(orderId);
+
+    try {
+      // آپدیت وضعیت سفارش در دیتابیس به "پرداخت شده"
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: 'paid', updated_at: new Date().toISOString() })
+        .eq('id', orderId);
+
+      if (error) throw error;
+
+      // آپدیت استیت در فرانت‌اند
+      setOrders((prev) =>
+        prev.map((o) => (o.id === orderId ? { ...o, status: 'paid' } : o))
+      );
+      
+      alert('پرداخت با موفقیت انجام شد!');
+    } catch (err) {
+      console.error('خطا در پرداخت:', err);
+      alert('خطا در انجام پرداخت. لطفاً دوباره تلاش کنید.');
+    } finally {
+      setIsPaying(null);
+    }
+  };
 
   const filteredOrders = useMemo(() => {
     let result = [...orders];
@@ -192,7 +219,6 @@ export default function OrdersPage() {
     red: 'bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-300',
   };
 
-  // 👈 حالت لودینگ
   if (isLoading) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center">
@@ -207,28 +233,15 @@ export default function OrdersPage() {
       {/* Header */}
       <FadeIn>
         <div className="bg-gradient-to-br from-[#1e3a8a] via-[#1e40af] to-[#0d9488] rounded-3xl p-6 lg:p-8 text-white relative overflow-hidden">
-          <div
-            className="absolute inset-0 opacity-[0.07]"
-            style={{
-              backgroundImage:
-                'radial-gradient(circle, white 1px, transparent 1px)',
-              backgroundSize: '20px 20px',
-            }}
-          />
+          <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
           <div className="absolute -top-20 -right-20 w-64 h-64 bg-teal-400/20 rounded-full blur-3xl" />
-
           <div className="relative">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur border border-white/20 rounded-full text-xs font-bold mb-3">
               <Receipt className="w-3.5 h-3.5 text-orange-300" />
               <span>سفارشات من</span>
             </div>
-
-            <h1 className="text-2xl lg:text-3xl font-black mb-2">
-              سفارشات من 📦
-            </h1>
-            <p className="text-blue-100 text-sm lg:text-base">
-              تمام سفارشات و تراکنش‌های شما در سرآمد
-            </p>
+            <h1 className="text-2xl lg:text-3xl font-black mb-2">سفارشات من 📦</h1>
+            <p className="text-blue-100 text-sm lg:text-base">تمام سفارشات و تراکنش‌های شما در سرآمد</p>
           </div>
         </div>
       </FadeIn>
@@ -238,24 +251,14 @@ export default function OrdersPage() {
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           const colors = statColorMap[stat.color];
-
           return (
             <FadeIn key={index} delay={index * 0.08}>
               <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 hover:shadow-lg transition-shadow">
-                <div
-                  className={cn(
-                    'w-11 h-11 rounded-xl flex items-center justify-center mb-3',
-                    colors.bg
-                  )}
-                >
+                <div className={cn('w-11 h-11 rounded-xl flex items-center justify-center mb-3', colors.bg)}>
                   <Icon className={cn('w-5 h-5', colors.icon)} />
                 </div>
-                <div className="text-lg lg:text-xl font-black text-slate-800 dark:text-slate-100 mb-1 line-clamp-1">
-                  {stat.value}
-                </div>
-                <div className="text-xs text-slate-500 dark:text-slate-400">
-                  {stat.label}
-                </div>
+                <div className="text-lg lg:text-xl font-black text-slate-800 dark:text-slate-100 mb-1 line-clamp-1">{stat.value}</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400">{stat.label}</div>
               </div>
             </FadeIn>
           );
@@ -287,21 +290,12 @@ export default function OrdersPage() {
               onClick={() => setActiveTab(tab.id)}
               className={cn(
                 'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all',
-                activeTab === tab.id
-                  ? 'bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white shadow-md'
-                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                activeTab === tab.id ? 'bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white shadow-md' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
               )}
             >
               <span>{tab.icon}</span>
               {tab.label}
-              <span
-                className={cn(
-                  'px-2 py-0.5 rounded-full text-[10px]',
-                  activeTab === tab.id
-                    ? 'bg-white/20 text-white'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
-                )}
-              >
+              <span className={cn('px-2 py-0.5 rounded-full text-[10px]', activeTab === tab.id ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400')}>
                 {toPersianNumber(tab.count)}
               </span>
             </button>
@@ -322,14 +316,12 @@ export default function OrdersPage() {
                   {/* Header */}
                   <div className="flex items-start justify-between gap-4 mb-4 flex-wrap">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div
-                        className={cn(
-                          'w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 text-2xl',
-                          order.type === 'course' && 'bg-blue-100 dark:bg-blue-950/50',
-                          order.type === 'product' && 'bg-teal-100 dark:bg-teal-950/50',
-                          order.type === 'exam' && 'bg-orange-100 dark:bg-orange-950/50'
-                        )}
-                      >
+                      <div className={cn(
+                        'w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 text-2xl',
+                        order.type === 'course' && 'bg-blue-100 dark:bg-blue-950/50',
+                        order.type === 'product' && 'bg-teal-100 dark:bg-teal-950/50',
+                        order.type === 'exam' && 'bg-orange-100 dark:bg-orange-950/50'
+                      )}>
                         {order.type === 'course' && '🎓'}
                         {order.type === 'product' && '📦'}
                         {order.type === 'exam' && '📝'}
@@ -337,27 +329,16 @@ export default function OrdersPage() {
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
-                          <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
-                            {order.typeLabel}
-                          </span>
+                          <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{order.typeLabel}</span>
                           <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
-                          <span className="text-xs font-mono text-slate-500 dark:text-slate-400">
-                            {order.orderNumber}
-                          </span>
+                          <span className="text-xs font-mono text-slate-500 dark:text-slate-400">{order.orderNumber}</span>
                         </div>
-                        <h3 className="font-black text-slate-800 dark:text-slate-100 line-clamp-1 group-hover:text-brand-800 dark:group-hover:text-brand-300 transition">
-                          {order.title}
-                        </h3>
+                        <h3 className="font-black text-slate-800 dark:text-slate-100 line-clamp-1 group-hover:text-brand-800 dark:group-hover:text-brand-300 transition">{order.title}</h3>
                       </div>
                     </div>
 
                     {/* Status */}
-                    <div
-                      className={cn(
-                        'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black flex-shrink-0',
-                        statusColorMap[statusInfo.color]
-                      )}
-                    >
+                    <div className={cn('inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black flex-shrink-0', statusColorMap[statusInfo.color])}>
                       <StatusIcon className="w-3.5 h-3.5" />
                       {statusInfo.label}
                     </div>
@@ -382,12 +363,8 @@ export default function OrdersPage() {
                   {/* Price + Actions */}
                   <div className="flex items-end justify-between gap-4 flex-wrap">
                     <div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">
-                        مبلغ کل
-                      </div>
-                      <div className="text-lg font-black text-brand-800 dark:text-brand-300">
-                        {formatPrice(order.finalPrice)}
-                      </div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">مبلغ کل</div>
+                      <div className="text-lg font-black text-brand-800 dark:text-brand-300">{formatPrice(order.finalPrice)}</div>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -403,14 +380,20 @@ export default function OrdersPage() {
                         </button>
                       )}
 
+                      {/* 👈 دکمه پرداخت اصلاح شده */}
                       {order.status === 'pending' && (
-                        <Link
-                          href="/checkout"
-                          className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-l from-orange-500 to-orange-600 text-white rounded-xl font-bold text-sm hover:shadow-lg transition-all"
+                        <button
+                          onClick={() => handlePay(order.id, order.orderNumber)}
+                          disabled={isPaying === order.id}
+                          className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-l from-orange-500 to-orange-600 text-white rounded-xl font-bold text-sm hover:shadow-lg transition-all disabled:opacity-70 disabled:cursor-wait"
                         >
-                          <CreditCard className="w-4 h-4" />
-                          پرداخت
-                        </Link>
+                          {isPaying === order.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <CreditCard className="w-4 h-4" />
+                          )}
+                          {isPaying === order.id ? 'در حال پرداخت...' : 'پرداخت'}
+                        </button>
                       )}
                     </div>
                   </div>
@@ -422,30 +405,17 @@ export default function OrdersPage() {
           <FadeIn>
             <div className="bg-white dark:bg-slate-900 rounded-3xl p-12 border border-slate-100 dark:border-slate-800 text-center">
               <div className="text-6xl mb-4">📦</div>
-              <h3 className="text-xl font-black text-slate-800 dark:text-slate-100 mb-2">
-                سفارشی یافت نشد
-              </h3>
+              <h3 className="text-xl font-black text-slate-800 dark:text-slate-100 mb-2">سفارشی یافت نشد</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                {orders.length === 0 
-                  ? 'شما هنوز هیچ سفارشی ثبت نکرده‌اید.' 
-                  : 'فیلتر یا جستجوی خود را تغییر دهید.'}
+                {orders.length === 0 ? 'شما هنوز هیچ سفارشی ثبت نکرده‌اید.' : 'فیلتر یا جستجوی خود را تغییر دهید.'}
               </p>
               {orders.length === 0 ? (
-                <Link
-                  href="/courses"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white rounded-xl font-bold hover:shadow-lg transition hover:gap-3"
-                >
+                <Link href="/courses" className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white rounded-xl font-bold hover:shadow-lg transition hover:gap-3">
                   مشاهده دوره‌ها
                   <ArrowLeft className="w-4 h-4" />
                 </Link>
               ) : (
-                <button
-                  onClick={() => {
-                    setActiveTab('all');
-                    setSearchQuery('');
-                  }}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white rounded-xl font-bold hover:shadow-lg transition hover:gap-3"
-                >
+                <button onClick={() => { setActiveTab('all'); setSearchQuery(''); }} className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white rounded-xl font-bold hover:shadow-lg transition hover:gap-3">
                   <X className="w-4 h-4" />
                   پاک کردن فیلترها
                 </button>
@@ -460,26 +430,17 @@ export default function OrdersPage() {
         <FadeIn delay={0.3}>
           <div className="bg-gradient-to-br from-[#1e3a8a] to-[#0d9488] rounded-3xl p-6 lg:p-8 text-white relative overflow-hidden">
             <div className="absolute -top-20 -right-20 w-64 h-64 bg-teal-400/20 rounded-full blur-3xl" />
-
             <div className="relative flex flex-col lg:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center">
                   <Award className="w-7 h-7 text-orange-300" />
                 </div>
                 <div>
-                  <h3 className="font-black text-lg mb-1">
-                    دوره جدید می‌خوای؟
-                  </h3>
-                  <p className="text-sm text-blue-100">
-                    دوره‌های جدید سرآمد رو ببین و مهارت جدید یاد بگیر
-                  </p>
+                  <h3 className="font-black text-lg mb-1">دوره جدید می‌خوای؟</h3>
+                  <p className="text-sm text-blue-100">دوره‌های جدید سرآمد رو ببین و مهارت جدید یاد بگیر</p>
                 </div>
               </div>
-
-              <Link
-                href="/courses"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-white text-brand-800 rounded-xl font-black hover:bg-blue-50 transition-all hover:gap-3 group"
-              >
+              <Link href="/courses" className="inline-flex items-center gap-2 px-6 py-3 bg-white text-brand-800 rounded-xl font-black hover:bg-blue-50 transition-all hover:gap-3 group">
                 مشاهده دوره‌ها
                 <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
               </Link>
