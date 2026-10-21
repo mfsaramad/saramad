@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Plus,
@@ -11,7 +11,7 @@ import {
   FileText,
   Loader2,
 } from 'lucide-react';
-import { useDb } from '@/hooks/useDb';
+import { supabase } from '@/lib/supabase';
 
 interface BlogPost {
   id: string;
@@ -20,16 +20,34 @@ interface BlogPost {
   excerpt: string;
   category: string;
   author: string;
-  date: string;
-  readTime: number;
-  isActive?: boolean;
+  created_at: string;
+  read_time: number;
+  is_active?: boolean;
 }
 
 export default function AdminBlogPage() {
   const [search, setSearch] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const { items: posts, remove, isLoading } = useDb<BlogPost>('blogPosts');
+  // دریافت مقالات از دیتابیس
+  useEffect(() => {
+    const fetchPosts = async () => {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (!error && data) {
+        setPosts(data);
+      }
+      setIsLoading(false);
+    };
+
+    fetchPosts();
+  }, []);
 
   const filtered = useMemo(() => {
     if (!search) return posts;
@@ -43,7 +61,14 @@ export default function AdminBlogPage() {
   const handleDelete = async (id: string, title: string) => {
     if (!confirm(`آیا از حذف «${title}» مطمئن هستی؟`)) return;
     setDeletingId(id);
-    remove(id);
+    
+    const { error } = await supabase.from('blog_posts').delete().eq('id', id);
+    
+    if (!error) {
+      setPosts((prev) => prev.filter((p) => p.id !== id));
+    } else {
+      alert('خطا در حذف مقاله');
+    }
     setDeletingId(null);
   };
 
@@ -132,27 +157,27 @@ export default function AdminBlogPage() {
                     </td>
                     <td className="px-5 py-4">
                       <span className="inline-flex px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-xs font-medium">
-                        {post.category}
+                        {post.category || 'عمومی'}
                       </span>
                     </td>
                     <td className="px-5 py-4 text-gray-600 dark:text-gray-300">
-                      {post.author}
+                      {post.author || 'مدیر سیستم'}
                     </td>
                     <td className="px-5 py-4 text-gray-600 dark:text-gray-300">
-                      {post.date || '—'}
+                      {post.created_at ? new Date(post.created_at).toLocaleDateString('fa-IR') : '—'}
                     </td>
                     <td className="px-5 py-4 text-gray-600 dark:text-gray-300">
-                      {(post.readTime || 0).toLocaleString('fa-IR')} دقیقه
+                      {(post.read_time || 0).toLocaleString('fa-IR')} دقیقه
                     </td>
                     <td className="px-5 py-4">
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          post.isActive !== false
+                          post.is_active !== false
                             ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
                             : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400'
                         }`}
                       >
-                        {post.isActive !== false ? 'منتشر شده' : 'پیش‌نویس'}
+                        {post.is_active !== false ? 'منتشر شده' : 'پیش‌نویس'}
                       </span>
                     </td>
                     <td className="px-5 py-4">

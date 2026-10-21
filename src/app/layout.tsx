@@ -22,8 +22,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fa" dir="rtl" suppressHydrationWarning>
-      <body>
+<html lang="fa" dir="rtl" data-scroll-behavior="smooth">
+        <body>
         <ThemeProvider attribute="class" defaultTheme="light">
           <AuthProvider>
             <CartProvider>

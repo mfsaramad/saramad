@@ -7,6 +7,8 @@ import {
   useState,
   ReactNode,
 } from 'react';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
 
 export type NotificationType =
   | 'order'
@@ -30,119 +32,141 @@ export interface Notification {
 interface NotificationsContextType {
   items: Notification[];
   unreadCount: number;
-  markAsRead: (id: string) => void;
-  markAllAsRead: () => void;
-  remove: (id: string) => void;
-  clearAll: () => void;
-  add: (n: Notification) => void;
+  isLoading: boolean;
+  markAsRead: (id: string) => Promise<void>;
+  markAllAsRead: () => Promise<void>;
+  remove: (id: string) => Promise<void>;
+  clearAll: () => Promise<void>;
+  add: (n: Omit<Notification, 'id' | 'createdAt'>) => Promise<void>;
 }
 
 const NotificationsContext = createContext<NotificationsContextType | undefined>(
   undefined
 );
 
-const STORAGE_KEY = 'saramad_notifications';
+// تبدیل تاریخ میلادی به شمسی برای نمایش
+function formatToPersianDate(isoDate: string): string {
+  if (!isoDate) return '';
+  try {
+    const date = new Date(isoDate);
+    return new Intl.DateTimeFormat('fa-IR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
+  } catch {
+    return isoDate;
+  }
+}
 
-const initialNotifications: Notification[] = [
-  {
-    id: 'n1',
-    type: 'order',
-    title: 'سفارش شما تکمیل شد',
-    message: 'سفارش SRM-14040701-001 با موفقیت پردازش و تکمیل شد.',
-    link: '/dashboard/orders',
-    read: false,
-    createdAt: '1404/07/15 - 14:30',
-    priority: 'high',
-  },
-  {
-    id: 'n2',
-    type: 'course',
-    title: 'دوره جدید در دسترس شما',
-    message: 'دوره «React پیشرفته» به لیست دوره‌های شما اضافه شد.',
-    link: '/dashboard/courses',
-    read: false,
-    createdAt: '1404/07/14 - 10:15',
-    priority: 'normal',
-  },
-  {
-    id: 'n3',
-    type: 'certificate',
-    title: 'گواهی‌نامه صادر شد',
-    message: 'گواهی‌نامه دوره Python آماده دانلود است.',
-    link: '/dashboard/certificates',
-    read: false,
-    createdAt: '1404/07/13 - 16:45',
-    priority: 'high',
-  },
-  {
-    id: 'n4',
-    type: 'exam',
-    title: 'یادآوری آزمون',
-    message: 'آزمون «تعیین سطح Python» فردا ساعت ۱۰ صبح برگزار می‌شود.',
-    link: '/dashboard/exams',
-    read: true,
-    createdAt: '1404/07/12 - 09:00',
-    priority: 'high',
-  },
-  {
-    id: 'n5',
-    type: 'promo',
-    title: 'تخفیف ویژه پاییزه',
-    message: 'تا پایان هفته ۳۰٪ تخفیف روی تمام دوره‌های برنامه‌نویسی.',
-    link: '/courses',
-    read: true,
-    createdAt: '1404/07/10 - 12:00',
-    priority: 'low',
-  },
-  {
-    id: 'n6',
-    type: 'system',
-    title: 'به‌روزرسانی سیستم',
-    message: 'پلتفرم در تاریخ ۱۴۰۴/۰۷/۲۰ از ساعت ۲ تا ۴ بامداد در دسترس نخواهد بود.',
-    read: true,
-    createdAt: '1404/07/08 - 18:00',
-    priority: 'normal',
-  },
-];
+// تشخیص لینک بر اساس نوع اعلان
+function getLinkByType(type: string): string | undefined {
+  switch (type) {
+    case 'order': return '/dashboard/orders';
+    case 'course': return '/dashboard/courses';
+    case 'exam': return '/dashboard/exams';
+    case 'certificate': return '/dashboard/certificates';
+    case 'promo': return '/courses';
+    default: return undefined;
+  }
+}
 
 export function NotificationsProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
   const [items, setItems] = useState<Notification[]>([]);
-  const [mounted, setMounted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchNotifications = async () => {
+    if (!user) {
+      setItems([]);
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      setItems(saved ? JSON.parse(saved) : initialNotifications);
-    } catch {
-      setItems(initialNotifications);
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      if (data) {
+        const mappedItems: Notification[] = data.map((n: any) => ({
+          id: n.id,
+          type: (n.type as NotificationType) || 'system',
+          title: n.title,
+          message: n.message,
+          read: n.is_read || false,
+          createdAt: formatToPersianDate(n.created_at),
+          link: getLinkByType(n.type),
+          priority: 'normal',
+        }));
+        setItems(mappedItems);
+      }
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    } finally {
+      setIsLoading(false);
     }
-    setMounted(true);
-  }, []);
+  };
 
   useEffect(() => {
-    if (mounted) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-    }
-  }, [items, mounted]);
+    fetchNotifications();
+  }, [user]);
 
-  const markAsRead = (id: string) =>
+  const markAsRead = async (id: string) => {
     setItems((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+    await supabase.from('notifications').update({ is_read: true }).eq('id', id);
+  };
 
-  const markAllAsRead = () =>
+  const markAllAsRead = async () => {
     setItems((prev) => prev.map((n) => ({ ...n, read: true })));
+    if (user) {
+      await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false);
+    }
+  };
 
-  const remove = (id: string) =>
+  const remove = async (id: string) => {
     setItems((prev) => prev.filter((n) => n.id !== id));
+    await supabase.from('notifications').delete().eq('id', id);
+  };
 
-  const clearAll = () => setItems([]);
+  const clearAll = async () => {
+    setItems([]);
+    if (user) {
+      await supabase.from('notifications').delete().eq('user_id', user.id);
+    }
+  };
 
-  const add = (n: Notification) => setItems((prev) => [n, ...prev]);
+  const add = async (n: Omit<Notification, 'id' | 'createdAt'>) => {
+    if (!user) return;
+    const { error } = await supabase.from('notifications').insert({
+      user_id: user.id,
+      title: n.title,
+      message: n.message,
+      type: n.type,
+      is_read: n.read || false,
+    });
+
+    if (!error) {
+      fetchNotifications();
+    }
+  };
 
   const unreadCount = items.filter((n) => !n.read).length;
 
   return (
     <NotificationsContext.Provider
-      value={{ items, unreadCount, markAsRead, markAllAsRead, remove, clearAll, add }}
+      value={{ items, unreadCount, isLoading, markAsRead, markAllAsRead, remove, clearAll, add }}
     >
       {children}
     </NotificationsContext.Provider>

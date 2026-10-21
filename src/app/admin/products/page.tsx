@@ -1,6 +1,6 @@
-﻿'use client';
+'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Plus,
@@ -12,27 +12,44 @@ import {
   Loader2,
   Star,
 } from 'lucide-react';
-import { useDb } from '@/hooks/useDb';
+import { supabase } from '@/lib/supabase';
 
 interface Product {
   id: string;
   slug: string;
   title: string;
-  type: string;
-  typeLabel: string;
+  type_label: string;
   price: number;
-  originalPrice?: number;
+  original_price?: number;
   rating: number;
-  salesCount: number;
+  sales_count: number;
   badge?: string;
-  isActive?: boolean;
+  is_active?: boolean;
 }
 
 export default function AdminProductsPage() {
   const [search, setSearch] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const { items: products, remove, isLoading } = useDb<Product>('products');
+  // دریافت محصولات از دیتابیس
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (!error && data) {
+        setProducts(data);
+      }
+      setIsLoading(false);
+    };
+
+    fetchProducts();
+  }, []);
 
   const filtered = useMemo(() => {
     if (!search) return products;
@@ -44,7 +61,14 @@ export default function AdminProductsPage() {
   const handleDelete = async (id: string, title: string) => {
     if (!confirm(`آیا از حذف «${title}» مطمئن هستی؟`)) return;
     setDeletingId(id);
-    remove(id);
+    
+    const { error } = await supabase.from('products').delete().eq('id', id);
+    
+    if (!error) {
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+    } else {
+      alert('خطا در حذف محصول');
+    }
     setDeletingId(null);
   };
 
@@ -133,7 +157,7 @@ export default function AdminProductsPage() {
                       {product.title}
                     </td>
                     <td className="px-5 py-4 text-gray-600 dark:text-gray-300">
-                      {product.typeLabel}
+                      {product.type_label || '—'}
                     </td>
                     <td className="px-5 py-4 text-gray-900 dark:text-white">
                       {(product.price || 0).toLocaleString('fa-IR')} تومان
@@ -145,7 +169,7 @@ export default function AdminProductsPage() {
                       </span>
                     </td>
                     <td className="px-5 py-4 text-gray-600 dark:text-gray-300">
-                      {(product.salesCount || 0).toLocaleString('fa-IR')}
+                      {(product.sales_count || 0).toLocaleString('fa-IR')}
                     </td>
                     <td className="px-5 py-4">
                       {product.badge ? (
@@ -159,12 +183,12 @@ export default function AdminProductsPage() {
                     <td className="px-5 py-4">
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          product.isActive !== false
+                          product.is_active !== false
                             ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
                             : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400'
                         }`}
                       >
-                        {product.isActive !== false ? 'فعال' : 'غیرفعال'}
+                        {product.is_active !== false ? 'فعال' : 'غیرفعال'}
                       </span>
                     </td>
                     <td className="px-5 py-4">

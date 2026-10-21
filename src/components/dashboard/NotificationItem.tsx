@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Notification, NotificationType } from '@/types';
 import { useNotifications } from '@/contexts/NotificationsContext';
+
 const typeConfig: Record<
   NotificationType,
   { icon: any; bg: string; color: string }
@@ -51,7 +52,7 @@ const typeConfig: Record<
 
 export function NotificationItem({ notification }: { notification: Notification }) {
   const { markAsRead, remove } = useNotifications();
-  const config = typeConfig[notification.type];
+  const config = typeConfig[notification.type] || typeConfig.system;
   const Icon = config.icon;
 
   const handleClick = () => {

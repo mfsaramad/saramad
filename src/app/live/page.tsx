@@ -1,21 +1,21 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Radio,
   Video,
   Bell,
-  Calendar,
   Sparkles,
   Zap,
   CheckCircle2,
+  Loader2,
 } from 'lucide-react';
-import { useCollection } from '@/hooks/useCollection';
 import { toPersianNumber } from '@/lib/format';
 import LiveClassCard from '@/components/live/LiveClassCard';
 import FadeIn from '@/components/animations/FadeIn';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/lib/supabase';
 
 type FilterType = 'all' | 'live' | 'upcoming';
 
@@ -30,13 +30,35 @@ const weeklySchedule = [
 ];
 
 export default function LivePage() {
-  const { data: liveClasses } = useCollection<any>('liveClasses');
+  const [liveClasses, setLiveClasses] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<FilterType>('all');
+
+  useEffect(() => {
+    const fetchLiveClasses = async () => {
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('live_classes')
+          .select('*')
+          .order('start_time', { ascending: true });
+
+        if (error) throw error;
+        if (data) setLiveClasses(data);
+      } catch (error) {
+        console.error('Error fetching live classes:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchLiveClasses();
+  }, []);
 
   const filteredClasses = useMemo(() => {
     if (activeTab === 'all') return liveClasses;
-    if (activeTab === 'live') return liveClasses.filter((c) => c.isLive);
-    return liveClasses.filter((c) => !c.isLive);
+    if (activeTab === 'live') return liveClasses.filter((c) => c.is_live);
+    return liveClasses.filter((c) => !c.is_live);
   }, [liveClasses, activeTab]);
 
   const tabs = [
@@ -45,8 +67,8 @@ export default function LivePage() {
     { id: 'upcoming' as FilterType, label: 'پیش‌رو', icon: '📅' },
   ];
 
-  const liveCount = liveClasses.filter((c) => c.isLive).length;
-  const upcomingCount = liveClasses.filter((c) => !c.isLive).length;
+  const liveCount = liveClasses.filter((c) => c.is_live).length;
+  const upcomingCount = liveClasses.filter((c) => !c.is_live).length;
 
   return (
     <div className="bg-slate-50 dark:bg-slate-950 min-h-screen">
@@ -63,9 +85,6 @@ export default function LivePage() {
 
         <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500/20 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-orange-500/20 rounded-full blur-3xl" />
-
-        <div className="absolute top-1/2 left-1/4 w-96 h-px bg-gradient-to-r from-transparent via-teal-500/50 to-transparent" />
-        <div className="absolute top-1/3 right-1/4 w-96 h-px bg-gradient-to-r from-transparent via-orange-500/50 to-transparent" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <FadeIn>
@@ -106,7 +125,7 @@ export default function LivePage() {
                   <Video className="w-5 h-5 lg:w-6 lg:h-6 text-teal-400" />
                 </div>
                 <div className="text-2xl lg:text-3xl font-black text-white">
-                  {toPersianNumber(liveClasses.length)}
+                  {isLoading ? <Loader2 className="w-6 h-6 animate-spin mx-auto" /> : toPersianNumber(liveClasses.length)}
                 </div>
                 <div className="text-xs text-blue-200 mt-1">کلاس فعال</div>
               </div>
@@ -120,7 +139,7 @@ export default function LivePage() {
                     <Radio className="w-5 h-5 lg:w-6 lg:h-6 text-red-400" />
                   </div>
                   <div className="text-2xl lg:text-3xl font-black text-white">
-                    {toPersianNumber(liveCount)}
+                    {isLoading ? <Loader2 className="w-6 h-6 animate-spin mx-auto" /> : toPersianNumber(liveCount)}
                   </div>
                   <div className="text-xs text-blue-200 mt-1">در حال پخش</div>
                 </div>
@@ -131,7 +150,7 @@ export default function LivePage() {
                   <Bell className="w-5 h-5 lg:w-6 lg:h-6 text-orange-400" />
                 </div>
                 <div className="text-2xl lg:text-3xl font-black text-white">
-                  {toPersianNumber(upcomingCount)}
+                  {isLoading ? <Loader2 className="w-6 h-6 animate-spin mx-auto" /> : toPersianNumber(upcomingCount)}
                 </div>
                 <div className="text-xs text-blue-200 mt-1">پیش‌رو</div>
               </div>
@@ -165,7 +184,11 @@ export default function LivePage() {
             </div>
           </FadeIn>
 
-          {filteredClasses.length > 0 ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="w-10 h-10 animate-spin text-teal-600" />
+            </div>
+          ) : filteredClasses.length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredClasses.map((liveClass) => (
                 <LiveClassCard key={liveClass.id} liveClass={liveClass} />
@@ -179,7 +202,7 @@ export default function LivePage() {
                   کلاسی یافت نشد
                 </h3>
                 <p className="text-slate-500 dark:text-slate-400">
-                  فیلتر دیگری را انتخاب کنید
+                  فیلتر دیگری را انتخاب کنید یا به‌زودی سر بزنید
                 </p>
               </div>
             </FadeIn>
@@ -242,7 +265,6 @@ export default function LivePage() {
             <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-10 lg:p-14 text-center text-white relative overflow-hidden">
               <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500/20 rounded-full blur-3xl" />
               <div className="absolute bottom-0 left-0 w-96 h-96 bg-orange-500/20 rounded-full blur-3xl" />
-
               <div
                 className="absolute inset-0 opacity-[0.05]"
                 style={{

@@ -1,15 +1,44 @@
-﻿'use client';
+'use client';
 
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Loader2 } from 'lucide-react';
 import { ProductForm, type ProductFormData } from '@/components/admin/ProductForm';
-import { useDb } from '@/hooks/useDb';
+import { supabase } from '@/lib/supabase';
 
 export default function NewProductPage() {
-  const { add } = useDb('products');
+  const router = useRouter();
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleSubmit = async (data: ProductFormData) => {
-    add(data as any);
+    setIsSaving(true);
+    try {
+      // مپ کردن داده‌های فرم به ستون‌های دیتابیس
+      const { error } = await supabase.from('products').insert({
+        title: data.title,
+        slug: data.slug || data.title.replace(/\s+/g, '-').toLowerCase(),
+        description: data.description || '',
+        long_description: data.longDescription || '',
+        price: data.price,
+        original_price: data.originalPrice,
+        type_label: data.typeLabel,
+        badge: data.badge,
+        rating: data.rating || 0,
+        sales_count: data.salesCount || 0,
+        is_active: true,
+      });
+
+      if (error) throw error;
+
+      alert('محصول با موفقیت اضافه شد');
+      router.push('/admin/products');
+    } catch (error: any) {
+      console.error(error);
+      alert('خطا در ذخیره محصول: ' + (error.message || 'نامشخص'));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -30,6 +59,13 @@ export default function NewProductPage() {
           </p>
         </div>
       </div>
+
+      {isSaving && (
+        <div className="p-4 bg-blue-50 text-blue-700 rounded-xl flex items-center gap-3">
+          <Loader2 className="w-5 h-5 animate-spin" />
+          در حال ذخیره‌سازی...
+        </div>
+      )}
 
       <ProductForm onSubmit={handleSubmit} mode="create" />
     </div>

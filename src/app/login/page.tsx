@@ -24,7 +24,7 @@ import FadeIn from '@/components/animations/FadeIn';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, isAuthenticated, isAdmin } = useAuth(); // 👈 اضافه شد
+  const { login, isAuthenticated, isAdmin } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +34,7 @@ export default function LoginPage() {
     remember: false,
   });
 
-  // 👈 اگر کاربر از قبل لاگین بود، خودکار هدایتش کن
+  // هدایت خودکار اگر کاربر از قبل لاگین بود
   useEffect(() => {
     if (isAuthenticated) {
       if (isAdmin) {
@@ -108,180 +108,183 @@ export default function LoginPage() {
       <div className="grid lg:grid-cols-2 min-h-[calc(100vh-5rem)]">
         {/* ===== فرم ورود ===== */}
         <div className="flex items-center justify-center p-6 lg:p-12">
-          <FadeIn className="w-full max-w-md">
-            {/* لوگو */}
-            <Link
-              href="/"
-              className="flex items-center gap-3 mb-8 justify-center group"
-            >
-              <div className="w-14 h-14 flex items-center justify-center group-hover:scale-105 transition-transform">
-                <img
-                  src="/logo.png"
-                  alt="آموزشگاه سرآمد"
-                  className="w-full h-full object-contain dark:hidden"
-                />
-                <img
-                  src="/logo-white.png"
-                  alt="آموزشگاه سرآمد"
-                  className="w-full h-full object-contain hidden dark:block"
-                />
-              </div>
-              <div>
-                <div className="text-2xl font-black text-brand-800 dark:text-brand-100">
-                  سرآمد
+          {/* اضافه کردن این div باعث می‌شود عرض ستون فرم هرگز صفر نشود */}
+          <div className="w-full max-w-md">
+            <FadeIn>
+              {/* لوگو */}
+              <Link
+                href="/"
+                className="flex items-center gap-3 mb-8 justify-center group"
+              >
+                <div className="w-14 h-14 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <img
+                    src="/logo.png"
+                    alt="آموزشگاه سرآمد"
+                    className="w-full h-full object-contain dark:hidden"
+                  />
+                  <img
+                    src="/logo-white.png"
+                    alt="آموزشگاه سرآمد"
+                    className="w-full h-full object-contain hidden dark:block"
+                  />
                 </div>
-                <div className="text-xs text-slate-500 dark:text-slate-400">
-                  مجتمع آموزش فنی و حرفه‌ای
+                <div>
+                  <div className="text-2xl font-black text-brand-800 dark:text-brand-100">
+                    سرآمد
+                  </div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                    مجتمع آموزش فنی و حرفه‌ای
+                  </div>
                 </div>
-              </div>
-            </Link>
+              </Link>
 
-            {/* عنوان */}
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand-100 dark:bg-brand-950/50 text-brand-800 dark:text-brand-300 rounded-full text-xs font-bold mb-4">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>خوش آمدی</span>
-              </div>
-              <h1 className="text-3xl font-black text-slate-800 dark:text-slate-100 mb-2">
-                ورود به حساب کاربری
-              </h1>
-              <p className="text-slate-600 dark:text-slate-400">
-                برای دسترسی به پنل کاربری، وارد شوید
-              </p>
-            </div>
-
-            {/* خطا */}
-            {error && (
-              <div className="mb-5 p-4 bg-red-50 dark:bg-red-950/30 border-r-4 border-red-500 rounded-xl flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-red-700 dark:text-red-300 font-bold">
-                  {error}
+              {/* عنوان */}
+              <div className="text-center mb-8">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand-100 dark:bg-brand-950/50 text-brand-800 dark:text-brand-300 rounded-full text-xs font-bold mb-4">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>خوش آمدی</span>
+                </div>
+                <h1 className="text-3xl font-black text-slate-800 dark:text-slate-100 mb-2">
+                  ورود به حساب کاربری
+                </h1>
+                <p className="text-slate-600 dark:text-slate-400">
+                  برای دسترسی به پنل کاربری، وارد شوید
                 </p>
               </div>
-            )}
 
-            {/* فرم */}
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {/* ایمیل */}
-              <div>
-                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
-                  ایمیل یا شماره تماس
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    required
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
-                    placeholder="example@email.com"
-                    disabled={isLoading}
-                    className="w-full pr-12 pl-4 py-3.5 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-950/50 transition disabled:opacity-60"
-                  />
-                  <Mail className="w-5 h-5 text-slate-400 absolute top-1/2 right-4 -translate-y-1/2" />
+              {/* خطا */}
+              {error && (
+                <div className="mb-5 p-4 bg-red-50 dark:bg-red-950/30 border-r-4 border-red-500 rounded-xl flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-red-700 dark:text-red-300 font-bold">
+                    {error}
+                  </p>
                 </div>
-              </div>
+              )}
 
-              {/* رمز عبور */}
-              <div>
-                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
-                  رمز عبور
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    value={formData.password}
-                    onChange={(e) =>
-                      setFormData({ ...formData, password: e.target.value })
-                    }
-                    placeholder="••••••••"
-                    disabled={isLoading}
-                    className="w-full pr-12 pl-12 py-3.5 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-950/50 transition disabled:opacity-60"
-                  />
-                  <Lock className="w-5 h-5 text-slate-400 absolute top-1/2 right-4 -translate-y-1/2" />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute top-1/2 left-4 -translate-y-1/2 text-slate-400 hover:text-brand-800 dark:hover:text-brand-300 transition"
+              {/* فرم */}
+              <form onSubmit={handleSubmit} className="space-y-5">
+                {/* ایمیل */}
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                    ایمیل یا شماره تماس
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      required
+                      value={formData.email}
+                      onChange={(e) =>
+                        setFormData({ ...formData, email: e.target.value })
+                      }
+                      placeholder="example@email.com"
+                      disabled={isLoading}
+                      className="w-full pr-12 pl-4 py-3.5 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-950/50 transition disabled:opacity-60"
+                    />
+                    <Mail className="w-5 h-5 text-slate-400 absolute top-1/2 right-4 -translate-y-1/2" />
+                  </div>
+                </div>
+
+                {/* رمز عبور */}
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                    رمز عبور
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={formData.password}
+                      onChange={(e) =>
+                        setFormData({ ...formData, password: e.target.value })
+                      }
+                      placeholder="••••••••"
+                      disabled={isLoading}
+                      className="w-full pr-12 pl-12 py-3.5 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-950/50 transition disabled:opacity-60"
+                    />
+                    <Lock className="w-5 h-5 text-slate-400 absolute top-1/2 right-4 -translate-y-1/2" />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute top-1/2 left-4 -translate-y-1/2 text-slate-400 hover:text-brand-800 dark:hover:text-brand-300 transition"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-5 h-5" />
+                      ) : (
+                        <Eye className="w-5 h-5" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* گزینه‌ها */}
+                <div className="flex items-center justify-between text-sm">
+                  <label className="flex items-center gap-2 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      checked={formData.remember}
+                      onChange={(e) =>
+                        setFormData({ ...formData, remember: e.target.checked })
+                      }
+                      className="w-4 h-4 text-brand-800 rounded focus:ring-brand-500"
+                    />
+                    <span className="text-slate-700 dark:text-slate-300 group-hover:text-brand-800 dark:group-hover:text-brand-300 transition">
+                      مرا به خاطر بسپار
+                    </span>
+                  </label>
+
+                  <Link
+                    href="/forgot-password"
+                    className="text-brand-800 dark:text-brand-300 font-bold hover:underline"
                   >
-                    {showPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
-                  </button>
+                    فراموشی رمز؟
+                  </Link>
                 </div>
-              </div>
 
-              {/* گزینه‌ها */}
-              <div className="flex items-center justify-between text-sm">
-                <label className="flex items-center gap-2 cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    checked={formData.remember}
-                    onChange={(e) =>
-                      setFormData({ ...formData, remember: e.target.checked })
-                    }
-                    className="w-4 h-4 text-brand-800 rounded focus:ring-brand-500"
-                  />
-                  <span className="text-slate-700 dark:text-slate-300 group-hover:text-brand-800 dark:group-hover:text-brand-300 transition">
-                    مرا به خاطر بسپار
-                  </span>
-                </label>
-
-                <Link
-                  href="/forgot-password"
-                  className="text-brand-800 dark:text-brand-300 font-bold hover:underline"
+                {/* دکمه ورود */}
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full flex items-center justify-center gap-2 py-4 bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white rounded-xl font-black hover:shadow-xl transition-all hover:scale-[1.02] hover:gap-3 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
-                  فراموشی رمز؟
-                </Link>
-              </div>
+                  {isLoading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      در حال ورود...
+                    </>
+                  ) : (
+                    <>
+                      ورود به حساب
+                      <ArrowLeft className="w-5 h-5" />
+                    </>
+                  )}
+                </button>
 
-              {/* دکمه ورود */}
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full flex items-center justify-center gap-2 py-4 bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white rounded-xl font-black hover:shadow-xl transition-all hover:scale-[1.02] hover:gap-3 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
-              >
-                {isLoading ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    در حال ورود...
-                  </>
-                ) : (
-                  <>
-                    ورود به حساب
-                    <ArrowLeft className="w-5 h-5" />
-                  </>
-                )}
-              </button>
-
-              {/* جداکننده */}
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-200 dark:border-slate-800" />
+                {/* جداکننده */}
+                <div className="relative my-6">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-slate-200 dark:border-slate-800" />
+                  </div>
+                  <div className="relative flex justify-center text-xs">
+                    <span className="px-4 bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-400">
+                      یا
+                    </span>
+                  </div>
                 </div>
-                <div className="relative flex justify-center text-xs">
-                  <span className="px-4 bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-400">
-                    یا
-                  </span>
-                </div>
-              </div>
 
-              {/* ثبت‌نام */}
-              <p className="text-center text-slate-600 dark:text-slate-400 text-sm">
-                حساب کاربری ندارید؟{' '}
-                <Link
-                  href="/register"
-                  className="text-brand-800 dark:text-brand-300 font-black hover:underline"
-                >
-                  ثبت‌نام کنید
-                </Link>
-              </p>
-            </form>
-          </FadeIn>
+                {/* ثبت‌نام */}
+                <p className="text-center text-slate-600 dark:text-slate-400 text-sm">
+                  حساب کاربری ندارید؟{' '}
+                  <Link
+                    href="/register"
+                    className="text-brand-800 dark:text-brand-300 font-black hover:underline"
+                  >
+                    ثبت‌نام کنید
+                  </Link>
+                </p>
+              </form>
+            </FadeIn>
+          </div>
         </div>
 
         {/* ===== بخش تبلیغاتی ===== */}

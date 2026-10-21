@@ -9,20 +9,57 @@ import {
   PlayCircle,
   ArrowLeft,
 } from 'lucide-react';
-import type { LiveClass } from '@/lib/data';
 import { toPersianNumber, formatPrice } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
 interface LiveClassCardProps {
-  liveClass: LiveClass;
+  liveClass: {
+    id: string;
+    title: string;
+    instructor: string;
+    start_time: string;
+    duration: number;
+    is_live: boolean;
+    is_free?: boolean;
+    capacity: number;
+    registered_count?: number;
+    color?: string;
+    icon?: string;
+    slug?: string;
+  };
 }
 
 export default function LiveClassCard({ liveClass }: LiveClassCardProps) {
-  const percentage = Math.round(
-    (liveClass.registered / liveClass.capacity) * 100
-  );
+  const registered = liveClass.registered_count || 0;
+  const capacity = liveClass.capacity || 100;
+  const percentage = Math.round((registered / capacity) * 100);
   const isAlmostFull = percentage > 80;
 
+  // تبدیل تاریخ به فرمت شمسی
+  const formatDate = (isoDate: string) => {
+    try {
+      return new Intl.DateTimeFormat('fa-IR', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+      }).format(new Date(isoDate));
+    } catch {
+      return isoDate;
+    }
+  };
+
+  const formatTime = (isoDate: string) => {
+    try {
+      return new Intl.DateTimeFormat('fa-IR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(new Date(isoDate));
+    } catch {
+      return '';
+    }
+  };
+
+  const colorKey = liveClass.color || 'brand';
   const colorMap = {
     brand: {
       bg: 'bg-blue-100 dark:bg-blue-950/50',
@@ -40,18 +77,20 @@ export default function LiveClassCard({ liveClass }: LiveClassCardProps) {
       gradient: 'from-orange-500 to-orange-700',
     },
   };
+  const colors = colorMap[colorKey as 'brand' | 'teal' | 'accent'] || colorMap.brand;
 
-  const colors = colorMap[liveClass.color];
+  // لینک مقصد (اگر slug دارد از آن استفاده کن، وگرنه آیدی)
+  const href = `/live/${liveClass.slug || liveClass.id}`;
 
   return (
     <Link
-      href={`/live/${liveClass.slug}`}
+      href={href}
       className="group block h-full bg-white dark:bg-slate-900 rounded-3xl border-2 border-slate-100 dark:border-slate-800 hover:border-brand-200 dark:hover:border-brand-800 hover:shadow-2xl hover:-translate-y-3 transition-all duration-500 overflow-hidden"
     >
       {/* بخش بالا */}
       <div className="relative p-7 pb-5">
         {/* افکت زنده */}
-        {liveClass.isLive && (
+        {liveClass.is_live && (
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-red-500/20 rounded-full blur-3xl animate-pulse" />
         )}
 
@@ -63,10 +102,10 @@ export default function LiveClassCard({ liveClass }: LiveClassCardProps) {
               colors.bg
             )}
           >
-            {liveClass.icon}
+            {liveClass.icon || '🎥'}
           </div>
 
-          {liveClass.isLive ? (
+          {liveClass.is_live ? (
             <div className="flex items-center gap-2 px-3 py-1 bg-red-500 rounded-full text-xs font-black text-white shadow-lg shadow-red-500/30">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
@@ -74,7 +113,7 @@ export default function LiveClassCard({ liveClass }: LiveClassCardProps) {
               </span>
               در حال پخش
             </div>
-          ) : liveClass.isFree ? (
+          ) : liveClass.is_free ? (
             <div className="px-3 py-1 bg-teal-500 rounded-full text-xs font-black text-white shadow-lg shadow-teal-500/30">
               🎁 رایگان
             </div>
@@ -84,9 +123,9 @@ export default function LiveClassCard({ liveClass }: LiveClassCardProps) {
         {/* روز و تاریخ */}
         <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-4 relative">
           <Calendar className="w-3.5 h-3.5" />
-          <span className="font-bold">{liveClass.day}</span>
+          <span className="font-bold">{formatDate(liveClass.start_time)}</span>
           <span>|</span>
-          <span>{liveClass.date}</span>
+          <span>{formatTime(liveClass.start_time)}</span>
         </div>
 
         {/* عنوان */}
@@ -102,10 +141,10 @@ export default function LiveClassCard({ liveClass }: LiveClassCardProps) {
               colors.gradient
             )}
           >
-            {liveClass.instructor.charAt(0)}
+            {liveClass.instructor ? liveClass.instructor.charAt(0) : 'S'}
           </div>
           <span className="text-sm text-slate-600 dark:text-slate-400">
-            {liveClass.instructor}
+            {liveClass.instructor || 'استاد سرآمد'}
           </span>
         </div>
 
@@ -113,13 +152,12 @@ export default function LiveClassCard({ liveClass }: LiveClassCardProps) {
         <div className="space-y-2.5 mb-5 text-sm text-slate-600 dark:text-slate-400 relative">
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-brand-700 dark:text-brand-300" />
-            <span>{liveClass.time}</span>
+            <span>{toPersianNumber(liveClass.duration)} دقیقه</span>
           </div>
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4 text-brand-700 dark:text-brand-300" />
             <span>
-              {toPersianNumber(liveClass.registered)} از{' '}
-              {toPersianNumber(liveClass.capacity)} نفر
+              {toPersianNumber(registered)} از {toPersianNumber(capacity)} نفر
             </span>
           </div>
         </div>
@@ -158,14 +196,14 @@ export default function LiveClassCard({ liveClass }: LiveClassCardProps) {
         <div
           className={cn(
             'flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-bold transition-all group-hover:gap-3',
-            liveClass.isLive
+            liveClass.is_live
               ? 'bg-red-500 text-white'
-              : liveClass.isFree
+              : liveClass.is_free
               ? 'bg-teal-500 text-white'
               : cn('bg-gradient-to-l text-white', colors.gradient)
           )}
         >
-          {liveClass.isLive ? (
+          {liveClass.is_live ? (
             <>
               <Radio className="w-4 h-4" />
               ورود به کلاس زنده
@@ -173,7 +211,7 @@ export default function LiveClassCard({ liveClass }: LiveClassCardProps) {
           ) : (
             <>
               <PlayCircle className="w-4 h-4" />
-              {liveClass.isFree ? 'ثبت‌نام رایگان' : 'ثبت‌نام در کلاس'}
+              {liveClass.is_free ? 'ثبت‌نام رایگان' : 'ثبت‌نام در کلاس'}
             </>
           )}
           <ArrowLeft className="w-4 h-4" />

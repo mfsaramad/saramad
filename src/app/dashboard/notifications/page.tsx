@@ -1,14 +1,14 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Bell, CheckCheck } from 'lucide-react';
+import { Bell, CheckCheck, Loader2 } from 'lucide-react';
 import { useNotifications } from '@/contexts/NotificationsContext';
 import { NotificationItem } from '@/components/dashboard/NotificationItem';
 
 type Filter = 'all' | 'unread' | 'read';
 
 export default function NotificationsPage() {
-  const { items, unreadCount, markAllAsRead, clearAll } = useNotifications();
+  const { items, unreadCount, markAllAsRead, clearAll, isLoading } = useNotifications();
   const [filter, setFilter] = useState<Filter>('all');
 
   const filtered = useMemo(() => {
@@ -92,7 +92,11 @@ export default function NotificationsPage() {
       </div>
 
       {/* List */}
-      {filtered.length === 0 ? (
+      {isLoading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="text-center py-20 bg-gray-50 dark:bg-gray-900 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700">
           <Bell className="w-14 h-14 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
