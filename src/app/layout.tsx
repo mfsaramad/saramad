@@ -1,15 +1,19 @@
 import type { Metadata } from 'next';
-import './globals.css';
-import ThemeProvider from '@/components/theme/ThemeProvider';
+import  ThemeProvider  from '@/components/theme/ThemeProvider';
+import { AuthProvider } from '@/contexts/AuthContext';
 import { CartProvider } from '@/contexts/CartContext';
 import { WishlistProvider } from '@/contexts/WishlistContext';
-import { NotificationsProvider } from '@/contexts/NotificationsContext';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { ConditionalLayout } from '@/components/layout/ConditionalLayout';
+import Header from '@/components/layout/Header';
+import Footer from '@/components/layout/Footer';
+import './globals.css';
 
+// 👈 فقط یک بار metadata تعریف شده است
 export const metadata: Metadata = {
   title: 'آموزشگاه سرآمد',
-  description: 'پلتفرم آموزشی سرآمد — دوره‌ها، آزمون‌ها و اساتید',
+  description: 'مجتمع آموزش فنی و حرفه‌ای سرآمد',
+  icons: {
+    icon: '/logo.png', // آیکون تب مرورگر
+  },
 };
 
 export default function RootLayout({
@@ -20,13 +24,13 @@ export default function RootLayout({
   return (
     <html lang="fa" dir="rtl" suppressHydrationWarning>
       <body>
-        <ThemeProvider>
+        <ThemeProvider attribute="class" defaultTheme="light">
           <AuthProvider>
             <CartProvider>
               <WishlistProvider>
-                <NotificationsProvider>
-                  <ConditionalLayout>{children}</ConditionalLayout>
-                </NotificationsProvider>
+                <Header />
+                <main className="min-h-screen">{children}</main>
+                <Footer />
               </WishlistProvider>
             </CartProvider>
           </AuthProvider>

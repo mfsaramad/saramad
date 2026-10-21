@@ -18,11 +18,11 @@ import {
   Clock,
   Loader2,
 } from 'lucide-react';
-import { useCollection } from '@/hooks/useCollection';
 import { useAuth } from '@/contexts/AuthContext';
 import { toPersianNumber } from '@/lib/format';
 import FadeIn from '@/components/animations/FadeIn';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/lib/supabase';
 
 interface OrderItem {
   id: string;
@@ -34,27 +34,23 @@ interface OrderItem {
 
 interface Order {
   id: string;
-  orderNumber: string;
-  userId?: string;
-  userEmail?: string;
+  order_number: string;
+  user_id: string;
   items: OrderItem[];
   status: string;
-  createdAt: string;
+  created_at: string;
 }
 
 interface ExamResult {
-  examId: string;
-  examSlug: string;
-  examTitle: string;
-  userId: string;
-  userName: string;
-  userEmail: string;
+  id: string;
+  user_id: string;
+  exam_slug: string;
+  exam_title: string;
   score: number;
-  correct: number;
-  wrong: number;
-  total: number;
-  status: 'passed' | 'failed';
-  takenAt: string;
+  total_questions: number;
+  correct_answers: number;
+  status: string; // 'passed' | 'failed'
+  created_at: string;
 }
 
 interface Certificate {
@@ -70,18 +66,6 @@ interface Certificate {
   score?: number;
 }
 
-const RESULTS_KEY = 'saramad_exam_results';
-
-function getExamResults(): ExamResult[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const raw = localStorage.getItem(RESULTS_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
-
 function formatDate(isoDate: string): string {
   try {
     const date = new Date(isoDate);
@@ -95,76 +79,92 @@ function formatDate(isoDate: string): string {
 }
 
 export default function CertificatesPage() {
-  const { user } = useAuth();
-  const { data: allOrders, loading: ordersLoading } =
-    useCollection<Order>('orders');
-
-  const [mounted, setMounted] = useState(false);
-  const [examResults, setExamResults] = useState<ExamResult[]>([]);
+  const { user, isLoading: authLoading } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [certificates, setCertificates] = useState<Certificate[]>([]);
 
   useEffect(() => {
-    setMounted(true);
-    setExamResults(getExamResults());
-  }, []);
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
-  // استخراج گواهی‌نامه‌ها از دو منبع
-  const certificates: Certificate[] = (() => {
-    if (!user) return [];
+    const fetchCertificates = async () => {
+      setLoading(true);
+      const result: Certificate[] = [];
 
-    const result: Certificate[] = [];
+      try {
+        // ۱. دریافت نتایج قبول‌شده آزمون‌ها از دیتابیس
+        const { data: examResults, error: examError } = await supabase
+          .from('exam_results')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('status', 'passed')
+          .order('created_at', { ascending: false });
 
-    // ۱. گواهی‌نامه‌های آزمون‌های قبول‌شده
-    const userResults = examResults.filter(
-      (r) =>
-        (r.userId === user.id || r.userEmail === user.email) &&
-        r.status === 'passed'
-    );
+        if (examError) throw examError;
 
-    userResults.forEach((res, idx) => {
-      result.push({
-        id: `exam-${res.examSlug}`,
-        title: `گواهی‌نامه ${res.examTitle}`,
-        instructor: 'آموزشگاه سرآمد',
-        date: formatDate(res.takenAt),
-        code: `SRM-EX-${1404}-${String(idx + 1).padStart(3, '0')}`,
-        duration: 0,
-        grade: res.score >= 90 ? 'عالی' : res.score >= 75 ? 'خوب' : 'قبول',
-        gradeColor: res.score >= 90 ? 'teal' : 'brand',
-        type: 'exam',
-        score: res.score,
-      });
-    });
-
-    // ۲. گواهی‌نامه‌های دوره‌های تکمیل‌شده
-    const userOrders = allOrders.filter(
-      (o) =>
-        (o.userId === user.id || o.userEmail === user.email) &&
-        o.status === 'completed'
-    );
-
-    userOrders.forEach((order) => {
-      order.items?.forEach((item) => {
-        if (item.type === 'course') {
-          // جلوگیری از تکراری
-          if (!result.some((c) => c.title.includes(item.title))) {
+        if (examResults) {
+          examResults.forEach((res: ExamResult, idx: number) => {
             result.push({
-              id: `course-${item.id}`,
-              title: `گواهی‌نامه ${item.title}`,
+              id: `exam-${res.id}`,
+              title: `گواهی‌نامه ${res.exam_title}`,
               instructor: 'آموزشگاه سرآمد',
-              date: formatDate(order.createdAt),
-              code: `SRM-CO-1404-${String(result.length + 1).padStart(3, '0')}`,
-              duration: 60,
-              grade: 'قبول',
-              gradeColor: 'brand',
-              type: 'course',
+              date: formatDate(res.created_at),
+              code: `SRM-EX-${formatDate(res.created_at).split('/')[0]}-${String(idx + 1).padStart(3, '0')}`,
+              duration: 0,
+              grade: res.score >= 90 ? 'عالی' : res.score >= 75 ? 'خوب' : 'قبول',
+              gradeColor: res.score >= 90 ? 'teal' : 'brand',
+              type: 'exam',
+              score: res.score,
             });
-          }
+          });
         }
-      });
-    });
 
-    return result;
-  })();
+        // ۲. دریافت سفارشات تکمیل‌شده (برای گواهی دوره‌ها)
+        const { data: orders, error: orderError } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('status', 'completed')
+          .order('created_at', { ascending: false });
+
+        if (orderError) throw orderError;
+
+        if (orders) {
+          orders.forEach((order: Order) => {
+            const items = order.items || [];
+            items.forEach((item) => {
+              if (item.type === 'course') {
+                // جلوگیری از تکراری بودن عنوان دوره
+                if (!result.some((c) => c.title.includes(item.title))) {
+                  result.push({
+                    id: `course-${order.id}-${item.id}`,
+                    title: `گواهی‌نامه ${item.title}`,
+                    instructor: 'آموزشگاه سرآمد',
+                    date: formatDate(order.created_at),
+                    code: `SRM-CO-${formatDate(order.created_at).split('/')[0]}-${String(result.length + 1).padStart(3, '0')}`,
+                    duration: 60,
+                    grade: 'قبول',
+                    gradeColor: 'brand',
+                    type: 'course',
+                  });
+                }
+              }
+            });
+          });
+        }
+
+        setCertificates(result);
+      } catch (error) {
+        console.error('Error fetching certificates:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCertificates();
+  }, [user]);
 
   const gradeMap = {
     teal: 'bg-teal-100 dark:bg-teal-950/50 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-900/50',
@@ -174,8 +174,7 @@ export default function CertificatesPage() {
       'bg-orange-100 dark:bg-orange-950/50 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-900/50',
   };
 
-  const lastDate =
-    certificates.length > 0 ? certificates[0].date : '—';
+  const lastDate = certificates.length > 0 ? certificates[0].date : '—';
 
   const stats = [
     {
@@ -215,7 +214,7 @@ export default function CertificatesPage() {
     },
   };
 
-  const loading = ordersLoading || !mounted;
+  const pageLoading = loading || authLoading;
 
   return (
     <div className="space-y-6">
@@ -279,7 +278,7 @@ export default function CertificatesPage() {
       </div>
 
       {/* Loading */}
-      {loading ? (
+      {pageLoading ? (
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
         </div>

@@ -1,15 +1,56 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { ArrowRight, Loader2 } from 'lucide-react';
 import { ExamForm, type ExamFormData } from '@/components/admin/ExamForm';
-import { useDb } from '@/hooks/useDb';
+import { supabase } from '@/lib/supabase';
 
 export default function NewExamPage() {
-  const { add } = useDb('exams');
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (data: ExamFormData) => {
-    add(data as any);
+    setIsSubmitting(true);
+    try {
+      // تبدیل دیتای فرم به ساختار دیتابیس (snake_case)
+      const payload = {
+        slug: data.slug,
+        title: data.title,
+        description: data.description,
+        long_description: data.longDescription || data.description,
+        type: data.type,
+        type_label: data.typeLabel,
+        icon: data.icon,
+        color: data.color,
+        questions_count: data.examData?.questions?.length || 0, // 👈 تعداد سوالات از آرایه گرفته میشه
+        duration: data.duration,
+        level: data.level,
+        price: data.price,
+        participants: data.participants || 0,
+        rating: data.rating || 5.0,
+        success_rate: data.successRate || 100,
+        certificate: data.certificate || false,
+        tags: data.tags || [],
+        exam_data: {
+          questions: data.examData?.questions || [],
+        },
+      };
+
+      const { error } = await supabase.from('exams').insert([payload]);
+      
+      if (error) throw error;
+
+      alert('آزمون با موفقیت ایجاد شد!');
+      router.push('/admin/exams');
+      
+    } catch (error: any) {
+      console.error('خطا در ایجاد آزمون:', error);
+      alert('خطا در ایجاد آزمون: ' + error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -31,7 +72,13 @@ export default function NewExamPage() {
         </div>
       </div>
 
-      <ExamForm onSubmit={handleSubmit} mode="create" />
+      {isSubmitting ? (
+        <div className="flex justify-center py-20">
+          <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+        </div>
+      ) : (
+        <ExamForm onSubmit={handleSubmit} mode="create" />
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   BookOpen,
   CheckCircle2,
@@ -10,7 +10,7 @@ import {
   X,
   Loader2,
 } from 'lucide-react';
-import { useCollection } from '@/hooks/useCollection';
+import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { toPersianNumber } from '@/lib/format';
 import MyCourseCard from '@/components/dashboard/MyCourseCard';
@@ -30,26 +30,13 @@ interface OrderItem {
 interface Order {
   id: string;
   orderNumber: string;
-  userId?: string;
-  userEmail?: string;
   items: OrderItem[];
   status: string;
   createdAt: string;
 }
 
-interface Course {
-  id: string;
-  slug: string;
-  title: string;
-  image?: string;
-  instructor?: { id: string; name: string };
-  duration?: number;
-  sessions?: number;
-  [key: string]: any;
-}
-
 interface MyCourse {
-  course: Course;
+  course: any;
   progress: number;
   status: 'active' | 'completed';
   purchasedAt: string;
@@ -58,167 +45,151 @@ interface MyCourse {
 
 export default function MyCoursesPage() {
   const { user } = useAuth();
-  const { data: allOrders, loading: ordersLoading } =
-    useCollection<Order>('orders');
-  const { data: allCourses, loading: coursesLoading } =
-    useCollection<Course>('courses');
-
+  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<FilterType>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [mounted, setMounted] = useState(false);
+  const [myCourses, setMyCourses] = useState<MyCourse[]>([]);
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // استخراج دوره‌های خریداری‌شده کاربر از سفارشات
-  const myCourses: MyCourse[] = (() => {
-    if (!user) return [];
-
-    // فیلتر سفارشات کاربر
-    const userOrders = allOrders.filter(
-      (o) => o.userId === user.id || o.userEmail === user.email
-    );
-
-    // استخراج آیتم‌های دوره از سفارشات
-    const courseItems: { item: OrderItem; order: Order }[] = [];
-    userOrders.forEach((order) => {
-      order.items?.forEach((item) => {
-        if (item.type === 'course') {
-          courseItems.push({ item, order });
-        }
-      });
-    });
-
-    // match با courses
-    const result: MyCourse[] = [];
-    courseItems.forEach(({ item, order }) => {
-      // جستجو بر اساس slug یا id یا title
-      const found = allCourses.find(
-        (c) =>
-          c.slug === item.id ||
-          c.id === item.id ||
-          c.title === item.title
-      );
-
-      if (found) {
-        // جلوگیری از تکراری
-        if (!result.some((r) => r.course.id === found.id)) {
-          result.push({
-            course: found,
-            progress: 0, // چون پیگیری پیشرفت نداریم
-            status: order.status === 'completed' ? 'completed' : 'active',
-            purchasedAt: order.createdAt,
-            orderNumber: order.orderNumber,
-          });
-        }
+    const fetchMyCourses = async () => {
+      if (!user) {
+        setIsLoading(false);
+        return;
       }
+
+      try {
+        // 1. دریافت سفارشات کاربر
+        const { data: ordersData, error: ordersError } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('user_id', user.id);
+
+        if (ordersError) throw ordersError;
+
+        // 2. استخراج دوره‌های خریداری‌شده از سفارشات
+        const courseItems: { item: OrderItem; order: any }[] = [];
+        
+        (ordersData || []).forEach((order) => {
+          // فقط سفارشاتی که پرداخت شده یا تکمیل شده‌اند
+          if (order.status === 'paid' || order.status === 'completed') {
+            const items = order.items || [];
+            items.forEach((item: any) => {
+              if (item.type === 'course') {
+                courseItems.push({ item, order });
+              }
+            });
+          }
+        });
+
+        if (courseItems.length === 0) {
+          setMyCourses([]);
+          setIsLoading(false);
+          return;
+        }
+
+        // 3. دریافت اطلاعات کامل دوره‌ها از دیتابیس
+        const { data: coursesData, error: coursesError } = await supabase
+          .from('courses')
+          .select(`
+            *,
+            users:instructor_id (name)
+          `);
+
+        if (coursesError) throw coursesError;
+
+        // 4. تطبیق دوره‌های خریداری‌شده با اطلاعات دیتابیس
+        const result: MyCourse[] = [];
+        
+        courseItems.forEach(({ item, order }) => {
+          // جستجو بر اساس slug یا id یا title
+          const found = (coursesData || []).find(
+            (c: any) =>
+              c.slug === item.id ||
+              c.id === item.id ||
+              c.title === item.title ||
+              `course-${c.id}` === item.id
+          );
+
+          if (found) {
+            // جلوگیری از تکراری
+            if (!result.some((r) => r.course.id === found.id)) {
+              // مپ کردن دیتا به فرمت کارت
+              const mappedCourse = {
+                ...found,
+                studentsCount: found.students_count || 0,
+                shortDescription: found.short_description || '',
+                remainingCapacity: found.remaining_capacity || 0,
+                certificate: found.certificate || false,
+                instructor: { name: found.users?.name || 'استاد' },
+              };
+
+              result.push({
+                course: mappedCourse,
+                progress: 0,
+                status: order.status === 'completed' ? 'completed' : 'active',
+                purchasedAt: new Date(order.created_at).toLocaleDateString('fa-IR'),
+                orderNumber: order.order_number,
+              });
+            }
+          }
+        });
+
+        setMyCourses(result);
+      } catch (error) {
+        console.error('خطا در دریافت دوره‌های کاربر:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMyCourses();
+  }, [user]);
+
+  const filteredCourses = useMemo(() => {
+    return myCourses.filter((item) => {
+      const matchTab = activeTab === 'all' || item.status === activeTab;
+      const matchSearch =
+        !searchQuery.trim() ||
+        item.course.title.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchTab && matchSearch;
     });
-
-    return result;
-  })();
-
-  const filteredCourses = myCourses.filter((item) => {
-    const matchTab = activeTab === 'all' || item.status === activeTab;
-    const matchSearch =
-      !searchQuery.trim() ||
-      item.course.title.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchTab && matchSearch;
-  });
+  }, [myCourses, activeTab, searchQuery]);
 
   const activeCount = myCourses.filter((c) => c.status === 'active').length;
-  const completedCount = myCourses.filter(
-    (c) => c.status === 'completed'
-  ).length;
+  const completedCount = myCourses.filter((c) => c.status === 'completed').length;
 
   const tabs = [
-    {
-      id: 'all' as FilterType,
-      label: 'همه دوره‌ها',
-      icon: '📚',
-      count: myCourses.length,
-    },
-    {
-      id: 'active' as FilterType,
-      label: 'در حال یادگیری',
-      icon: '📖',
-      count: activeCount,
-    },
-    {
-      id: 'completed' as FilterType,
-      label: 'تمام‌شده',
-      icon: '✅',
-      count: completedCount,
-    },
+    { id: 'all' as FilterType, label: 'همه دوره‌ها', icon: '📚', count: myCourses.length },
+    { id: 'active' as FilterType, label: 'در حال یادگیری', icon: '📖', count: activeCount },
+    { id: 'completed' as FilterType, label: 'تمام‌شده', icon: '✅', count: completedCount },
   ];
 
   const stats = [
-    {
-      icon: BookOpen,
-      value: toPersianNumber(myCourses.length),
-      label: 'کل دوره‌ها',
-      color: 'brand' as const,
-    },
-    {
-      icon: Clock,
-      value: toPersianNumber(activeCount),
-      label: 'در حال یادگیری',
-      color: 'accent' as const,
-    },
-    {
-      icon: CheckCircle2,
-      value: toPersianNumber(completedCount),
-      label: 'تمام‌شده',
-      color: 'teal' as const,
-    },
+    { icon: BookOpen, value: toPersianNumber(myCourses.length), label: 'کل دوره‌ها', color: 'brand' as const },
+    { icon: Clock, value: toPersianNumber(activeCount), label: 'در حال یادگیری', color: 'accent' as const },
+    { icon: CheckCircle2, value: toPersianNumber(completedCount), label: 'تمام‌شده', color: 'teal' as const },
   ];
 
   const statColorMap = {
-    brand: {
-      bg: 'bg-blue-100 dark:bg-blue-950/50',
-      icon: 'text-blue-800 dark:text-blue-300',
-    },
-    accent: {
-      bg: 'bg-orange-100 dark:bg-orange-950/50',
-      icon: 'text-orange-600 dark:text-orange-300',
-    },
-    teal: {
-      bg: 'bg-teal-100 dark:bg-teal-950/50',
-      icon: 'text-teal-600 dark:text-teal-300',
-    },
+    brand: { bg: 'bg-blue-100 dark:bg-blue-950/50', icon: 'text-blue-800 dark:text-blue-300' },
+    accent: { bg: 'bg-orange-100 dark:bg-orange-950/50', icon: 'text-orange-600 dark:text-orange-300' },
+    teal: { bg: 'bg-teal-100 dark:bg-teal-950/50', icon: 'text-teal-600 dark:text-teal-300' },
   };
-
-  const loading = ordersLoading || coursesLoading || !mounted;
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <FadeIn>
         <div className="bg-gradient-to-br from-[#1e3a8a] via-[#1e40af] to-[#0d9488] rounded-3xl p-6 lg:p-8 text-white relative overflow-hidden">
-          <div
-            className="absolute inset-0 opacity-[0.07]"
-            style={{
-              backgroundImage:
-                'radial-gradient(circle, white 1px, transparent 1px)',
-              backgroundSize: '20px 20px',
-            }}
-          />
-
+          <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
           <div className="absolute -top-20 -right-20 w-64 h-64 bg-teal-400/20 rounded-full blur-3xl" />
-
           <div className="relative">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur border border-white/20 rounded-full text-xs font-bold mb-3">
               <Sparkles className="w-3.5 h-3.5 text-orange-300" />
               <span>دوره‌های من</span>
             </div>
-
-            <h1 className="text-2xl lg:text-3xl font-black mb-2">
-              دوره‌های من 📚
-            </h1>
-            <p className="text-blue-100 text-sm lg:text-base">
-              تمام دوره‌هایی که در سرآمد ثبت‌نام کرده‌ای، اینجا نمایش داده
-              می‌شوند
-            </p>
+            <h1 className="text-2xl lg:text-3xl font-black mb-2">دوره‌های من 📚</h1>
+            <p className="text-blue-100 text-sm lg:text-base">تمام دوره‌هایی که در سرآمد ثبت‌نام کرده‌ای، اینجا نمایش داده می‌شوند</p>
           </div>
         </div>
       </FadeIn>
@@ -232,20 +203,11 @@ export default function MyCoursesPage() {
           return (
             <FadeIn key={index} delay={index * 0.1}>
               <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 hover:shadow-lg transition-shadow">
-                <div
-                  className={cn(
-                    'w-11 h-11 rounded-xl flex items-center justify-center mb-3',
-                    colors.bg
-                  )}
-                >
+                <div className={cn('w-11 h-11 rounded-xl flex items-center justify-center mb-3', colors.bg)}>
                   <Icon className={cn('w-5 h-5', colors.icon)} />
                 </div>
-                <div className="text-2xl font-black text-slate-800 dark:text-slate-100 mb-1">
-                  {stat.value}
-                </div>
-                <div className="text-xs text-slate-500 dark:text-slate-400">
-                  {stat.label}
-                </div>
+                <div className="text-2xl font-black text-slate-800 dark:text-slate-100 mb-1">{stat.value}</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400">{stat.label}</div>
               </div>
             </FadeIn>
           );
@@ -284,14 +246,7 @@ export default function MyCoursesPage() {
             >
               <span>{tab.icon}</span>
               {tab.label}
-              <span
-                className={cn(
-                  'px-2 py-0.5 rounded-full text-[10px]',
-                  activeTab === tab.id
-                    ? 'bg-white/20 text-white'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
-                )}
-              >
+              <span className={cn('px-2 py-0.5 rounded-full text-[10px]', activeTab === tab.id ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400')}>
                 {toPersianNumber(tab.count)}
               </span>
             </button>
@@ -299,25 +254,16 @@ export default function MyCoursesPage() {
         </div>
       </FadeIn>
 
-      {/* Loading */}
-      {loading ? (
+      {/* Content */}
+      {isLoading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+          <Loader2 className="w-10 h-10 animate-spin text-brand-800" />
         </div>
       ) : filteredCourses.length > 0 ? (
         <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
           {filteredCourses.map((item, index) => (
-            <FadeIn
-              key={item.course.id}
-              delay={index * 0.08}
-              direction="up"
-              className="h-full"
-            >
-              <MyCourseCard
-                course={item.course}
-                progress={item.progress}
-                status={item.status}
-              />
+            <FadeIn key={item.course.id} delay={index * 0.08} direction="up" className="h-full">
+              <MyCourseCard course={item.course} progress={item.progress} status={item.status} />
             </FadeIn>
           ))}
         </div>
@@ -326,33 +272,18 @@ export default function MyCoursesPage() {
           <div className="bg-white dark:bg-slate-900 rounded-3xl p-12 border border-slate-100 dark:border-slate-800 text-center">
             <div className="text-6xl mb-4">📚</div>
             <h3 className="text-xl font-black text-slate-800 dark:text-slate-100 mb-2">
-              {myCourses.length === 0
-                ? 'هنوز دوره‌ای نخریده‌اید'
-                : 'دوره‌ای یافت نشد'}
+              {myCourses.length === 0 ? 'هنوز دوره‌ای نخریده‌اید' : 'دوره‌ای یافت نشد'}
             </h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-              {myCourses.length === 0
-                ? 'برای شروع یادگیری، یکی از دوره‌های سرآمد را خریداری کنید'
-                : 'فیلتر یا جستجوی خود را تغییر دهید'}
+              {myCourses.length === 0 ? 'برای شروع یادگیری، یکی از دوره‌های سرآمد را خریداری کنید' : 'فیلتر یا جستجوی خود را تغییر دهید'}
             </p>
             {myCourses.length === 0 ? (
-              <a
-                href="/courses"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white rounded-xl font-bold hover:shadow-lg transition"
-              >
-                <BookOpen className="w-4 h-4" />
-                مشاهده دوره‌ها
+              <a href="/courses" className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white rounded-xl font-bold hover:shadow-lg transition">
+                <BookOpen className="w-4 h-4" /> مشاهده دوره‌ها
               </a>
             ) : (
-              <button
-                onClick={() => {
-                  setActiveTab('all');
-                  setSearchQuery('');
-                }}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white rounded-xl font-bold hover:shadow-lg transition"
-              >
-                <X className="w-4 h-4" />
-                پاک کردن فیلترها
+              <button onClick={() => { setActiveTab('all'); setSearchQuery(''); }} className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-l from-[#1e3a8a] to-[#0d9488] text-white rounded-xl font-bold hover:shadow-lg transition">
+                <X className="w-4 h-4" /> پاک کردن فیلترها
               </button>
             )}
           </div>

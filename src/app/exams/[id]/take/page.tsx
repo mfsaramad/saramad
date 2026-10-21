@@ -1,12 +1,11 @@
 import { notFound } from 'next/navigation';
-import { exams, getExamBySlug } from '@/lib/data';
+import { supabase } from '@/lib/supabase';
 import ExamRunner from '@/components/exams/ExamRunner';
 
-// برای Static Export
-export function generateStaticParams() {
-  return exams.map((exam) => ({
-    id: exam.slug,
-  }));
+export async function generateStaticParams() {
+  const { data } = await supabase.from('exams').select('slug');
+  if (!data || data.length === 0) return [{ id: 'placeholder' }];
+  return data.map((exam) => ({ id: exam.slug }));
 }
 
 interface Props {
@@ -15,24 +14,29 @@ interface Props {
 
 export default async function TakeExamPage({ params }: Props) {
   const { id } = await params;
-  const exam = getExamBySlug(id);
 
-  if (!exam) {
+  // دریافت اطلاعات آزمون از دیتابیس
+  const { data: examData } = await supabase
+    .from('exams')
+    .select('*')
+    .eq('slug', id)
+    .single();
+
+  if (!examData) {
     notFound();
   }
 
-  return (
-    <ExamRunner
-      exam={{
-        id: exam.id,
-        slug: exam.slug,
-        title: exam.title,
-        description: exam.description,
-        duration: exam.duration,
-        level: exam.level,
-        icon: exam.icon,
-        questions: exam.examData.questions,
-      }}
-    />
-  );
+  // مپ کردن دیتا به فرمت مورد نیاز ExamRunner
+  const exam = {
+    id: examData.id,
+    slug: examData.slug,
+    title: examData.title,
+    description: examData.description,
+    duration: examData.duration,
+    level: examData.level,
+    icon: examData.icon,
+    questions: examData.exam_data?.questions || [],
+  };
+
+  return <ExamRunner exam={exam} />;
 }

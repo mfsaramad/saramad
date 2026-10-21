@@ -24,6 +24,7 @@ import { toPersianNumber, formatPrice } from '@/lib/format';
 import FadeIn from '@/components/animations/FadeIn';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCart } from '@/contexts/CartContext'; // 👈 ایمپورت سبد خرید
 import { supabase } from '@/lib/supabase';
 
 type OrderStatus = 'pending' | 'paid' | 'completed' | 'cancelled';
@@ -61,12 +62,15 @@ const statusConfig: Record<
 
 export default function OrdersPage() {
   const { user } = useAuth();
+  const { clearCart } = useCart(); // 👈 استفاده از سبد خرید برای پاکسازی بعد از پرداخت
+  
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isPaying, setIsPaying] = useState<string | null>(null); // 👈 برای نمایش لودینگ دکمه پرداخت
+  const [isPaying, setIsPaying] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<FilterType>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // دریافت سفارشات از دیتابیس
   const fetchOrders = async () => {
     if (!user) {
       setIsLoading(false);
@@ -130,14 +134,14 @@ export default function OrdersPage() {
     fetchOrders();
   }, [user]);
 
-  // 👈 تابع شبیه‌سازی پرداخت
+  // 👈 تابع پرداخت (متصل به دیتابیس و پاکسازی سبد)
   const handlePay = async (orderId: string, orderNumber: string) => {
     if (!confirm(`آیا از پرداخت سفارش ${orderNumber} مطمئن هستید؟`)) return;
 
     setIsPaying(orderId);
 
     try {
-      // آپدیت وضعیت سفارش در دیتابیس به "پرداخت شده"
+      // 1. آپدیت وضعیت سفارش در دیتابیس
       const { error } = await supabase
         .from('orders')
         .update({ status: 'paid', updated_at: new Date().toISOString() })
@@ -145,11 +149,14 @@ export default function OrdersPage() {
 
       if (error) throw error;
 
-      // آپدیت استیت در فرانت‌اند
+      // 2. آپدیت استیت در فرانت‌اند
       setOrders((prev) =>
         prev.map((o) => (o.id === orderId ? { ...o, status: 'paid' } : o))
       );
-      
+
+      // 3. پاک کردن سبد خرید
+      clearCart();
+
       alert('پرداخت با موفقیت انجام شد!');
     } catch (err) {
       console.error('خطا در پرداخت:', err);
@@ -161,20 +168,11 @@ export default function OrdersPage() {
 
   const filteredOrders = useMemo(() => {
     let result = [...orders];
-
-    if (activeTab !== 'all') {
-      result = result.filter((o) => o.status === activeTab);
-    }
-
+    if (activeTab !== 'all') result = result.filter((o) => o.status === activeTab);
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      result = result.filter(
-        (o) =>
-          o.title.toLowerCase().includes(q) ||
-          o.orderNumber.toLowerCase().includes(q)
-      );
+      result = result.filter((o) => o.title.toLowerCase().includes(q) || o.orderNumber.toLowerCase().includes(q));
     }
-
     return result;
   }, [orders, activeTab, searchQuery]);
 
@@ -230,7 +228,6 @@ export default function OrdersPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <FadeIn>
         <div className="bg-gradient-to-br from-[#1e3a8a] via-[#1e40af] to-[#0d9488] rounded-3xl p-6 lg:p-8 text-white relative overflow-hidden">
           <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
@@ -246,7 +243,6 @@ export default function OrdersPage() {
         </div>
       </FadeIn>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
@@ -265,7 +261,6 @@ export default function OrdersPage() {
         })}
       </div>
 
-      {/* Search */}
       <FadeIn delay={0.15}>
         <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 p-4">
           <div className="relative">
@@ -281,7 +276,6 @@ export default function OrdersPage() {
         </div>
       </FadeIn>
 
-      {/* Tabs */}
       <FadeIn delay={0.2}>
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-2 border border-slate-100 dark:border-slate-800 inline-flex flex-wrap gap-1 max-w-full overflow-x-auto no-scrollbar">
           {tabs.map((tab) => (
@@ -303,7 +297,6 @@ export default function OrdersPage() {
         </div>
       </FadeIn>
 
-      {/* Orders List */}
       <div className="space-y-3">
         {filteredOrders.length > 0 ? (
           filteredOrders.map((order, index) => {
@@ -313,7 +306,6 @@ export default function OrdersPage() {
             return (
               <FadeIn key={order.id} delay={index * 0.05} direction="up">
                 <div className="group bg-white dark:bg-slate-900 rounded-3xl border-2 border-slate-100 dark:border-slate-800 hover:border-brand-200 dark:hover:border-brand-800 hover:shadow-xl transition-all p-5 lg:p-6">
-                  {/* Header */}
                   <div className="flex items-start justify-between gap-4 mb-4 flex-wrap">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <div className={cn(
@@ -337,14 +329,12 @@ export default function OrdersPage() {
                       </div>
                     </div>
 
-                    {/* Status */}
                     <div className={cn('inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black flex-shrink-0', statusColorMap[statusInfo.color])}>
                       <StatusIcon className="w-3.5 h-3.5" />
                       {statusInfo.label}
                     </div>
                   </div>
 
-                  {/* Info */}
                   <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-slate-400 mb-4 pb-4 border-b border-slate-100 dark:border-slate-800">
                     <div className="flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5" />
@@ -360,7 +350,6 @@ export default function OrdersPage() {
                     </div>
                   </div>
 
-                  {/* Price + Actions */}
                   <div className="flex items-end justify-between gap-4 flex-wrap">
                     <div>
                       <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">مبلغ کل</div>
@@ -380,7 +369,6 @@ export default function OrdersPage() {
                         </button>
                       )}
 
-                      {/* 👈 دکمه پرداخت اصلاح شده */}
                       {order.status === 'pending' && (
                         <button
                           onClick={() => handlePay(order.id, order.orderNumber)}
@@ -425,7 +413,6 @@ export default function OrdersPage() {
         )}
       </div>
 
-      {/* CTA */}
       {filteredOrders.length > 0 && (
         <FadeIn delay={0.3}>
           <div className="bg-gradient-to-br from-[#1e3a8a] to-[#0d9488] rounded-3xl p-6 lg:p-8 text-white relative overflow-hidden">

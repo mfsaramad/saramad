@@ -1,15 +1,47 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { Search, Package } from 'lucide-react';
-import { useCollection } from '@/hooks/useCollection';
+import { useState, useEffect, useMemo } from 'react';
+import { Search, Package, Loader2 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 import ProductCard from '@/components/shop/ProductCard';
 import SectionTitle from '@/components/shared/SectionTitle';
 
 export default function ShopPage() {
-  const { data: products, loading } = useCollection<any>('products');
+  const [products, setProducts] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [activeType, setActiveType] = useState<string>('all');
+
+  // دریافت محصولات از دیتابیس
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('products')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        
+        if (data) {
+          // مپ کردن دیتای دیتابیس به فرمت کارت‌ها
+          const mappedProducts = data.map((p: any) => ({
+            ...p,
+            typeLabel: p.type_label,
+            originalPrice: p.original_price,
+            salesCount: p.sales_count,
+          }));
+          setProducts(mappedProducts);
+        }
+      } catch (err) {
+        console.error('خطا در دریافت محصولات:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   const types = [
     { id: 'all', label: 'همه' },
@@ -23,7 +55,8 @@ export default function ShopPage() {
     let result = products;
 
     if (activeType !== 'all') {
-      result = result.filter((p: any) => p.type === activeType);
+      // چون در دیتابیس فیلد type رو نداریم، بر اساس type_label فیلتر می‌کنیم
+      result = result.filter((p: any) => p.type_label?.includes(types.find(t => t.id === activeType)?.label || ''));
     }
 
     if (search.trim()) {
@@ -85,9 +118,9 @@ export default function ShopPage() {
       {/* Products Grid */}
       <section className="py-12 lg:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {loading ? (
-            <div className="text-center py-20">
-              <div className="w-12 h-12 mx-auto border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          {isLoading ? (
+            <div className="flex justify-center py-20">
+              <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
             </div>
           ) : filtered.length === 0 ? (
             <div className="text-center py-20">
