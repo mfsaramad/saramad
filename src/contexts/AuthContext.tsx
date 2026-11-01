@@ -112,24 +112,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const login = async (email: string, password: string) => {
+    const login = async (email: string, password: string) => {
     try {
-      // اضافه کردن تایم‌اوت برای جلوگیری از هنگ کردن
-      const loginPromise = supabase.auth.signInWithPassword({ email, password });
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('زمان پاسخگویی سرور به پایان رسید. لطفاً اینترنت خود را بررسی کنید.')), 10000)
-      );
-
-      const { data, error } = await Promise.race([loginPromise, timeoutPromise]) as any;
-
-      if (error) {
-        return { success: false, error: error.message };
-      }
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      
+      if (error) return { success: false, error: error.message };
 
       if (data?.user) {
         const userData = await mapSupabaseUser(data.user);
         setUser(userData);
 
+        // 🚀 استثنا: اگر ایمیل ادمین بود، حتماً به پنل ادمین برو
+        if (email === 'admin@saramad.ir') {
+          window.location.href = '/admin';
+          return { success: true, user: userData };
+        }
+
+        // در غیر این صورت بر اساس دسترسی‌ها هدایت کن
         if (userData.permissions.includes('view_admin_panel')) {
           window.location.href = '/admin';
         } else {
@@ -176,3 +175,4 @@ export function useAuth() {
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');
   return ctx;
 }
+
