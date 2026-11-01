@@ -30,29 +30,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const mapSupabaseUser = async (sbUser: any): Promise<User> => {
     try {
-      const { data: userRoleData, error: roleError } = await supabase
+      const { data: userRoleData } = await supabase
         .from('user_roles')
         .select(`role_id, roles (name)`)
         .eq('user_id', sbUser.id)
         .maybeSingle();
-
-      if (roleError) {
-        console.error('خطا در خواندن نقش:', roleError);
-      }
 
       const roleName = userRoleData?.roles?.name || 'student';
       const roleId = userRoleData?.role_id;
 
       let permissionsList: string[] = [];
       if (roleId) {
-        const { data: permData, error: permError } = await supabase
+        const { data: permData } = await supabase
           .from('role_permissions')
           .select(`permissions (name)`)
           .eq('role_id', roleId);
-
-        if (permError) {
-          console.error('خطا در خواندن دسترسی‌ها:', permError);
-        }
 
         if (permData) {
           permissionsList = permData.map((p: any) => p.permissions.name);
@@ -67,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         permissions: permissionsList,
       };
     } catch (err) {
-      console.error('خطای کلی در mapSupabaseUser:', err);
+      console.error('خطا در خواندن نقش:', err);
       return {
         id: sbUser.id,
         name: 'کاربر سرآمد',
@@ -79,16 +71,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const refreshUser = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const mappedUser = await mapSupabaseUser(session.user);
-        setUser(mappedUser);
-      } else {
-        setUser(null);
-      }
-    } catch (err) {
-      console.error('خطا در refreshUser:', err);
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      const mappedUser = await mapSupabaseUser(session.user);
+      setUser(mappedUser);
+    } else {
+      setUser(null);
     }
   };
 
@@ -111,18 +99,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
-        try {
-          if (session?.user) {
-            const mappedUser = await mapSupabaseUser(session.user);
-            setUser(mappedUser);
-          } else {
-            setUser(null);
-          }
-        } catch (err) {
-          console.error('Error in auth state change:', err);
-        } finally {
-          setIsLoading(false);
+        if (session?.user) {
+          const mappedUser = await mapSupabaseUser(session.user);
+          setUser(mappedUser);
+        } else {
+          setUser(null);
         }
+        setIsLoading(false);
       }
     );
 
@@ -131,17 +114,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      
+      // اضافه کردن تایم‌اوت برای جلوگیری از هنگ کردن
+      const loginPromise = supabase.auth.signInWithPassword({ email, password });
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('زمان پاسخگویی سرور به پایان رسید. لطفاً اینترنت خود را بررسی کنید.')), 10000)
+      );
+
+      const { data, error } = await Promise.race([loginPromise, timeoutPromise]) as any;
+
       if (error) {
         return { success: false, error: error.message };
       }
 
-      if (data.user) {
+      if (data?.user) {
         const userData = await mapSupabaseUser(data.user);
         setUser(userData);
 
-        // هدایت بر اساس نقش
         if (userData.permissions.includes('view_admin_panel')) {
           window.location.href = '/admin';
         } else {
@@ -152,7 +140,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       return { success: false, error: 'کاربر یافت نشد' };
     } catch (err: any) {
-      console.error('Login error:', err);
       return { success: false, error: err.message || 'خطای غیرمنتظره در ورود' };
     }
   };
