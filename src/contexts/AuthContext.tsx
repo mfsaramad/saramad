@@ -1,21 +1,14 @@
-'use client';
+﻿'use client';
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  ReactNode,
-} from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
-
-export type UserRole = 'user' | 'admin' | 'instructor';
 
 export interface User {
   id: string;
   name: string;
   email: string;
-  role: UserRole;
+  role: string;
+  permissions: string[];
 }
 
 interface AuthContextType {
@@ -23,10 +16,10 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  hasPermission: (permission: string) => boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string; user?: User }>;
-  signUp: (email: string, password: string, name: string, phone: string) => Promise<{ success: boolean; error?: string }>;
-  resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -35,13 +28,68 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const mapSupabaseUser = (sbUser: any): User => {
-    return {
-      id: sbUser.id,
-      name: sbUser.user_metadata?.name || 'کاربر سرآمد',
-      email: sbUser.email || '',
-      role: (sbUser.user_metadata?.role as UserRole) || 'user',
-    };
+  const mapSupabaseUser = async (sbUser: any): Promise<User> => {
+    try {
+      const { data: userRoleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select(`role_id, roles (name)`)
+        .eq('user_id', sbUser.id)
+        .maybeSingle();
+
+      if (roleError) {
+        console.error('خطا در خواندن نقش:', roleError);
+      }
+
+      const roleName = userRoleData?.roles?.name || 'student';
+      const roleId = userRoleData?.role_id;
+
+      let permissionsList: string[] = [];
+      if (roleId) {
+        const { data: permData, error: permError } = await supabase
+          .from('role_permissions')
+          .select(`permissions (name)`)
+          .eq('role_id', roleId);
+
+        if (permError) {
+          console.error('خطا در خواندن دسترسی‌ها:', permError);
+        }
+
+        if (permData) {
+          permissionsList = permData.map((p: any) => p.permissions.name);
+        }
+      }
+
+      return {
+        id: sbUser.id,
+        name: sbUser.user_metadata?.name || 'کاربر سرآمد',
+        email: sbUser.email || '',
+        role: roleName,
+        permissions: permissionsList,
+      };
+    } catch (err) {
+      console.error('خطای کلی در mapSupabaseUser:', err);
+      return {
+        id: sbUser.id,
+        name: 'کاربر سرآمد',
+        email: sbUser.email || '',
+        role: 'student',
+        permissions: [],
+      };
+    }
+  };
+
+  const refreshUser = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const mappedUser = await mapSupabaseUser(session.user);
+        setUser(mappedUser);
+      } else {
+        setUser(null);
+      }
+    } catch (err) {
+      console.error('خطا در refreshUser:', err);
+    }
   };
 
   useEffect(() => {
@@ -49,7 +97,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
-          setUser(mapSupabaseUser(session.user));
+          const mappedUser = await mapSupabaseUser(session.user);
+          setUser(mappedUser);
         }
       } catch (error) {
         console.error('Error getting session:', error);
@@ -61,84 +110,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     getInitialSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (session?.user) {
-          setUser(mapSupabaseUser(session.user));
-        } else {
-          setUser(null);
+      async (_event, session) => {
+        try {
+          if (session?.user) {
+            const mappedUser = await mapSupabaseUser(session.user);
+            setUser(mappedUser);
+          } else {
+            setUser(null);
+          }
+        } catch (err) {
+          console.error('Error in auth state change:', err);
+        } finally {
+          setIsLoading(false);
         }
-        setIsLoading(false);
       }
     );
 
-    return () => {
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (
-    email: string,
-    password: string,
-    name: string,
-    phone: string
-  ): Promise<{ success: boolean; error?: string }> => {
+  const login = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name: name,
-            phone: phone,
-          },
-        },
-      });
-
-      if (error) return { success: false, error: error.message };
-
-      if (data.user) setUser(mapSupabaseUser(data.user));
-
-      return { success: true };
-    } catch (err: any) {
-      return { success: false, error: err.message || 'خطای غیرمنتظره رخ داد' };
-    }
-  };
-
-  const login = async (
-    email: string,
-    password: string
-  ): Promise<{ success: boolean; error?: string; user?: User }> => {
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) return { success: false, error: 'ایمیل یا رمز عبور اشتباه است' };
-
-      let userData = null;
-      if (data.user) {
-        userData = mapSupabaseUser(data.user);
-        setUser(userData);
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      
+      if (error) {
+        return { success: false, error: error.message };
       }
 
-      return { success: true, user: userData || undefined };
+      if (data.user) {
+        const userData = await mapSupabaseUser(data.user);
+        setUser(userData);
+
+        // هدایت بر اساس نقش
+        if (userData.permissions.includes('view_admin_panel')) {
+          window.location.href = '/admin';
+        } else {
+          window.location.href = '/dashboard';
+        }
+        return { success: true, user: userData };
+      }
+      
+      return { success: false, error: 'کاربر یافت نشد' };
     } catch (err: any) {
-      return { success: false, error: err.message || 'خطای غیرمنتظره رخ داد' };
-    }
-  };
-
-  const resetPassword = async (email: string): Promise<{ success: boolean; error?: string }> => {
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-
-      if (error) return { success: false, error: error.message };
-
-      return { success: true };
-    } catch (err: any) {
-      return { success: false, error: err.message || 'خطای غیرمنتظره رخ داد' };
+      console.error('Login error:', err);
+      return { success: false, error: err.message || 'خطای غیرمنتظره در ورود' };
     }
   };
 
@@ -146,37 +161,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await supabase.auth.signOut();
     } catch (error) {
-      console.error('خطا در خروج از Supabase:', error);
+      console.error('خطا در خروج:', error);
     } finally {
       setUser(null);
-
       if (typeof window !== 'undefined') {
         Object.keys(localStorage).forEach((key) => {
-          if (key.startsWith('sb-')) {
-            localStorage.removeItem(key);
-          }
+          if (key.startsWith('sb-')) localStorage.removeItem(key);
         });
-        window.location.href = '/';
+        window.location.href = '/login';
       }
     }
   };
 
   const isAuthenticated = !!user;
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = user?.permissions.includes('view_admin_panel') || false;
+  const hasPermission = (permission: string) => user?.permissions.includes(permission) || false;
 
   return (
-    <AuthContext.Provider
-      value={{ 
-        user, 
-        isLoading, 
-        isAuthenticated, 
-        isAdmin, 
-        login, 
-        signUp, 
-        resetPassword, 
-        logout 
-      }}
-    >
+    <AuthContext.Provider value={{ user, isLoading, isAuthenticated, isAdmin, hasPermission, login, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );
