@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -28,65 +28,75 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const mapSupabaseUser = async (sbUser: any): Promise<User> => {
-    // خواندن از دیتابیس به صورت اصولی
-    const { data: userRoleData } = await supabase
-      .from('user_roles')
-      .select(`role_id, roles (name)`)
-      .eq('user_id', sbUser.id)
-      .maybeSingle();
+    try {
+      // ۱. گرفتن نقش کاربر
+      const { data: userRoleData } = await supabase
+        .from('user_roles')
+        .select(`role_id, roles (name)`)
+        .eq('user_id', sbUser.id)
+        .maybeSingle();
 
-    const roleName = userRoleData?.roles?.name || 'student';
-    const roleId = userRoleData?.role_id;
+      const roleName = userRoleData?.roles?.name || 'student';
+      const roleId = userRoleData?.role_id;
 
-    let permissionsList: string[] = [];
-    if (roleId) {
-      const { data: permData } = await supabase
-        .from('role_permissions')
-        .select(`permissions (name)`)
-        .eq('role_id', roleId);
+      let permissionsList: string[] = [];
 
-      if (permData) {
-        permissionsList = permData.map((p: any) => p.permissions.name);
+      // ۲. گرفتن دسترسی‌های گروهی (از طریق نقش)
+      if (roleId) {
+        const { data: permData } = await supabase
+          .from('role_permissions')
+          .select(`permissions (name)`)
+          .eq('role_id', roleId);
+
+        if (permData) {
+          permissionsList = permData.map((p: any) => p.permissions.name);
+        }
       }
-    }
 
-    return {
-      id: sbUser.id,
-      name: sbUser.user_metadata?.name || 'کاربر سرآمد',
-      email: sbUser.email || '',
-      role: roleName,
-      permissions: permissionsList,
-    };
+      // ۳. گرفتن دسترسی‌های فردی (اضافه شده)
+      const { data: directPermsData } = await supabase
+        .from('user_permissions')
+        .select(`permissions (name)`)
+        .eq('user_id', sbUser.id);
+
+      if (directPermsData) {
+        const directPerms = directPermsData.map((p: any) => p.permissions.name);
+        // ترکیب دسترسی‌ها و حذف تکراری‌ها
+        permissionsList = Array.from(new Set([...permissionsList, ...directPerms]));
+      }
+
+      return {
+        id: sbUser.id,
+        name: sbUser.user_metadata?.name || 'کاربر سرآمد',
+        email: sbUser.email || '',
+        role: roleName,
+        permissions: permissionsList,
+      };
+    } catch (err) {
+      console.error('خطا در خواندن دسترسی‌ها:', err);
+      return { id: sbUser.id, name: 'کاربر', email: sbUser.email || '', role: 'student', permissions: [] };
+    }
   };
 
   useEffect(() => {
     const getInitialSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          const mappedUser = await mapSupabaseUser(session.user);
-          setUser(mappedUser);
-        }
-      } catch (error) {
-        console.error('Error getting session:', error);
-      } finally {
-        setIsLoading(false);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUser(await mapSupabaseUser(session.user));
       }
+      setIsLoading(false);
     };
 
     getInitialSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        if (session?.user) {
-          const mappedUser = await mapSupabaseUser(session.user);
-          setUser(mappedUser);
-        } else {
-          setUser(null);
-        }
-        setIsLoading(false);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        setUser(await mapSupabaseUser(session.user));
+      } else {
+        setUser(null);
       }
-    );
+      setIsLoading(false);
+    });
 
     return () => subscription.unsubscribe();
   }, []);
@@ -100,7 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userData = await mapSupabaseUser(data.user);
         setUser(userData);
 
-        // هدایت بر اساس دسترسی واقعی
+        // هدایت بر اساس دسترسی
         if (userData.permissions.includes('view_admin_panel')) {
           window.location.href = '/admin';
         } else {
@@ -110,7 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       return { success: false, error: 'کاربر یافت نشد' };
     } catch (err: any) {
-      return { success: false, error: err.message || 'خطای غیرمنتظره' };
+      return { success: false, error: err.message };
     }
   };
 
