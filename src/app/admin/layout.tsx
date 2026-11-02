@@ -29,16 +29,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col lg:flex-row">
-      {/* محتوای اصلی */}
-      <main className="flex-1 p-4 lg:p-8 overflow-y-auto order-2 lg:order-1">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col lg:flex-row" dir="rtl">
+      
+      {/* سایدبار در سمت راست (اولین المان در DOM) */}
+      <div className="w-full lg:w-72 lg:h-screen lg:sticky lg:top-0 flex-shrink-0 z-10">
+        <AdminSidebar />
+      </div>
+      
+      {/* محتوای اصلی در سمت چپ (دومین المان در DOM) */}
+      <main className="flex-1 p-4 lg:p-8 overflow-y-auto h-screen">
         {children}
       </main>
       
-      {/* سایدبار داینامیک */}
-      <div className="order-1 lg:order-2">
-        <AdminSidebar />
-      </div>
     </div>
   );
 }
