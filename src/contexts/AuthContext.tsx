@@ -29,7 +29,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const mapSupabaseUser = async (sbUser: any): Promise<User> => {
     try {
-      // ۱. گرفتن نقش کاربر
       const { data: userRoleData } = await supabase
         .from('user_roles')
         .select(`role_id, roles (name)`)
@@ -40,20 +39,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const roleId = userRoleData?.role_id;
 
       let permissionsList: string[] = [];
-
-      // ۲. گرفتن دسترسی‌های گروهی (از طریق نقش)
       if (roleId) {
         const { data: permData } = await supabase
           .from('role_permissions')
           .select(`permissions (name)`)
           .eq('role_id', roleId);
 
-        if (permData) {
-          permissionsList = permData.map((p: any) => p.permissions.name);
-        }
+        if (permData) permissionsList = permData.map((p: any) => p.permissions.name);
       }
 
-      // ۳. گرفتن دسترسی‌های فردی (اضافه شده)
       const { data: directPermsData } = await supabase
         .from('user_permissions')
         .select(`permissions (name)`)
@@ -61,7 +55,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (directPermsData) {
         const directPerms = directPermsData.map((p: any) => p.permissions.name);
-        // ترکیب دسترسی‌ها و حذف تکراری‌ها
         permissionsList = Array.from(new Set([...permissionsList, ...directPerms]));
       }
 
@@ -73,7 +66,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         permissions: permissionsList,
       };
     } catch (err) {
-      console.error('خطا در خواندن دسترسی‌ها:', err);
       return { id: sbUser.id, name: 'کاربر', email: sbUser.email || '', role: 'student', permissions: [] };
     }
   };
@@ -81,23 +73,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const getInitialSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        setUser(await mapSupabaseUser(session.user));
-      }
+      if (session?.user) setUser(await mapSupabaseUser(session.user));
       setIsLoading(false);
     };
-
     getInitialSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        setUser(await mapSupabaseUser(session.user));
-      } else {
-        setUser(null);
-      }
+      if (session?.user) setUser(await mapSupabaseUser(session.user));
+      else setUser(null);
       setIsLoading(false);
     });
-
     return () => subscription.unsubscribe();
   }, []);
 
@@ -110,9 +95,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userData = await mapSupabaseUser(data.user);
         setUser(userData);
 
-        // هدایت بر اساس دسترسی
+        // هدایت هوشمند بر اساس نقش
         if (userData.permissions.includes('view_admin_panel')) {
           window.location.href = '/admin';
+        } else if (userData.role === 'instructor') {
+          window.location.href = '/instructor'; // هدایت استاد به پنل اختصاصی
         } else {
           window.location.href = '/dashboard';
         }
