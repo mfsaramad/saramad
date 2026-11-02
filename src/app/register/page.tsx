@@ -38,19 +38,19 @@ export default function RegisterPage() {
     e.preventDefault();
     setError(null);
 
-    // اعتبارسنجی
+    // ط§ط¹طھط¨ط§ط±ط³ظ†ط¬غŒ
     if (formData.password !== formData.confirmPassword) {
-      setError('رمز عبور و تکرار آن یکسان نیستند!');
+      setError('ط±ظ…ط² ط¹ط¨ظˆط± ظˆ طھع©ط±ط§ط± ط¢ظ† غŒع©ط³ط§ظ† ظ†غŒط³طھظ†ط¯!');
       return;
     }
 
     if (formData.password.length < 6) {
-      setError('رمز عبور باید حداقل ۶ کاراکتر باشد.');
+      setError('ط±ظ…ط² ط¹ط¨ظˆط± ط¨ط§غŒط¯ ط­ط¯ط§ظ‚ظ„ غ¶ ع©ط§ط±ط§ع©طھط± ط¨ط§ط´ط¯.');
       return;
     }
 
     if (!formData.agreeTerms) {
-      setError('لطفاً قوانین و مقررات را بپذیرید.');
+      setError('ظ„ط·ظپط§ظ‹ ظ‚ظˆط§ظ†غŒظ† ظˆ ظ…ظ‚ط±ط±ط§طھ ط±ط§ ط¨ظ¾ط°غŒط±غŒط¯.');
       return;
     }
 
@@ -66,25 +66,25 @@ export default function RegisterPage() {
 
       if (signUpError) {
         setError(signUpError);
-        return; // finally باعث میشه isLoading فالس بشه
+        return; // finally ط¨ط§ط¹ط« ظ…غŒط´ظ‡ isLoading ظپط§ظ„ط³ ط¨ط´ظ‡
       }
 
       setSuccess(true);
 
-      // بعد از ۳ ثانیه برو به داشبورد
+      // ط¨ط¹ط¯ ط§ط² غ³ ط«ط§ظ†غŒظ‡ ط¨ط±ظˆ ط¨ظ‡ ط¯ط§ط´ط¨ظˆط±ط¯
       setTimeout(() => {
         router.push('/dashboard');
       }, 3000);
 
     } catch (err) {
-      setError('خطا در برقراری ارتباط با سرور. لطفاً دوباره تلاش کنید.');
+      setError('ط®ط·ط§ ط¯ط± ط¨ط±ظ‚ط±ط§ط±غŒ ط§ط±طھط¨ط§ط· ط¨ط§ ط³ط±ظˆط±. ظ„ط·ظپط§ظ‹ ط¯ظˆط¨ط§ط±ظ‡ طھظ„ط§ط´ ع©ظ†غŒط¯.');
     } finally {
-      // این بلاک حتماً اجرا میشه، چه خطا بده چه موفقیت‌آمیز باشه
+      // ط§غŒظ† ط¨ظ„ط§ع© ط­طھظ…ط§ظ‹ ط§ط¬ط±ط§ ظ…غŒط´ظ‡طŒ ع†ظ‡ ط®ط·ط§ ط¨ط¯ظ‡ ع†ظ‡ ظ…ظˆظپظ‚غŒطھâ€Œط¢ظ…غŒط² ط¨ط§ط´ظ‡
       setIsLoading(false);
     }
   };
 
-  // صفحه موفقیت
+  // طµظپط­ظ‡ ظ…ظˆظپظ‚غŒطھ
   if (success) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-20 flex items-center justify-center p-6">
@@ -94,18 +94,18 @@ export default function RegisterPage() {
           </div>
 
           <h1 className="text-2xl font-black text-slate-800 dark:text-slate-100 mb-3">
-            🎉 ثبت‌نام موفق!
+            ًںژ‰ ط«ط¨طھâ€Œظ†ط§ظ… ظ…ظˆظپظ‚!
           </h1>
 
           <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
-            حساب کاربری شما با موفقیت ساخته شد.
+            ط­ط³ط§ط¨ ع©ط§ط±ط¨ط±غŒ ط´ظ…ط§ ط¨ط§ ظ…ظˆظپظ‚غŒطھ ط³ط§ط®طھظ‡ ط´ط¯.
             <br />
-            در حال انتقال به داشبورد...
+            ط¯ط± ط­ط§ظ„ ط§ظ†طھظ‚ط§ظ„ ط¨ظ‡ ط¯ط§ط´ط¨ظˆط±ط¯...
           </p>
 
           <div className="flex items-center justify-center gap-2 text-sm text-slate-500 dark:text-slate-400">
             <div className="w-4 h-4 border-2 border-brand-800 border-t-transparent rounded-full animate-spin" />
-            <span>لطفاً صبر کنید</span>
+            <span>ظ„ط·ظپط§ظ‹ طµط¨ط± ع©ظ†غŒط¯</span>
           </div>
         </div>
       </div>
@@ -115,10 +115,10 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-20">
       <div className="grid lg:grid-cols-2 min-h-[calc(100vh-5rem)]">
-        {/* ===== فرم ثبت‌نام ===== */}
+        {/* ===== ظپط±ظ… ط«ط¨طھâ€Œظ†ط§ظ… ===== */}
         <div className="flex items-center justify-center p-6 lg:p-12">
           <div className="w-full max-w-md">
-            {/* لوگو */}
+            {/* ظ„ظˆع¯ظˆ */}
             <Link
               href="/"
               className="flex items-center gap-3 mb-8 justify-center"
@@ -126,36 +126,36 @@ export default function RegisterPage() {
               <div className="w-14 h-14 flex items-center justify-center">
                 <img
                   src="/logo.png"
-                  alt="آموزشگاه سرآمد"
+                  alt="ط¢ظ…ظˆط²ط´ع¯ط§ظ‡ ط³ط±ط¢ظ…ط¯"
                   className="w-full h-full object-contain dark:hidden"
                 />
                 <img
                   src="/logo-white.png"
-                  alt="آموزشگاه سرآمد"
+                  alt="ط¢ظ…ظˆط²ط´ع¯ط§ظ‡ ط³ط±ط¢ظ…ط¯"
                   className="w-full h-full object-contain hidden dark:block"
                 />
               </div>
               <div>
                 <div className="text-2xl font-black text-brand-800 dark:text-brand-100">
-                  سرآمد
+                  ط³ط±ط¢ظ…ط¯
                 </div>
                 <div className="text-xs text-slate-500 dark:text-slate-400">
-                  مجتمع آموزش فنی و حرفه‌ای
+                  ظ…ط¬طھظ…ط¹ ط¢ظ…ظˆط²ط´ ظپظ†غŒ ظˆ ط­ط±ظپظ‡â€Œط§غŒ
                 </div>
               </div>
             </Link>
 
-            {/* عنوان */}
+            {/* ط¹ظ†ظˆط§ظ† */}
             <div className="text-center mb-8">
               <h1 className="text-3xl font-black text-slate-800 dark:text-slate-100 mb-2">
-                ساخت حساب کاربری 🎉
+                ط³ط§ط®طھ ط­ط³ط§ط¨ ع©ط§ط±ط¨ط±غŒ ًںژ‰
               </h1>
               <p className="text-slate-600 dark:text-slate-400">
-                در چند ثانیه ثبت‌نام کنید و شروع کنید
+                ط¯ط± ع†ظ†ط¯ ط«ط§ظ†غŒظ‡ ط«ط¨طھâ€Œظ†ط§ظ… ع©ظ†غŒط¯ ظˆ ط´ط±ظˆط¹ ع©ظ†غŒط¯
               </p>
             </div>
 
-            {/* خطا */}
+            {/* ط®ط·ط§ */}
             {error && (
               <div className="mb-5 p-4 bg-red-50 dark:bg-red-950/30 border-r-4 border-red-500 rounded-xl flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
@@ -165,12 +165,12 @@ export default function RegisterPage() {
               </div>
             )}
 
-            {/* فرم */}
+            {/* ظپط±ظ… */}
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* نام */}
+              {/* ظ†ط§ظ… */}
               <div>
                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
-                  نام و نام خانوادگی *
+                  ظ†ط§ظ… ظˆ ظ†ط§ظ… ط®ط§ظ†ظˆط§ط¯ع¯غŒ *
                 </label>
                 <div className="relative">
                   <input
@@ -180,7 +180,7 @@ export default function RegisterPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
                     }
-                    placeholder="مثلاً: علی محمدی"
+                    placeholder="ظ…ط«ظ„ط§ظ‹: ط¹ظ„غŒ ظ…ط­ظ…ط¯غŒ"
                     disabled={isLoading}
                     className="w-full pr-12 pl-4 py-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:focus:ring-brand-950/50 transition disabled:opacity-60"
                   />
@@ -188,10 +188,10 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              {/* ایمیل */}
+              {/* ط§غŒظ…غŒظ„ */}
               <div>
                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
-                  ایمیل *
+                  ط§غŒظ…غŒظ„ *
                 </label>
                 <div className="relative">
                   <input
@@ -209,10 +209,10 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              {/* شماره تماس */}
+              {/* ط´ظ…ط§ط±ظ‡ طھظ…ط§ط³ */}
               <div>
                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
-                  شماره تماس *
+                  ط´ظ…ط§ط±ظ‡ طھظ…ط§ط³ *
                 </label>
                 <div className="relative">
                   <input
@@ -222,7 +222,7 @@ export default function RegisterPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, phone: e.target.value })
                     }
-                    placeholder="۰۹۳۶۲۸۴۷۹۲۲"
+                    placeholder="غ°غ¹غ³غ¶غ²غ¸غ´غ·غ¹غ²غ²"
                     disabled={isLoading}
                     className="w-full pr-12 pl-4 py-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:focus:ring-brand-950/50 transition disabled:opacity-60"
                   />
@@ -230,10 +230,10 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              {/* رمز عبور */}
+              {/* ط±ظ…ط² ط¹ط¨ظˆط± */}
               <div>
                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
-                  رمز عبور *
+                  ط±ظ…ط² ط¹ط¨ظˆط± *
                 </label>
                 <div className="relative">
                   <input
@@ -244,7 +244,7 @@ export default function RegisterPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, password: e.target.value })
                     }
-                    placeholder="حداقل ۶ کاراکتر"
+                    placeholder="ط­ط¯ط§ظ‚ظ„ غ¶ ع©ط§ط±ط§ع©طھط±"
                     disabled={isLoading}
                     className="w-full pr-12 pl-12 py-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:focus:ring-brand-950/50 transition disabled:opacity-60"
                   />
@@ -263,10 +263,10 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              {/* تکرار رمز عبور */}
+              {/* طھع©ط±ط§ط± ط±ظ…ط² ط¹ط¨ظˆط± */}
               <div>
                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
-                  تکرار رمز عبور *
+                  طھع©ط±ط§ط± ط±ظ…ط² ط¹ط¨ظˆط± *
                 </label>
                 <div className="relative">
                   <input
@@ -279,7 +279,7 @@ export default function RegisterPage() {
                         confirmPassword: e.target.value,
                       })
                     }
-                    placeholder="رمز عبور را دوباره وارد کنید"
+                    placeholder="ط±ظ…ط² ط¹ط¨ظˆط± ط±ط§ ط¯ظˆط¨ط§ط±ظ‡ ظˆط§ط±ط¯ ع©ظ†غŒط¯"
                     disabled={isLoading}
                     className="w-full pr-12 pl-12 py-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:focus:ring-brand-950/50 transition disabled:opacity-60"
                   />
@@ -300,7 +300,7 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              {/* قوانین */}
+              {/* ظ‚ظˆط§ظ†غŒظ† */}
               <label className="flex items-start gap-2 cursor-pointer pt-2">
                 <input
                   type="checkbox"
@@ -315,20 +315,20 @@ export default function RegisterPage() {
                     href="/terms"
                     className="text-brand-800 dark:text-brand-300 font-bold hover:underline"
                   >
-                    قوانین و مقررات
+                    ظ‚ظˆط§ظ†غŒظ† ظˆ ظ…ظ‚ط±ط±ط§طھ
                   </Link>{' '}
-                  و{' '}
+                  ظˆ{' '}
                   <Link
                     href="/privacy"
                     className="text-brand-800 dark:text-brand-300 font-bold hover:underline"
                   >
-                    حریم خصوصی
+                    ط­ط±غŒظ… ط®طµظˆطµغŒ
                   </Link>{' '}
-                  سرآمد را می‌پذیرم.
+                  ط³ط±ط¢ظ…ط¯ ط±ط§ ظ…غŒâ€Œظ¾ط°غŒط±ظ….
                 </span>
               </label>
 
-              {/* دکمه ثبت‌نام */}
+              {/* ط¯ع©ظ…ظ‡ ط«ط¨طھâ€Œظ†ط§ظ… */}
               <button
                 type="submit"
                 disabled={isLoading}
@@ -337,31 +337,31 @@ export default function RegisterPage() {
                 {isLoading ? (
                   <>
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    در حال ساخت حساب...
+                    ط¯ط± ط­ط§ظ„ ط³ط§ط®طھ ط­ط³ط§ط¨...
                   </>
                 ) : (
                   <>
-                    ساخت حساب کاربری
+                    ط³ط§ط®طھ ط­ط³ط§ط¨ ع©ط§ط±ط¨ط±غŒ
                     <ArrowLeft className="w-5 h-5" />
                   </>
                 )}
               </button>
 
-              {/* ورود */}
+              {/* ظˆط±ظˆط¯ */}
               <p className="text-center text-slate-600 dark:text-slate-400 text-sm pt-2">
-                قبلاً ثبت‌نام کرده‌اید؟{' '}
+                ظ‚ط¨ظ„ط§ظ‹ ط«ط¨طھâ€Œظ†ط§ظ… ع©ط±ط¯ظ‡â€Œط§غŒط¯طں{' '}
                 <Link
                   href="/login"
                   className="text-brand-800 dark:text-brand-300 font-black hover:underline"
                 >
-                  وارد شوید
+                  ظˆط§ط±ط¯ ط´ظˆغŒط¯
                 </Link>
               </p>
             </form>
           </div>
         </div>
 
-        {/* ===== بخش تبلیغاتی ===== */}
+        {/* ===== ط¨ط®ط´ طھط¨ظ„غŒط؛ط§طھغŒ ===== */}
         <div className="hidden lg:flex items-center justify-center p-12 bg-gradient-to-br from-[#1e3a8a] via-[#1e40af] to-[#0d9488] relative overflow-hidden">
           <div
             className="absolute inset-0 opacity-[0.07]"
@@ -375,24 +375,24 @@ export default function RegisterPage() {
           <div className="relative text-white max-w-md">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur border border-white/20 rounded-full text-sm font-bold mb-6">
               <Sparkles className="w-4 h-4 text-orange-300" />
-              <span>مزایای عضویت در سرآمد</span>
+              <span>ظ…ط²ط§غŒط§غŒ ط¹ط¶ظˆغŒطھ ط¯ط± ط³ط±ط¢ظ…ط¯</span>
             </div>
 
             <h2 className="text-3xl font-black mb-4 leading-tight">
-              مسیر حرفه‌ای شدن را همین امروز شروع کن
+              ظ…ط³غŒط± ط­ط±ظپظ‡â€Œط§غŒ ط´ط¯ظ† ط±ط§ ظ‡ظ…غŒظ† ط§ظ…ط±ظˆط² ط´ط±ظˆط¹ ع©ظ†
             </h2>
             <p className="text-blue-100 leading-relaxed mb-10">
-              با ثبت‌نام در سرآمد، به همه امکانات آموزشی ما دسترسی پیدا می‌کنید.
+              ط¨ط§ ط«ط¨طھâ€Œظ†ط§ظ… ط¯ط± ط³ط±ط¢ظ…ط¯طŒ ط¨ظ‡ ظ‡ظ…ظ‡ ط§ظ…ع©ط§ظ†ط§طھ ط¢ظ…ظˆط²ط´غŒ ظ…ط§ ط¯ط³طھط±ط³غŒ ظ¾غŒط¯ط§ ظ…غŒâ€Œع©ظ†غŒط¯.
             </p>
 
             <div className="space-y-4">
               {[
-                'دسترسی به ۸۰+ دوره تخصصی',
-                'کلاس‌های آنلاین زنده و ضبط‌شده',
-                'پشتیبانی ۲۴/۷ در تمام ساعات',
-                'مدرک معتبر پایان دوره',
-                'پنل کاربری اختصاصی',
-                'امکان پرداخت اقساطی',
+                'ط¯ط³طھط±ط³غŒ ط¨ظ‡ غ¸غ°+ ط¯ظˆط±ظ‡ طھط®طµطµغŒ',
+                'ع©ظ„ط§ط³â€Œظ‡ط§غŒ ط¢ظ†ظ„ط§غŒظ† ط²ظ†ط¯ظ‡ ظˆ ط¶ط¨ط·â€Œط´ط¯ظ‡',
+                'ظ¾ط´طھغŒط¨ط§ظ†غŒ غ²غ´/غ· ط¯ط± طھظ…ط§ظ… ط³ط§ط¹ط§طھ',
+                'ظ…ط¯ط±ع© ظ…ط¹طھط¨ط± ظ¾ط§غŒط§ظ† ط¯ظˆط±ظ‡',
+                'ظ¾ظ†ظ„ ع©ط§ط±ط¨ط±غŒ ط§ط®طھطµط§طµغŒ',
+                'ط§ظ…ع©ط§ظ† ظ¾ط±ط¯ط§ط®طھ ط§ظ‚ط³ط§ط·غŒ',
               ].map((item, index) => (
                 <div key={index} className="flex items-center gap-3">
                   <CheckCircle2 className="w-6 h-6 text-teal-400 flex-shrink-0" />
