@@ -60,13 +60,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       return {
         id: sbUser.id,
-        name: sbUser.user_metadata?.name || 'ع©ط§ط±ط¨ط± ط³ط±ط¢ظ…ط¯',
+        name: sbUser.user_metadata?.name || 'ط¹آ©ط·آ§ط·آ±ط·آ¨ط·آ± ط·آ³ط·آ±ط·آ¢ط¸â€¦ط·آ¯',
         email: sbUser.email || '',
         role: roleName,
         permissions: permissionsList,
       };
     } catch (err) {
-      return { id: sbUser.id, name: 'ع©ط§ط±ط¨ط±', email: sbUser.email || '', role: 'student', permissions: [] };
+      return { id: sbUser.id, name: 'ط¹آ©ط·آ§ط·آ±ط·آ¨ط·آ±', email: sbUser.email || '', role: 'student', permissions: [] };
     }
   };
 
@@ -95,17 +95,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userData = await mapSupabaseUser(data.user);
         setUser(userData);
 
-        // ظ‡ط¯ط§غŒطھ ظ‡ظˆط´ظ…ظ†ط¯ ط¨ط± ط§ط³ط§ط³ ظ†ظ‚ط´
+        // ط¸â€،ط·آ¯ط·آ§ط؛إ’ط·ع¾ ط¸â€،ط¸ث†ط·آ´ط¸â€¦ط¸â€ ط·آ¯ ط·آ¨ط·آ± ط·آ§ط·آ³ط·آ§ط·آ³ ط¸â€ ط¸â€ڑط·آ´
         if (userData.permissions.includes('view_admin_panel')) {
           window.location.href = '/admin';
         } else if (userData.role === 'instructor') {
-          window.location.href = '/instructor'; // ظ‡ط¯ط§غŒطھ ط§ط³طھط§ط¯ ط¨ظ‡ ظ¾ظ†ظ„ ط§ط®طھطµط§طµغŒ
+          window.location.href = '/instructor'; // ط¸â€،ط·آ¯ط·آ§ط؛إ’ط·ع¾ ط·آ§ط·آ³ط·ع¾ط·آ§ط·آ¯ ط·آ¨ط¸â€، ط¸آ¾ط¸â€ ط¸â€‍ ط·آ§ط·آ®ط·ع¾ط·آµط·آ§ط·آµط؛إ’
         } else {
           window.location.href = '/dashboard';
         }
         return { success: true, user: userData };
       }
-      return { success: false, error: 'ع©ط§ط±ط¨ط± غŒط§ظپطھ ظ†ط´ط¯' };
+      return { success: false, error: 'ط¹آ©ط·آ§ط·آ±ط·آ¨ط·آ± ط؛إ’ط·آ§ط¸ظ¾ط·ع¾ ط¸â€ ط·آ´ط·آ¯' };
     } catch (err: any) {
       return { success: false, error: err.message };
     }
