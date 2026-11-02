@@ -36,21 +36,21 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    setError(err.message || 'خطای ناشناخته'); console.error('خطای دقیق ثبت‌نام:', err);
 
-    // ط§ط¹طھط¨ط§ط±ط³ظ†ط¬غŒ
+    // ط·آ§ط·آ¹ط·ع¾ط·آ¨ط·آ§ط·آ±ط·آ³ط¸â€ ط·آ¬ط؛إ’
     if (formData.password !== formData.confirmPassword) {
-      setError('ط±ظ…ط² ط¹ط¨ظˆط± ظˆ طھع©ط±ط§ط± ط¢ظ† غŒع©ط³ط§ظ† ظ†غŒط³طھظ†ط¯!');
+      setError(err.message || 'خطای ناشناخته'); console.error('خطای دقیق ثبت‌نام:', err);
       return;
     }
 
     if (formData.password.length < 6) {
-      setError('ط±ظ…ط² ط¹ط¨ظˆط± ط¨ط§غŒط¯ ط­ط¯ط§ظ‚ظ„ غ¶ ع©ط§ط±ط§ع©طھط± ط¨ط§ط´ط¯.');
+      setError(err.message || 'خطای ناشناخته'); console.error('خطای دقیق ثبت‌نام:', err);
       return;
     }
 
     if (!formData.agreeTerms) {
-      setError('ظ„ط·ظپط§ظ‹ ظ‚ظˆط§ظ†غŒظ† ظˆ ظ…ظ‚ط±ط±ط§طھ ط±ط§ ط¨ظ¾ط°غŒط±غŒط¯.');
+      setError(err.message || 'خطای ناشناخته'); console.error('خطای دقیق ثبت‌نام:', err);
       return;
     }
 
@@ -65,26 +65,26 @@ export default function RegisterPage() {
       );
 
       if (signUpError) {
-        setError(signUpError);
-        return; // finally ط¨ط§ط¹ط« ظ…غŒط´ظ‡ isLoading ظپط§ظ„ط³ ط¨ط´ظ‡
+        setError(err.message || 'خطای ناشناخته'); console.error('خطای دقیق ثبت‌نام:', err);
+        return; // finally ط·آ¨ط·آ§ط·آ¹ط·آ« ط¸â€¦ط؛إ’ط·آ´ط¸â€، isLoading ط¸ظ¾ط·آ§ط¸â€‍ط·آ³ ط·آ¨ط·آ´ط¸â€،
       }
 
       setSuccess(true);
 
-      // ط¨ط¹ط¯ ط§ط² غ³ ط«ط§ظ†غŒظ‡ ط¨ط±ظˆ ط¨ظ‡ ط¯ط§ط´ط¨ظˆط±ط¯
+      // ط·آ¨ط·آ¹ط·آ¯ ط·آ§ط·آ² ط؛آ³ ط·آ«ط·آ§ط¸â€ ط؛إ’ط¸â€، ط·آ¨ط·آ±ط¸ث† ط·آ¨ط¸â€، ط·آ¯ط·آ§ط·آ´ط·آ¨ط¸ث†ط·آ±ط·آ¯
       setTimeout(() => {
         router.push('/dashboard');
       }, 3000);
 
     } catch (err) {
-      setError('ط®ط·ط§ ط¯ط± ط¨ط±ظ‚ط±ط§ط±غŒ ط§ط±طھط¨ط§ط· ط¨ط§ ط³ط±ظˆط±. ظ„ط·ظپط§ظ‹ ط¯ظˆط¨ط§ط±ظ‡ طھظ„ط§ط´ ع©ظ†غŒط¯.');
+      setError(err.message || 'خطای ناشناخته'); console.error('خطای دقیق ثبت‌نام:', err);
     } finally {
-      // ط§غŒظ† ط¨ظ„ط§ع© ط­طھظ…ط§ظ‹ ط§ط¬ط±ط§ ظ…غŒط´ظ‡طŒ ع†ظ‡ ط®ط·ط§ ط¨ط¯ظ‡ ع†ظ‡ ظ…ظˆظپظ‚غŒطھâ€Œط¢ظ…غŒط² ط¨ط§ط´ظ‡
+      // ط·آ§ط؛إ’ط¸â€  ط·آ¨ط¸â€‍ط·آ§ط¹آ© ط·آ­ط·ع¾ط¸â€¦ط·آ§ط¸â€¹ ط·آ§ط·آ¬ط·آ±ط·آ§ ط¸â€¦ط؛إ’ط·آ´ط¸â€،ط·إ’ ط¹â€ ط¸â€، ط·آ®ط·آ·ط·آ§ ط·آ¨ط·آ¯ط¸â€، ط¹â€ ط¸â€، ط¸â€¦ط¸ث†ط¸ظ¾ط¸â€ڑط؛إ’ط·ع¾أ¢â‚¬إ’ط·آ¢ط¸â€¦ط؛إ’ط·آ² ط·آ¨ط·آ§ط·آ´ط¸â€،
       setIsLoading(false);
     }
   };
 
-  // طµظپط­ظ‡ ظ…ظˆظپظ‚غŒطھ
+  // ط·آµط¸ظ¾ط·آ­ط¸â€، ط¸â€¦ط¸ث†ط¸ظ¾ط¸â€ڑط؛إ’ط·ع¾
   if (success) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-20 flex items-center justify-center p-6">
@@ -94,18 +94,18 @@ export default function RegisterPage() {
           </div>
 
           <h1 className="text-2xl font-black text-slate-800 dark:text-slate-100 mb-3">
-            ًںژ‰ ط«ط¨طھâ€Œظ†ط§ظ… ظ…ظˆظپظ‚!
+            ظ‹ع؛عکâ€° ط·آ«ط·آ¨ط·ع¾أ¢â‚¬إ’ط¸â€ ط·آ§ط¸â€¦ ط¸â€¦ط¸ث†ط¸ظ¾ط¸â€ڑ!
           </h1>
 
           <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
-            ط­ط³ط§ط¨ ع©ط§ط±ط¨ط±غŒ ط´ظ…ط§ ط¨ط§ ظ…ظˆظپظ‚غŒطھ ط³ط§ط®طھظ‡ ط´ط¯.
+            ط·آ­ط·آ³ط·آ§ط·آ¨ ط¹آ©ط·آ§ط·آ±ط·آ¨ط·آ±ط؛إ’ ط·آ´ط¸â€¦ط·آ§ ط·آ¨ط·آ§ ط¸â€¦ط¸ث†ط¸ظ¾ط¸â€ڑط؛إ’ط·ع¾ ط·آ³ط·آ§ط·آ®ط·ع¾ط¸â€، ط·آ´ط·آ¯.
             <br />
-            ط¯ط± ط­ط§ظ„ ط§ظ†طھظ‚ط§ظ„ ط¨ظ‡ ط¯ط§ط´ط¨ظˆط±ط¯...
+            ط·آ¯ط·آ± ط·آ­ط·آ§ط¸â€‍ ط·آ§ط¸â€ ط·ع¾ط¸â€ڑط·آ§ط¸â€‍ ط·آ¨ط¸â€، ط·آ¯ط·آ§ط·آ´ط·آ¨ط¸ث†ط·آ±ط·آ¯...
           </p>
 
           <div className="flex items-center justify-center gap-2 text-sm text-slate-500 dark:text-slate-400">
             <div className="w-4 h-4 border-2 border-brand-800 border-t-transparent rounded-full animate-spin" />
-            <span>ظ„ط·ظپط§ظ‹ طµط¨ط± ع©ظ†غŒط¯</span>
+            <span>ط¸â€‍ط·آ·ط¸ظ¾ط·آ§ط¸â€¹ ط·آµط·آ¨ط·آ± ط¹آ©ط¸â€ ط؛إ’ط·آ¯</span>
           </div>
         </div>
       </div>
@@ -115,10 +115,10 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-20">
       <div className="grid lg:grid-cols-2 min-h-[calc(100vh-5rem)]">
-        {/* ===== ظپط±ظ… ط«ط¨طھâ€Œظ†ط§ظ… ===== */}
+        {/* ===== ط¸ظ¾ط·آ±ط¸â€¦ ط·آ«ط·آ¨ط·ع¾أ¢â‚¬إ’ط¸â€ ط·آ§ط¸â€¦ ===== */}
         <div className="flex items-center justify-center p-6 lg:p-12">
           <div className="w-full max-w-md">
-            {/* ظ„ظˆع¯ظˆ */}
+            {/* ط¸â€‍ط¸ث†ط¹آ¯ط¸ث† */}
             <Link
               href="/"
               className="flex items-center gap-3 mb-8 justify-center"
@@ -126,36 +126,36 @@ export default function RegisterPage() {
               <div className="w-14 h-14 flex items-center justify-center">
                 <img
                   src="/logo.png"
-                  alt="ط¢ظ…ظˆط²ط´ع¯ط§ظ‡ ط³ط±ط¢ظ…ط¯"
+                  alt="ط·آ¢ط¸â€¦ط¸ث†ط·آ²ط·آ´ط¹آ¯ط·آ§ط¸â€، ط·آ³ط·آ±ط·آ¢ط¸â€¦ط·آ¯"
                   className="w-full h-full object-contain dark:hidden"
                 />
                 <img
                   src="/logo-white.png"
-                  alt="ط¢ظ…ظˆط²ط´ع¯ط§ظ‡ ط³ط±ط¢ظ…ط¯"
+                  alt="ط·آ¢ط¸â€¦ط¸ث†ط·آ²ط·آ´ط¹آ¯ط·آ§ط¸â€، ط·آ³ط·آ±ط·آ¢ط¸â€¦ط·آ¯"
                   className="w-full h-full object-contain hidden dark:block"
                 />
               </div>
               <div>
                 <div className="text-2xl font-black text-brand-800 dark:text-brand-100">
-                  ط³ط±ط¢ظ…ط¯
+                  ط·آ³ط·آ±ط·آ¢ط¸â€¦ط·آ¯
                 </div>
                 <div className="text-xs text-slate-500 dark:text-slate-400">
-                  ظ…ط¬طھظ…ط¹ ط¢ظ…ظˆط²ط´ ظپظ†غŒ ظˆ ط­ط±ظپظ‡â€Œط§غŒ
+                  ط¸â€¦ط·آ¬ط·ع¾ط¸â€¦ط·آ¹ ط·آ¢ط¸â€¦ط¸ث†ط·آ²ط·آ´ ط¸ظ¾ط¸â€ ط؛إ’ ط¸ث† ط·آ­ط·آ±ط¸ظ¾ط¸â€،أ¢â‚¬إ’ط·آ§ط؛إ’
                 </div>
               </div>
             </Link>
 
-            {/* ط¹ظ†ظˆط§ظ† */}
+            {/* ط·آ¹ط¸â€ ط¸ث†ط·آ§ط¸â€  */}
             <div className="text-center mb-8">
               <h1 className="text-3xl font-black text-slate-800 dark:text-slate-100 mb-2">
-                ط³ط§ط®طھ ط­ط³ط§ط¨ ع©ط§ط±ط¨ط±غŒ ًںژ‰
+                ط·آ³ط·آ§ط·آ®ط·ع¾ ط·آ­ط·آ³ط·آ§ط·آ¨ ط¹آ©ط·آ§ط·آ±ط·آ¨ط·آ±ط؛إ’ ظ‹ع؛عکâ€°
               </h1>
               <p className="text-slate-600 dark:text-slate-400">
-                ط¯ط± ع†ظ†ط¯ ط«ط§ظ†غŒظ‡ ط«ط¨طھâ€Œظ†ط§ظ… ع©ظ†غŒط¯ ظˆ ط´ط±ظˆط¹ ع©ظ†غŒط¯
+                ط·آ¯ط·آ± ط¹â€ ط¸â€ ط·آ¯ ط·آ«ط·آ§ط¸â€ ط؛إ’ط¸â€، ط·آ«ط·آ¨ط·ع¾أ¢â‚¬إ’ط¸â€ ط·آ§ط¸â€¦ ط¹آ©ط¸â€ ط؛إ’ط·آ¯ ط¸ث† ط·آ´ط·آ±ط¸ث†ط·آ¹ ط¹آ©ط¸â€ ط؛إ’ط·آ¯
               </p>
             </div>
 
-            {/* ط®ط·ط§ */}
+            {/* ط·آ®ط·آ·ط·آ§ */}
             {error && (
               <div className="mb-5 p-4 bg-red-50 dark:bg-red-950/30 border-r-4 border-red-500 rounded-xl flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
@@ -165,12 +165,12 @@ export default function RegisterPage() {
               </div>
             )}
 
-            {/* ظپط±ظ… */}
+            {/* ط¸ظ¾ط·آ±ط¸â€¦ */}
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* ظ†ط§ظ… */}
+              {/* ط¸â€ ط·آ§ط¸â€¦ */}
               <div>
                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
-                  ظ†ط§ظ… ظˆ ظ†ط§ظ… ط®ط§ظ†ظˆط§ط¯ع¯غŒ *
+                  ط¸â€ ط·آ§ط¸â€¦ ط¸ث† ط¸â€ ط·آ§ط¸â€¦ ط·آ®ط·آ§ط¸â€ ط¸ث†ط·آ§ط·آ¯ط¹آ¯ط؛إ’ *
                 </label>
                 <div className="relative">
                   <input
@@ -180,7 +180,7 @@ export default function RegisterPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
                     }
-                    placeholder="ظ…ط«ظ„ط§ظ‹: ط¹ظ„غŒ ظ…ط­ظ…ط¯غŒ"
+                    placeholder="ط¸â€¦ط·آ«ط¸â€‍ط·آ§ط¸â€¹: ط·آ¹ط¸â€‍ط؛إ’ ط¸â€¦ط·آ­ط¸â€¦ط·آ¯ط؛إ’"
                     disabled={isLoading}
                     className="w-full pr-12 pl-4 py-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:focus:ring-brand-950/50 transition disabled:opacity-60"
                   />
@@ -188,10 +188,10 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              {/* ط§غŒظ…غŒظ„ */}
+              {/* ط·آ§ط؛إ’ط¸â€¦ط؛إ’ط¸â€‍ */}
               <div>
                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
-                  ط§غŒظ…غŒظ„ *
+                  ط·آ§ط؛إ’ط¸â€¦ط؛إ’ط¸â€‍ *
                 </label>
                 <div className="relative">
                   <input
@@ -209,10 +209,10 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              {/* ط´ظ…ط§ط±ظ‡ طھظ…ط§ط³ */}
+              {/* ط·آ´ط¸â€¦ط·آ§ط·آ±ط¸â€، ط·ع¾ط¸â€¦ط·آ§ط·آ³ */}
               <div>
                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
-                  ط´ظ…ط§ط±ظ‡ طھظ…ط§ط³ *
+                  ط·آ´ط¸â€¦ط·آ§ط·آ±ط¸â€، ط·ع¾ط¸â€¦ط·آ§ط·آ³ *
                 </label>
                 <div className="relative">
                   <input
@@ -222,7 +222,7 @@ export default function RegisterPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, phone: e.target.value })
                     }
-                    placeholder="غ°غ¹غ³غ¶غ²غ¸غ´غ·غ¹غ²غ²"
+                    placeholder="ط؛آ°ط؛آ¹ط؛آ³ط؛آ¶ط؛آ²ط؛آ¸ط؛آ´ط؛آ·ط؛آ¹ط؛آ²ط؛آ²"
                     disabled={isLoading}
                     className="w-full pr-12 pl-4 py-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:focus:ring-brand-950/50 transition disabled:opacity-60"
                   />
@@ -230,10 +230,10 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              {/* ط±ظ…ط² ط¹ط¨ظˆط± */}
+              {/* ط·آ±ط¸â€¦ط·آ² ط·آ¹ط·آ¨ط¸ث†ط·آ± */}
               <div>
                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
-                  ط±ظ…ط² ط¹ط¨ظˆط± *
+                  ط·آ±ط¸â€¦ط·آ² ط·آ¹ط·آ¨ط¸ث†ط·آ± *
                 </label>
                 <div className="relative">
                   <input
@@ -244,7 +244,7 @@ export default function RegisterPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, password: e.target.value })
                     }
-                    placeholder="ط­ط¯ط§ظ‚ظ„ غ¶ ع©ط§ط±ط§ع©طھط±"
+                    placeholder="ط·آ­ط·آ¯ط·آ§ط¸â€ڑط¸â€‍ ط؛آ¶ ط¹آ©ط·آ§ط·آ±ط·آ§ط¹آ©ط·ع¾ط·آ±"
                     disabled={isLoading}
                     className="w-full pr-12 pl-12 py-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:focus:ring-brand-950/50 transition disabled:opacity-60"
                   />
@@ -263,10 +263,10 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              {/* طھع©ط±ط§ط± ط±ظ…ط² ط¹ط¨ظˆط± */}
+              {/* ط·ع¾ط¹آ©ط·آ±ط·آ§ط·آ± ط·آ±ط¸â€¦ط·آ² ط·آ¹ط·آ¨ط¸ث†ط·آ± */}
               <div>
                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
-                  طھع©ط±ط§ط± ط±ظ…ط² ط¹ط¨ظˆط± *
+                  ط·ع¾ط¹آ©ط·آ±ط·آ§ط·آ± ط·آ±ط¸â€¦ط·آ² ط·آ¹ط·آ¨ط¸ث†ط·آ± *
                 </label>
                 <div className="relative">
                   <input
@@ -279,7 +279,7 @@ export default function RegisterPage() {
                         confirmPassword: e.target.value,
                       })
                     }
-                    placeholder="ط±ظ…ط² ط¹ط¨ظˆط± ط±ط§ ط¯ظˆط¨ط§ط±ظ‡ ظˆط§ط±ط¯ ع©ظ†غŒط¯"
+                    placeholder="ط·آ±ط¸â€¦ط·آ² ط·آ¹ط·آ¨ط¸ث†ط·آ± ط·آ±ط·آ§ ط·آ¯ط¸ث†ط·آ¨ط·آ§ط·آ±ط¸â€، ط¸ث†ط·آ§ط·آ±ط·آ¯ ط¹آ©ط¸â€ ط؛إ’ط·آ¯"
                     disabled={isLoading}
                     className="w-full pr-12 pl-12 py-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:focus:ring-brand-950/50 transition disabled:opacity-60"
                   />
@@ -300,7 +300,7 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              {/* ظ‚ظˆط§ظ†غŒظ† */}
+              {/* ط¸â€ڑط¸ث†ط·آ§ط¸â€ ط؛إ’ط¸â€  */}
               <label className="flex items-start gap-2 cursor-pointer pt-2">
                 <input
                   type="checkbox"
@@ -315,20 +315,20 @@ export default function RegisterPage() {
                     href="/terms"
                     className="text-brand-800 dark:text-brand-300 font-bold hover:underline"
                   >
-                    ظ‚ظˆط§ظ†غŒظ† ظˆ ظ…ظ‚ط±ط±ط§طھ
+                    ط¸â€ڑط¸ث†ط·آ§ط¸â€ ط؛إ’ط¸â€  ط¸ث† ط¸â€¦ط¸â€ڑط·آ±ط·آ±ط·آ§ط·ع¾
                   </Link>{' '}
-                  ظˆ{' '}
+                  ط¸ث†{' '}
                   <Link
                     href="/privacy"
                     className="text-brand-800 dark:text-brand-300 font-bold hover:underline"
                   >
-                    ط­ط±غŒظ… ط®طµظˆطµغŒ
+                    ط·آ­ط·آ±ط؛إ’ط¸â€¦ ط·آ®ط·آµط¸ث†ط·آµط؛إ’
                   </Link>{' '}
-                  ط³ط±ط¢ظ…ط¯ ط±ط§ ظ…غŒâ€Œظ¾ط°غŒط±ظ….
+                  ط·آ³ط·آ±ط·آ¢ط¸â€¦ط·آ¯ ط·آ±ط·آ§ ط¸â€¦ط؛إ’أ¢â‚¬إ’ط¸آ¾ط·آ°ط؛إ’ط·آ±ط¸â€¦.
                 </span>
               </label>
 
-              {/* ط¯ع©ظ…ظ‡ ط«ط¨طھâ€Œظ†ط§ظ… */}
+              {/* ط·آ¯ط¹آ©ط¸â€¦ط¸â€، ط·آ«ط·آ¨ط·ع¾أ¢â‚¬إ’ط¸â€ ط·آ§ط¸â€¦ */}
               <button
                 type="submit"
                 disabled={isLoading}
@@ -337,31 +337,31 @@ export default function RegisterPage() {
                 {isLoading ? (
                   <>
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    ط¯ط± ط­ط§ظ„ ط³ط§ط®طھ ط­ط³ط§ط¨...
+                    ط·آ¯ط·آ± ط·آ­ط·آ§ط¸â€‍ ط·آ³ط·آ§ط·آ®ط·ع¾ ط·آ­ط·آ³ط·آ§ط·آ¨...
                   </>
                 ) : (
                   <>
-                    ط³ط§ط®طھ ط­ط³ط§ط¨ ع©ط§ط±ط¨ط±غŒ
+                    ط·آ³ط·آ§ط·آ®ط·ع¾ ط·آ­ط·آ³ط·آ§ط·آ¨ ط¹آ©ط·آ§ط·آ±ط·آ¨ط·آ±ط؛إ’
                     <ArrowLeft className="w-5 h-5" />
                   </>
                 )}
               </button>
 
-              {/* ظˆط±ظˆط¯ */}
+              {/* ط¸ث†ط·آ±ط¸ث†ط·آ¯ */}
               <p className="text-center text-slate-600 dark:text-slate-400 text-sm pt-2">
-                ظ‚ط¨ظ„ط§ظ‹ ط«ط¨طھâ€Œظ†ط§ظ… ع©ط±ط¯ظ‡â€Œط§غŒط¯طں{' '}
+                ط¸â€ڑط·آ¨ط¸â€‍ط·آ§ط¸â€¹ ط·آ«ط·آ¨ط·ع¾أ¢â‚¬إ’ط¸â€ ط·آ§ط¸â€¦ ط¹آ©ط·آ±ط·آ¯ط¸â€،أ¢â‚¬إ’ط·آ§ط؛إ’ط·آ¯ط·ع؛{' '}
                 <Link
                   href="/login"
                   className="text-brand-800 dark:text-brand-300 font-black hover:underline"
                 >
-                  ظˆط§ط±ط¯ ط´ظˆغŒط¯
+                  ط¸ث†ط·آ§ط·آ±ط·آ¯ ط·آ´ط¸ث†ط؛إ’ط·آ¯
                 </Link>
               </p>
             </form>
           </div>
         </div>
 
-        {/* ===== ط¨ط®ط´ طھط¨ظ„غŒط؛ط§طھغŒ ===== */}
+        {/* ===== ط·آ¨ط·آ®ط·آ´ ط·ع¾ط·آ¨ط¸â€‍ط؛إ’ط·ط›ط·آ§ط·ع¾ط؛إ’ ===== */}
         <div className="hidden lg:flex items-center justify-center p-12 bg-gradient-to-br from-[#1e3a8a] via-[#1e40af] to-[#0d9488] relative overflow-hidden">
           <div
             className="absolute inset-0 opacity-[0.07]"
@@ -375,24 +375,24 @@ export default function RegisterPage() {
           <div className="relative text-white max-w-md">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur border border-white/20 rounded-full text-sm font-bold mb-6">
               <Sparkles className="w-4 h-4 text-orange-300" />
-              <span>ظ…ط²ط§غŒط§غŒ ط¹ط¶ظˆغŒطھ ط¯ط± ط³ط±ط¢ظ…ط¯</span>
+              <span>ط¸â€¦ط·آ²ط·آ§ط؛إ’ط·آ§ط؛إ’ ط·آ¹ط·آ¶ط¸ث†ط؛إ’ط·ع¾ ط·آ¯ط·آ± ط·آ³ط·آ±ط·آ¢ط¸â€¦ط·آ¯</span>
             </div>
 
             <h2 className="text-3xl font-black mb-4 leading-tight">
-              ظ…ط³غŒط± ط­ط±ظپظ‡â€Œط§غŒ ط´ط¯ظ† ط±ط§ ظ‡ظ…غŒظ† ط§ظ…ط±ظˆط² ط´ط±ظˆط¹ ع©ظ†
+              ط¸â€¦ط·آ³ط؛إ’ط·آ± ط·آ­ط·آ±ط¸ظ¾ط¸â€،أ¢â‚¬إ’ط·آ§ط؛إ’ ط·آ´ط·آ¯ط¸â€  ط·آ±ط·آ§ ط¸â€،ط¸â€¦ط؛إ’ط¸â€  ط·آ§ط¸â€¦ط·آ±ط¸ث†ط·آ² ط·آ´ط·آ±ط¸ث†ط·آ¹ ط¹آ©ط¸â€ 
             </h2>
             <p className="text-blue-100 leading-relaxed mb-10">
-              ط¨ط§ ط«ط¨طھâ€Œظ†ط§ظ… ط¯ط± ط³ط±ط¢ظ…ط¯طŒ ط¨ظ‡ ظ‡ظ…ظ‡ ط§ظ…ع©ط§ظ†ط§طھ ط¢ظ…ظˆط²ط´غŒ ظ…ط§ ط¯ط³طھط±ط³غŒ ظ¾غŒط¯ط§ ظ…غŒâ€Œع©ظ†غŒط¯.
+              ط·آ¨ط·آ§ ط·آ«ط·آ¨ط·ع¾أ¢â‚¬إ’ط¸â€ ط·آ§ط¸â€¦ ط·آ¯ط·آ± ط·آ³ط·آ±ط·آ¢ط¸â€¦ط·آ¯ط·إ’ ط·آ¨ط¸â€، ط¸â€،ط¸â€¦ط¸â€، ط·آ§ط¸â€¦ط¹آ©ط·آ§ط¸â€ ط·آ§ط·ع¾ ط·آ¢ط¸â€¦ط¸ث†ط·آ²ط·آ´ط؛إ’ ط¸â€¦ط·آ§ ط·آ¯ط·آ³ط·ع¾ط·آ±ط·آ³ط؛إ’ ط¸آ¾ط؛إ’ط·آ¯ط·آ§ ط¸â€¦ط؛إ’أ¢â‚¬إ’ط¹آ©ط¸â€ ط؛إ’ط·آ¯.
             </p>
 
             <div className="space-y-4">
               {[
-                'ط¯ط³طھط±ط³غŒ ط¨ظ‡ غ¸غ°+ ط¯ظˆط±ظ‡ طھط®طµطµغŒ',
-                'ع©ظ„ط§ط³â€Œظ‡ط§غŒ ط¢ظ†ظ„ط§غŒظ† ط²ظ†ط¯ظ‡ ظˆ ط¶ط¨ط·â€Œط´ط¯ظ‡',
-                'ظ¾ط´طھغŒط¨ط§ظ†غŒ غ²غ´/غ· ط¯ط± طھظ…ط§ظ… ط³ط§ط¹ط§طھ',
-                'ظ…ط¯ط±ع© ظ…ط¹طھط¨ط± ظ¾ط§غŒط§ظ† ط¯ظˆط±ظ‡',
-                'ظ¾ظ†ظ„ ع©ط§ط±ط¨ط±غŒ ط§ط®طھطµط§طµغŒ',
-                'ط§ظ…ع©ط§ظ† ظ¾ط±ط¯ط§ط®طھ ط§ظ‚ط³ط§ط·غŒ',
+                'ط·آ¯ط·آ³ط·ع¾ط·آ±ط·آ³ط؛إ’ ط·آ¨ط¸â€، ط؛آ¸ط؛آ°+ ط·آ¯ط¸ث†ط·آ±ط¸â€، ط·ع¾ط·آ®ط·آµط·آµط؛إ’',
+                'ط¹آ©ط¸â€‍ط·آ§ط·آ³أ¢â‚¬إ’ط¸â€،ط·آ§ط؛إ’ ط·آ¢ط¸â€ ط¸â€‍ط·آ§ط؛إ’ط¸â€  ط·آ²ط¸â€ ط·آ¯ط¸â€، ط¸ث† ط·آ¶ط·آ¨ط·آ·أ¢â‚¬إ’ط·آ´ط·آ¯ط¸â€،',
+                'ط¸آ¾ط·آ´ط·ع¾ط؛إ’ط·آ¨ط·آ§ط¸â€ ط؛إ’ ط؛آ²ط؛آ´/ط؛آ· ط·آ¯ط·آ± ط·ع¾ط¸â€¦ط·آ§ط¸â€¦ ط·آ³ط·آ§ط·آ¹ط·آ§ط·ع¾',
+                'ط¸â€¦ط·آ¯ط·آ±ط¹آ© ط¸â€¦ط·آ¹ط·ع¾ط·آ¨ط·آ± ط¸آ¾ط·آ§ط؛إ’ط·آ§ط¸â€  ط·آ¯ط¸ث†ط·آ±ط¸â€،',
+                'ط¸آ¾ط¸â€ ط¸â€‍ ط¹آ©ط·آ§ط·آ±ط·آ¨ط·آ±ط؛إ’ ط·آ§ط·آ®ط·ع¾ط·آµط·آ§ط·آµط؛إ’',
+                'ط·آ§ط¸â€¦ط¹آ©ط·آ§ط¸â€  ط¸آ¾ط·آ±ط·آ¯ط·آ§ط·آ®ط·ع¾ ط·آ§ط¸â€ڑط·آ³ط·آ§ط·آ·ط؛إ’',
               ].map((item, index) => (
                 <div key={index} className="flex items-center gap-3">
                   <CheckCircle2 className="w-6 h-6 text-teal-400 flex-shrink-0" />
