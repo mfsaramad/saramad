@@ -12,11 +12,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     if (!isLoading) {
-      if (!user) {
-        router.push('/login');
-      } else if (!isAdmin) {
-        router.push('/dashboard');
-      }
+      if (!user) router.push('/login');
+      else if (!isAdmin) router.push('/dashboard');
     }
   }, [user, isLoading, isAdmin, router]);
 
@@ -29,18 +26,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col lg:flex-row" dir="rtl">
-      
-      {/* سایدبار در سمت راست (اولین المان در DOM) */}
-      <div className="w-full lg:w-72 lg:h-screen lg:sticky lg:top-0 flex-shrink-0 z-10">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col lg:flex-row pt-20 lg:pt-24" dir="rtl">
+      {/* سایدبار در سمت راست (با ارتفاع محاسبه شده با توجه به هدر) */}
+      <div className="w-full lg:w-72 lg:h-[calc(100vh-6rem)] lg:sticky lg:top-24 flex-shrink-0 z-10">
         <AdminSidebar />
       </div>
       
-      {/* محتوای اصلی در سمت چپ (دومین المان در DOM) */}
-      <main className="flex-1 p-4 lg:p-8 overflow-y-auto h-screen">
+      {/* محتوای اصلی */}
+      <main className="flex-1 p-4 lg:p-8">
         {children}
       </main>
-      
     </div>
   );
 }

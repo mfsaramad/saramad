@@ -3,17 +3,13 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { 
-  LayoutDashboard, Users, UserCog, Shield, ShoppingBag, 
-  GraduationCap, BookOpen, FileText, Bell, Award, LogOut 
-} from 'lucide-react';
+import { LayoutDashboard, Users, Shield, ShoppingBag, GraduationCap, BookOpen, FileText, Bell, Award, LogOut, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function AdminSidebar() {
   const pathname = usePathname();
   const { user, hasPermission, logout } = useAuth();
 
-  // تعریف منوها به همراه دسترسی مورد نیاز برای دیدن هر منو
   const menuItems = [
     { name: 'داشبورد', href: '/admin', icon: LayoutDashboard, permission: 'view_admin_panel' },
     { name: 'سفارشات', href: '/admin/orders', icon: ShoppingBag, permission: 'manage_orders' },
@@ -26,23 +22,24 @@ export default function AdminSidebar() {
     { name: 'اعلانات', href: '/admin/notifications', icon: Bell, permission: 'view_admin_panel' },
   ];
 
-  // فیلتر کردن منوها بر اساس دسترسی کاربر
   const visibleMenus = menuItems.filter(item => hasPermission(item.permission));
 
   return (
-    <aside className="w-64 bg-white dark:bg-slate-900 border-l border-slate-100 dark:border-slate-800 flex flex-col h-full rounded-l-3xl">
+    <aside className="w-full h-full bg-white dark:bg-slate-900 border-l border-slate-100 dark:border-slate-800 flex flex-col rounded-l-3xl shadow-sm overflow-hidden">
       
-      {/* پروفایل کاربر در بالای سایدبار */}
-      <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex flex-col items-center">
-        <div className="w-16 h-16 rounded-full bg-brand-100 dark:bg-brand-950 flex items-center justify-center text-brand-800 dark:text-brand-300 text-2xl font-black mb-3">
+      {/* پروفایل کاربر */}
+      <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex flex-col items-center bg-slate-50/50 dark:bg-slate-800/20">
+        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-brand-500 to-brand-800 flex items-center justify-center text-white text-2xl font-black mb-3 shadow-md">
           {user?.name ? user.name[0] : 'م'}
         </div>
         <h3 className="font-bold text-slate-800 dark:text-slate-100">{user?.name || 'مدیر سیستم'}</h3>
-        <p className="text-xs text-slate-500 mt-1">{user?.role === 'admin' ? 'مدیر کل' : 'کارمند'}</p>
+        <p className="text-xs text-brand-600 dark:text-brand-400 font-bold mt-1 bg-brand-50 dark:bg-brand-900/30 px-3 py-1 rounded-full">
+          {user?.role === 'admin' ? 'مدیر کل' : 'کارمند'}
+        </p>
       </div>
 
       {/* منوها */}
-      <nav className="flex-1 overflow-y-auto p-4 space-y-2">
+      <nav className="flex-1 overflow-y-auto p-4 space-y-1.5">
         {visibleMenus.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
@@ -54,11 +51,11 @@ export default function AdminSidebar() {
               className={cn(
                 "flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-sm",
                 isActive 
-                  ? "bg-brand-800 text-white shadow-md" 
-                  : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
+                  ? "bg-brand-50 text-brand-800 dark:bg-brand-900/40 dark:text-brand-300" 
+                  : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200"
               )}
             >
-              <Icon className={cn("w-5 h-5", isActive ? "text-white" : "text-slate-400")} />
+              <Icon className={cn("w-5 h-5", isActive ? "text-brand-800 dark:text-brand-300" : "text-slate-400")} />
               <span>{item.name}</span>
             </Link>
           );
