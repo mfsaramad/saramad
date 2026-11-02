@@ -18,6 +18,7 @@ interface AuthContextType {
   isAdmin: boolean;
   hasPermission: (permission: string) => boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string; user?: User }>;
+  signUp: (email: string, password: string, name: string, phone: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
 }
 
@@ -29,44 +30,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const mapSupabaseUser = async (sbUser: any): Promise<User> => {
     try {
-      const { data: userRoleData } = await supabase
-        .from('user_roles')
-        .select(`role_id, roles (name)`)
-        .eq('user_id', sbUser.id)
-        .maybeSingle();
-
+      const { data: userRoleData } = await supabase.from('user_roles').select(`role_id, roles (name)`).eq('user_id', sbUser.id).maybeSingle();
       const roleName = userRoleData?.roles?.name || 'student';
       const roleId = userRoleData?.role_id;
 
       let permissionsList: string[] = [];
       if (roleId) {
-        const { data: permData } = await supabase
-          .from('role_permissions')
-          .select(`permissions (name)`)
-          .eq('role_id', roleId);
-
+        const { data: permData } = await supabase.from('role_permissions').select(`permissions (name)`).eq('role_id', roleId);
         if (permData) permissionsList = permData.map((p: any) => p.permissions.name);
       }
 
-      const { data: directPermsData } = await supabase
-        .from('user_permissions')
-        .select(`permissions (name)`)
-        .eq('user_id', sbUser.id);
-
+      const { data: directPermsData } = await supabase.from('user_permissions').select(`permissions (name)`).eq('user_id', sbUser.id);
       if (directPermsData) {
         const directPerms = directPermsData.map((p: any) => p.permissions.name);
         permissionsList = Array.from(new Set([...permissionsList, ...directPerms]));
       }
 
-      return {
-        id: sbUser.id,
-        name: sbUser.user_metadata?.name || 'ط¹آ©ط·آ§ط·آ±ط·آ¨ط·آ± ط·آ³ط·آ±ط·آ¢ط¸â€¦ط·آ¯',
-        email: sbUser.email || '',
-        role: roleName,
-        permissions: permissionsList,
-      };
+      return { id: sbUser.id, name: sbUser.user_metadata?.name || 'کاربر سرآمد', email: sbUser.email || '', role: roleName, permissions: permissionsList };
     } catch (err) {
-      return { id: sbUser.id, name: 'ط¹آ©ط·آ§ط·آ±ط·آ¨ط·آ±', email: sbUser.email || '', role: 'student', permissions: [] };
+      return { id: sbUser.id, name: 'کاربر', email: sbUser.email || '', role: 'student', permissions: [] };
     }
   };
 
@@ -77,7 +59,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(false);
     };
     getInitialSession();
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) setUser(await mapSupabaseUser(session.user));
       else setUser(null);
@@ -94,30 +75,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (data?.user) {
         const userData = await mapSupabaseUser(data.user);
         setUser(userData);
-
-        // ط¸â€،ط·آ¯ط·آ§ط؛إ’ط·ع¾ ط¸â€،ط¸ث†ط·آ´ط¸â€¦ط¸â€ ط·آ¯ ط·آ¨ط·آ± ط·آ§ط·آ³ط·آ§ط·آ³ ط¸â€ ط¸â€ڑط·آ´
-        if (userData.permissions.includes('view_admin_panel')) {
-          window.location.href = '/admin';
-        } else if (userData.role === 'instructor') {
-          window.location.href = '/instructor'; // ط¸â€،ط·آ¯ط·آ§ط؛إ’ط·ع¾ ط·آ§ط·آ³ط·ع¾ط·آ§ط·آ¯ ط·آ¨ط¸â€، ط¸آ¾ط¸â€ ط¸â€‍ ط·آ§ط·آ®ط·ع¾ط·آµط·آ§ط·آµط؛إ’
-        } else {
-          window.location.href = '/dashboard';
-        }
+        if (userData.permissions.includes('view_admin_panel')) window.location.href = '/admin';
+        else if (userData.role === 'instructor') window.location.href = '/instructor';
+        else window.location.href = '/dashboard';
         return { success: true, user: userData };
       }
-      return { success: false, error: 'ط¹آ©ط·آ§ط·آ±ط·آ¨ط·آ± ط؛إ’ط·آ§ط¸ظ¾ط·ع¾ ط¸â€ ط·آ´ط·آ¯' };
-    } catch (err: any) {
-      return { success: false, error: err.message };
-    }
+      return { success: false, error: 'کاربر یافت نشد' };
+    } catch (err: any) { return { success: false, error: err.message }; }
+  };
+
+  const signUp = async (email: string, password: string, name: string, phone: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { name, phone } } });
+      if (error) return { success: false, error: error.message };
+
+      // نقش کاربر به صورت خودکار توسط تریگر در دیتابیس اختصاص داده می‌شود.
+      return { success: true };
+    } catch (err: any) { return { success: false, error: err.message }; }
   };
 
   const logout = async () => {
     await supabase.auth.signOut();
     setUser(null);
     if (typeof window !== 'undefined') {
-      Object.keys(localStorage).forEach((key) => {
-        if (key.startsWith('sb-')) localStorage.removeItem(key);
-      });
+      Object.keys(localStorage).forEach((key) => { if (key.startsWith('sb-')) localStorage.removeItem(key); });
       window.location.href = '/login';
     }
   };
@@ -127,7 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const hasPermission = (permission: string) => user?.permissions.includes(permission) || false;
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, isAuthenticated, isAdmin, hasPermission, login, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, isAuthenticated, isAdmin, hasPermission, login, signUp, logout }}>
       {children}
     </AuthContext.Provider>
   );
