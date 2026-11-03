@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
-import { Loader2, BookOpen, Users, ArrowLeft, ShieldAlert } from 'lucide-react';
+import { Loader2, BookOpen, ArrowLeft, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 import FadeIn from '@/components/animations/FadeIn';
 

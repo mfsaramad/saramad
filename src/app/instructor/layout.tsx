@@ -3,7 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { Loader2, LogOut, BookOpen, User } from 'lucide-react';
+import { Loader2, LogOut, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 
 export default function InstructorLayout({ children }: { children: React.ReactNode }) {
