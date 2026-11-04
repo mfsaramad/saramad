@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -15,14 +15,12 @@ export default function AdminUsersPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const { user: currentUser } = useAuth();
 
-  // استیت‌های Modal و منابع
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [userPerms, setUserPerms] = useState<any[]>([]);
-  const [userResources, setUserResources] = useState<any[]>([]); // لیست دسترسی به منابع
+  const [userResources, setUserResources] = useState<any[]>([]); 
   const [isModalLoading, setIsModalLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'general' | 'courses' | 'exams' | 'products'>('general');
 
-  // لیست تمام منابع موجود در سیستم
   const [allCourses, setAllCourses] = useState<any[]>([]);
   const [allExams, setAllExams] = useState<any[]>([]);
   const [allProducts, setAllProducts] = useState<any[]>([]);
@@ -56,16 +54,31 @@ export default function AdminUsersPage() {
   }, []);
 
   const changeRole = async (userId: string, newRoleId: number) => {
-    if (userId === currentUser?.id) return alert('شما نمی‌توانید نقش خودتان را تغییر دهید!');
+    if (userId === currentUser?.id) {
+      return alert('شما نمی‌توانید نقش خودتان را تغییر دهید!');
+    }
+    
     setUpdatingId(userId);
     try {
-      const existingUser = users.find(u => u.id === userId);
-      if (existingUser && existingUser.role_id) {
-        await supabase.from('user_roles').update({ role_id: newRoleId }).eq('user_id', userId);
-      } else {
-        await supabase.from('user_roles').insert({ user_id: userId, role_id: newRoleId });
+      const { error } = await supabase
+        .from('user_roles')
+        .upsert(
+          { user_id: userId, role_id: newRoleId },
+          { onConflict: 'user_id' }
+        );
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw new Error(error.message);
       }
-      setUsers(users.map(u => u.id === userId ? { ...u, role_id: newRoleId, role_name: roles.find(r => r.id === newRoleId)?.name, role_title: roles.find(r => r.id === newRoleId)?.title } : u));
+
+      const newRole = roles.find(r => r.id === newRoleId);
+      setUsers(prev => prev.map(u => 
+        u.id === userId 
+          ? { ...u, role_id: newRoleId, role_name: newRole?.name, role_title: newRole?.title } 
+          : u
+      ));
+      
     } catch (error: any) {
       alert('خطا در تغییر نقش: ' + error.message);
     } finally {
@@ -92,31 +105,51 @@ export default function AdminUsersPage() {
 
   const toggleUserPerm = async (permissionId: number, isChecked: boolean) => {
     if (!selectedUser) return;
+    
+    const newPerms = isChecked ? [...userPerms, permissionId] : userPerms.filter(id => id !== permissionId);
+    setUserPerms(newPerms);
+
     try {
       if (isChecked) {
-        await supabase.from('user_permissions').insert({ user_id: selectedUser.id, permission_id: permissionId });
-        setUserPerms([...userPerms, permissionId]);
+        const { error } = await supabase.from('user_permissions').insert({ user_id: selectedUser.id, permission_id: permissionId });
+        if (error) throw error;
       } else {
-        await supabase.from('user_permissions').delete().match({ user_id: selectedUser.id, permission_id: permissionId });
-        setUserPerms(userPerms.filter(id => id !== permissionId));
+        const { error } = await supabase.from('user_permissions').delete().match({ user_id: selectedUser.id, permission_id: permissionId });
+        if (error) throw error;
       }
-    } catch (error: any) { alert('خطا: ' + error.message); }
+    } catch (error: any) { 
+      setUserPerms(userPerms);
+      alert('خطا در ذخیره دسترسی: ' + error.message); 
+    }
   };
 
   const toggleResourceAccess = async (type: 'course' | 'exam' | 'product', id: string, isChecked: boolean) => {
     if (!selectedUser) return;
+
+    const newResources = isChecked
+      ? [...userResources, { resource_type: type, resource_id: id }]
+      : userResources.filter(r => !(r.resource_type === type && r.resource_id === id));
+    setUserResources(newResources);
+
     try {
       if (isChecked) {
-        await supabase.from('user_resource_access').insert({ user_id: selectedUser.id, resource_type: type, resource_id: id });
-        setUserResources([...userResources, { resource_type: type, resource_id: id }]);
+        const { error } = await supabase.from('user_resource_access').insert({ user_id: selectedUser.id, resource_type: type, resource_id: id });
+        if (error) throw error;
       } else {
-        await supabase.from('user_resource_access').delete().match({ user_id: selectedUser.id, resource_type: type, resource_id: id });
-        setUserResources(userResources.filter(r => !(r.resource_type === type && r.resource_id === id)));
+        const { error } = await supabase.from('user_resource_access').delete().match({ user_id: selectedUser.id, resource_type: type, resource_id: id });
+        if (error) throw error;
       }
-    } catch (error: any) { alert('خطا: ' + error.message); }
+    } catch (error: any) { 
+      setUserResources(userResources);
+      alert('خطا در ذخیره دسترسی: ' + error.message); 
+    }
   };
 
   const hasResourceAccess = (type: string, id: string) => userResources.some(r => r.resource_type === type && r.resource_id === id);
+
+  const filteredUsers = users.filter(u => 
+    (u.name || '').includes(searchTerm) || (u.email || '').includes(searchTerm)
+  );
 
   if (isLoading) return <div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="w-10 h-10 text-blue-600 animate-spin" /></div>;
 
@@ -148,19 +181,27 @@ export default function AdminUsersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {users.map((u) => (
+              {filteredUsers.map((u) => (
                 <tr key={u.id} className="hover:bg-slate-50">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-800 flex items-center justify-center font-bold">{u.name ? u.name[0] : 'U'}</div>
                       <div>
-                        <div className="font-bold text-slate-800">{u.name || 'بدون نام'}</div>
+                        <div className="font-bold text-slate-800 flex items-center gap-2">
+                          {u.name || 'بدون نام'}
+                          {updatingId === u.id && <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />}
+                        </div>
                         <div className="text-xs text-slate-500" dir="ltr">{u.email}</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <select value={u.role_id || ''} onChange={(e) => changeRole(u.id, Number(e.target.value))} disabled={u.id === currentUser?.id} className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-sm">
+                    <select 
+                      value={u.role_id || ''} 
+                      onChange={(e) => changeRole(u.id, Number(e.target.value))} 
+                      disabled={u.id === currentUser?.id || updatingId === u.id} 
+                      className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-sm disabled:opacity-50"
+                    >
                       {roles.map(r => <option key={r.id} value={r.id}>{r.title}</option>)}
                     </select>
                   </td>
@@ -176,7 +217,6 @@ export default function AdminUsersPage() {
         </div>
       </FadeIn>
 
-      {/* Modal پیشرفته */}
       {selectedUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
           <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
@@ -188,7 +228,6 @@ export default function AdminUsersPage() {
               <button onClick={() => setSelectedUser(null)} className="p-2 text-slate-400 hover:text-red-500 bg-white rounded-full shadow-sm"><X className="w-5 h-5" /></button>
             </div>
 
-            {/* تب‌ها */}
             <div className="flex border-b border-slate-100 px-6 pt-4 gap-6 overflow-x-auto">
               <button onClick={() => setActiveTab('general')} className={`pb-3 font-bold text-sm border-b-2 whitespace-nowrap transition-colors ${activeTab === 'general' ? 'border-blue-600 text-blue-700' : 'border-transparent text-slate-500'}`}>دسترسی‌های عمومی</button>
               <button onClick={() => setActiveTab('courses')} className={`pb-3 font-bold text-sm border-b-2 whitespace-nowrap transition-colors ${activeTab === 'courses' ? 'border-blue-600 text-blue-700' : 'border-transparent text-slate-500'}`}>دوره‌های خاص</button>
