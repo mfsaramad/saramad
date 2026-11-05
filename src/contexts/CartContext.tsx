@@ -15,6 +15,7 @@ interface CartContextType {
   addToCart: (item: CartItem) => void;
   removeFromCart: (id: string) => void;
   clearCart: () => void;
+  isInCart: (id: string) => boolean; // 👈 اضافه شدن این تابع برای رفع خطا
   totalPrice: number;
 }
 
@@ -24,7 +25,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isMounted, setIsMounted] = useState(false);
 
-  // بارگذاری سبد خرید از localStorage فقط در سمت کلاینت (بعد از لود شدن)
   useEffect(() => {
     setIsMounted(true);
     try {
@@ -35,7 +35,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // ذخیره سبد خرید در localStorage هنگام تغییر
   useEffect(() => {
     if (isMounted) {
       localStorage.setItem('saramad_cart', JSON.stringify(cart));
@@ -58,10 +57,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = () => setCart([]);
 
+  // 👈 پیاده‌سازی تابع بررسی وجود آیتم در سبد خرید
+  const isInCart = (id: string) => {
+    return cart.some((item) => item.id === id);
+  };
+
   const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
   return (
-    <CartContext.Provider value={{ cart, addToCart, removeFromCart, clearCart, totalPrice }}>
+    <CartContext.Provider value={{ cart, addToCart, removeFromCart, clearCart, isInCart, totalPrice }}>
       {children}
     </CartContext.Provider>
   );
