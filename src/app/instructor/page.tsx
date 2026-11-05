@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -16,7 +16,7 @@ export default function InstructorDashboard() {
     const fetchInstructorCourses = async () => {
       if (!user) return;
       try {
-        // گرفتن دسترسی‌های دوره‌ای که به این استاد داده شده
+        // دریافت دسترسی‌های دوره‌ای که به این استاد داده شده
         const { data: accessData, error: accessError } = await supabase
           .from('user_resource_access')
           .select('resource_id')
@@ -82,12 +82,13 @@ export default function InstructorDashboard() {
           {courses.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {courses.map((course) => (
-                <div key={course.id} className="border border-slate-100 rounded-2xl p-4 hover:shadow-md transition-shadow bg-slate-50/50">
+                <div key={course.id} className="border border-slate-100 rounded-2xl p-4 hover:shadow-md transition-shadow bg-slate-50/50 flex flex-col">
                   <h3 className="font-bold text-slate-800 mb-2">{course.title}</h3>
-                  <p className="text-xs text-slate-500 mb-4 line-clamp-2">{course.short_description || 'بدون توضیحات'}</p>
+                  <p className="text-xs text-slate-500 mb-4 line-clamp-2 flex-1">{course.short_description || 'بدون توضیحات'}</p>
                   <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-100">
                     <span className="text-xs font-bold text-slate-400">مدیریت دوره</span>
-                    <Link href={`/admin/courses/edit/${course.id}`} className="text-sm font-bold text-blue-700 hover:underline flex items-center gap-1">
+                    {/* 👈 لینک به مسیر جدید پنل استاد */}
+                    <Link href={`/instructor/courses/${course.id}`} className="text-sm font-bold text-blue-700 hover:underline flex items-center gap-1">
                       ورود <ArrowLeft className="w-4 h-4" />
                     </Link>
                   </div>
