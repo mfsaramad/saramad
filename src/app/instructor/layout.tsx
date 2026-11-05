@@ -26,7 +26,6 @@ export default function InstructorLayout({ children }: { children: React.ReactNo
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col" dir="rtl">
-      {/* هدر پنل استاد */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-20 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -38,7 +37,6 @@ export default function InstructorLayout({ children }: { children: React.ReactNo
               <p className="text-xs text-slate-500">{user.name}</p>
             </div>
           </div>
-          
           <div className="flex items-center gap-4">
             <Link href="/" className="text-sm font-bold text-slate-500 hover:text-blue-700 transition-colors">بازگشت به سایت</Link>
             <div className="w-px h-6 bg-slate-200" />
@@ -48,8 +46,6 @@ export default function InstructorLayout({ children }: { children: React.ReactNo
           </div>
         </div>
       </header>
-
-      {/* محتوای اصلی */}
       <main className="flex-1 max-w-7xl mx-auto w-full p-4 lg:p-8">
         {children}
       </main>

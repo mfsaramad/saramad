@@ -16,7 +16,7 @@ export default function InstructorDashboard() {
     const fetchInstructorCourses = async () => {
       if (!user) return;
       try {
-        // ۱. گرفتن دسترسی‌های دوره‌ای که به این استاد داده شده
+        // گرفتن دسترسی‌های دوره‌ای که به این استاد داده شده
         const { data: accessData, error: accessError } = await supabase
           .from('user_resource_access')
           .select('resource_id')
@@ -28,7 +28,7 @@ export default function InstructorDashboard() {
         const courseIds = accessData?.map(a => a.resource_id) || [];
 
         if (courseIds.length > 0) {
-          // ۲. دریافت جزئیات دوره‌ها
+          // دریافت جزئیات دوره‌ها
           const { data: coursesData } = await supabase
             .from('courses')
             .select('*')
@@ -50,7 +50,6 @@ export default function InstructorDashboard() {
 
   return (
     <div className="space-y-8">
-      {/* خوش‌آمدگویی */}
       <FadeIn>
         <div className="bg-gradient-to-l from-blue-900 to-teal-600 rounded-3xl p-8 text-white flex flex-col md:flex-row items-center justify-between shadow-lg">
           <div>
@@ -60,7 +59,6 @@ export default function InstructorDashboard() {
         </div>
       </FadeIn>
 
-      {/* آمار */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <FadeIn delay={0.1}>
           <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex items-center gap-4">
@@ -75,7 +73,6 @@ export default function InstructorDashboard() {
         </FadeIn>
       </div>
 
-      {/* لیست دوره‌ها */}
       <FadeIn delay={0.2}>
         <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
           <h2 className="text-lg font-black text-slate-800 mb-6 flex items-center gap-2">
