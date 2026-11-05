@@ -1,5 +1,3 @@
-export function generateStaticParams() { return [{ id: '1' }]; }
-
 'use client';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -34,20 +32,20 @@ export default function StudentCoursePlayerPage() {
   return (
     <div className="bg-slate-50 min-h-screen p-4 flex gap-6 flex-col lg:flex-row" dir="rtl">
       <div className="flex-1 space-y-4">
-        <button onClick={() => router.push('/dashboard')} className="flex items-center gap-2 font-bold"><ArrowRight className="w-5 h-5"/> بازگشت</button>
+        <button onClick={() => router.push('/dashboard')} className="flex items-center gap-2 font-bold"><ArrowRight className="w-5 h-5"/> ط¨ط§ط²ع¯ط´طھ</button>
         <div className="bg-black aspect-video rounded-2xl overflow-hidden flex items-center justify-center">
           {activeLesson?.video_url ? (
             <iframe src={activeLesson.video_url.replace('watch?v=', 'embed/')} className="w-full h-full" allowFullScreen />
-          ) : <p className="text-white">ویدیو انتخاب نشده است</p>}
+          ) : <p className="text-white">ظˆغŒط¯غŒظˆ ط§ظ†طھط®ط§ط¨ ظ†ط´ط¯ظ‡ ط§ط³طھ</p>}
         </div>
         <h2 className="text-xl font-black">{activeLesson?.title}</h2>
-        <p className="text-slate-500">دوره: {course?.title}</p>
+        <p className="text-slate-500">ط¯ظˆط±ظ‡: {course?.title}</p>
       </div>
       <div className="w-full lg:w-80 bg-white rounded-2xl border h-[80vh] overflow-y-auto p-2">
-        <div className="font-bold p-3 bg-slate-800 text-white rounded-t-xl mb-2">سرفصل‌ها</div>
+        <div className="font-bold p-3 bg-slate-800 text-white rounded-t-xl mb-2">ط³ط±ظپطµظ„â€Œظ‡ط§</div>
         {chapters.map((c, i) => (
           <div key={c.id} className="mb-2">
-            <div className="font-bold text-sm bg-slate-100 p-2">فصل {i+1}: {c.title}</div>
+            <div className="font-bold text-sm bg-slate-100 p-2">ظپطµظ„ {i+1}: {c.title}</div>
             {c.lessons?.map((l: any) => (
               <button key={l.id} onClick={() => setActiveLesson(l)} className="w-full text-right p-2 text-sm flex items-center gap-2 hover:bg-blue-50">
                 <PlayCircle className="w-4 h-4"/> {l.title}

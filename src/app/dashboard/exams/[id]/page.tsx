@@ -1,5 +1,3 @@
-export function generateStaticParams() { return [{ id: '1' }]; }
-
 'use client';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -38,15 +36,15 @@ export default function StudentTakeExam() {
   if (submitted) return (
     <div className="flex flex-col items-center justify-center min-h-[60vh]" dir="rtl">
       <CheckCircle className="w-20 h-20 text-green-500 mb-4"/>
-      <h2 className="text-2xl font-black">آزمون به پایان رسید!</h2>
-      <p className="text-lg mt-2">نمره شما: <span className="font-bold text-blue-600">{score}</span> از ۱۰۰</p>
-      <button onClick={() => router.push('/dashboard')} className="mt-6 bg-slate-800 text-white px-6 py-2 rounded-xl">بازگشت به داشبورد</button>
+      <h2 className="text-2xl font-black">ط¢ط²ظ…ظˆظ† ط¨ظ‡ ظ¾ط§غŒط§ظ† ط±ط³غŒط¯!</h2>
+      <p className="text-lg mt-2">ظ†ظ…ط±ظ‡ ط´ظ…ط§: <span className="font-bold text-blue-600">{score}</span> ط§ط² غ±غ°غ°</p>
+      <button onClick={() => router.push('/dashboard')} className="mt-6 bg-slate-800 text-white px-6 py-2 rounded-xl">ط¨ط§ط²ع¯ط´طھ ط¨ظ‡ ط¯ط§ط´ط¨ظˆط±ط¯</button>
     </div>
   );
 
   return (
     <div className="p-6 max-w-3xl mx-auto space-y-6" dir="rtl">
-      <h1 className="text-2xl font-black">پاسخ به سوالات</h1>
+      <h1 className="text-2xl font-black">ظ¾ط§ط³ط® ط¨ظ‡ ط³ظˆط§ظ„ط§طھ</h1>
       {questions.map((q, i) => (
         <div key={q.id} className="bg-white p-6 rounded-2xl shadow-sm border">
           <h3 className="font-bold mb-4">{i+1}. {q.question_text}</h3>
@@ -60,7 +58,7 @@ export default function StudentTakeExam() {
           </div>
         </div>
       ))}
-      <button onClick={handleSubmit} disabled={Object.keys(answers).length < questions.length} className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl disabled:opacity-50">ثبت و مشاهده نتیجه</button>
+      <button onClick={handleSubmit} disabled={Object.keys(answers).length < questions.length} className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl disabled:opacity-50">ط«ط¨طھ ظˆ ظ…ط´ط§ظ‡ط¯ظ‡ ظ†طھغŒط¬ظ‡</button>
     </div>
   );
 }
