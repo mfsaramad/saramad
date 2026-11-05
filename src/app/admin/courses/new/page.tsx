@@ -1,96 +1,55 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, Loader2 } from 'lucide-react';
-import { CourseForm, type CourseFormData } from '@/components/admin/CourseForm';
 import { supabase } from '@/lib/supabase';
-
-interface Instructor {
-  id: string;
-  name: string;
-}
+import { Loader2, Save, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 
 export default function NewCoursePage() {
   const router = useRouter();
-  const [instructors, setInstructors] = useState<Instructor[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [formData, setFormData] = useState({ title: '', description: '', price: 0 });
 
-  useEffect(() => {
-    const fetchInstructors = async () => {
-      const { data } = await supabase
-        .from('users')
-        .select('id, name')
-        .eq('role', 'instructor');
-      
-      if (data) setInstructors(data);
-    };
-    fetchInstructors();
-  }, []);
-
-  const handleSubmit = async (data: CourseFormData) => {
-    setIsSubmitting(true);
-    try {
-      // 👈 تبدیل دیتای فرم به ساختار دیتابیس (snake_case)
-      const payload = {
-        slug: data.slug,
-        title: data.title,
-        description: data.description,
-        short_description: data.shortDescription,
-        mode: data.mode,
-        level: data.level,
-        duration: data.duration,
-        sessions: data.sessions,
-        price: data.price,
-        image: data.image,
-        instructor_id: data.instructorId,
-        capacity: data.capacity,
-        remaining_capacity: data.remainingCapacity,
-        start_date: data.startDate,
-        schedule: data.schedule,
-        prerequisites: data.prerequisites,
-        certificate: data.certificate,
-        tags: data.tags,
-        is_active: data.isActive,
-      };
-
-      const { error } = await supabase.from('courses').insert([payload]);
-      if (error) throw error;
-      
-      alert('دوره با موفقیت ایجاد شد!');
-      router.push('/admin/courses');
-    } catch (error: any) {
-      console.error('خطا در ایجاد دوره:', error);
-      alert('خطا در ایجاد دوره: ' + error.message);
-    } finally {
-      setIsSubmitting(false);
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+    
+    // ساخت دوره جدید در دیتابیس
+    const { data, error } = await supabase.from('courses').insert([formData]).select().single();
+    
+    setIsSaving(false);
+    if (error) {
+      alert('خطا در ذخیره: ' + error.message);
+    } else if (data) {
+      // هدایت به صفحه ویرایش با استفاده از Query Param (رفع خطای 404)
+      router.push(`/admin/courses/edit?id=${data.id}`);
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <Link href="/admin/courses" className="w-10 h-10 rounded-xl flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition">
-          <ArrowRight className="w-5 h-5" />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">افزودن دوره جدید</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">اطلاعات دوره رو پر کن و ذخیره کن</p>
-        </div>
+    <div className="max-w-2xl mx-auto" dir="rtl">
+      <div className="mb-6 flex items-center gap-2">
+        <Link href="/admin/courses" className="text-slate-500 hover:text-blue-600"><ArrowRight className="w-5 h-5" /></Link>
+        <h1 className="text-2xl font-black text-slate-800">ساخت دوره جدید</h1>
       </div>
-
-      {isSubmitting ? (
-        <div className="flex justify-center py-20">
-          <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+      <form onSubmit={handleSave} className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-4">
+        <div>
+          <label className="block text-sm font-bold mb-1">عنوان دوره *</label>
+          <input type="text" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50" required />
         </div>
-      ) : (
-        <CourseForm
-          instructors={instructors}
-          onSubmit={handleSubmit}
-          mode="create"
-        />
-      )}
+        <div>
+          <label className="block text-sm font-bold mb-1">توضیحات</label>
+          <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50" rows={4} />
+        </div>
+        <div>
+          <label className="block text-sm font-bold mb-1">قیمت (تومان) *</label>
+          <input type="number" value={formData.price} onChange={e => setFormData({...formData, price: Number(e.target.value)})} className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50" required />
+        </div>
+        <button type="submit" disabled={isSaving} className="w-full bg-blue-700 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-blue-800 disabled:opacity-50">
+          {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />} ذخیره و ادامه
+        </button>
+      </form>
     </div>
   );
 }
