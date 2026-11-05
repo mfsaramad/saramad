@@ -9,23 +9,26 @@ import Link from 'next/link';
 export default function NewCoursePage() {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
-  const [formData, setFormData] = useState({ title: '', description: '', price: 0 });
+  const [formData, setFormData] = useState({ 
+    title: '', 
+    description: '', 
+    price: 0,
+    course_type: 'online' // 👈 مقدار پیش‌فرض
+  });
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
 
-    // تولید یک slug (شناسه یکتا) از روی عنوان دوره + یک عدد تصادفی برای جلوگیری از تکرار
     const baseSlug = formData.title.trim().replace(/\s+/g, '-');
     const randomSuffix = Math.floor(Math.random() * 10000);
     const slug = `${baseSlug || 'course'}-${randomSuffix}`;
 
     const courseData = {
       ...formData,
-      slug: slug, // 👈 اضافه شدن فیلد اجباری slug
+      slug: slug,
     };
 
-    // ارسال به دیتابیس
     const { data, error } = await supabase.from('courses').insert([courseData]).select().single();
 
     setIsSaving(false);
@@ -33,7 +36,6 @@ export default function NewCoursePage() {
     if (error) {
       alert('خطا در ذخیره: ' + error.message);
     } else if (data) {
-      // هدایت به صفحه ویرایش با استفاده از آیدی
       router.push(`/admin/courses/edit?id=${data.id}`);
     }
   };
@@ -49,6 +51,21 @@ export default function NewCoursePage() {
           <label className="block text-sm font-bold mb-1">عنوان دوره *</label>
           <input type="text" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50" required />
         </div>
+        
+        {/* 👈 فیلد نوع دوره */}
+        <div>
+          <label className="block text-sm font-bold mb-1">نوع برگزاری دوره *</label>
+          <select 
+            value={formData.course_type} 
+            onChange={e => setFormData({...formData, course_type: e.target.value})} 
+            className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 font-bold"
+          >
+            <option value="online">آنلاین</option>
+            <option value="in-person">حضوری</option>
+            <option value="hybrid">ترکیبی (حضوری + آنلاین)</option>
+          </select>
+        </div>
+
         <div>
           <label className="block text-sm font-bold mb-1">توضیحات</label>
           <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50" rows={4} />
