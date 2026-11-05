@@ -1,203 +1,64 @@
-'use client';
-
-import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
-import {
-  Plus,
-  Search,
-  Edit,
-  Trash2,
-  Eye,
-  BookOpen,
-  Loader2,
-} from 'lucide-react';
+﻿'use client';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-
-interface AdminCourse {
-  id: string;
-  slug: string;
-  title: string;
-  instructor_id?: string;
-  instructor_name?: string;
-  price: {
-    'in-person'?: number;
-    online?: number;
-    hybrid?: number;
-  };
-  students_count?: number;
-  mode: 'in-person' | 'online' | 'hybrid';
-  is_active?: boolean;
-}
-
-const modeLabels = {
-  'in-person': 'حضوری',
-  online: 'آنلاین',
-  hybrid: 'ترکیبی',
-};
+import { Loader2, BookOpen, Plus, X, Search, Edit, Trash2 } from 'lucide-react';
 
 export default function AdminCoursesPage() {
-  const [search, setSearch] = useState('');
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [courses, setCourses] = useState<AdminCourse[]>([]);
+  const [courses, setCourses] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({ title: '', short_description: '' });
 
-  const fetchCourses = async () => {
-    try {
-      setIsLoading(true);
-      // دریافت دوره‌ها و اتصال به جدول کاربران برای گرفتن اسم استاد
-      const { data, error } = await supabase
-        .from('courses')
-        .select(`
-          *,
-          users:instructor_id (name)
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      if (data) {
-        const mapped: AdminCourse[] = data.map((c: any) => ({
-          ...c,
-          instructor_name: c.users?.name || 'نامشخص',
-        }));
-        setCourses(mapped);
-      }
-    } catch (error) {
-      console.error('خطا در دریافت دوره‌ها:', error);
-    } finally {
-      setIsLoading(false);
-    }
+  const fetchData = async () => {
+    const { data } = await supabase.from('courses').select('*').order('created_at', { ascending: false });
+    setCourses(data || []);
+    setIsLoading(false);
   };
 
-  useEffect(() => {
-    fetchCourses();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
-  const filtered = useMemo(() => {
-    if (!search) return courses;
-    return courses.filter((c) =>
-      c.title?.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [courses, search]);
-
-  const handleDelete = async (id: string, title: string) => {
-    if (!confirm(`آیا از حذف «${title}» مطمئن هستی؟`)) return;
-    setDeletingId(id);
-    
-    try {
-      const { error } = await supabase.from('courses').delete().eq('id', id);
-      if (error) throw error;
-      setCourses((prev) => prev.filter((c) => c.id !== id));
-    } catch (error) {
-      console.error('خطا در حذف دوره:', error);
-      alert('خطا در حذف دوره');
-    } finally {
-      setDeletingId(null);
-    }
+  const handleCreate = async (e: any) => {
+    e.preventDefault();
+    await supabase.from('courses').insert({ title: formData.title, short_description: formData.short_description, is_active: true });
+    setIsModalOpen(false);
+    fetchData();
   };
 
-  const getPrice = (course: AdminCourse): number => {
-    const p = course.price || {};
-    return p['in-person'] || p.online || p.hybrid || 0;
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-      </div>
-    );
-  }
+  if (isLoading) return <div className="flex justify-center py-20"><Loader2 className="w-10 h-10 text-blue-600 animate-spin" /></div>;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            مدیریت دوره‌ها
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {courses.length.toLocaleString('fa-IR')} دوره ثبت شده
-          </p>
-        </div>
-        <Link
-          href="/admin/courses/new"
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition shadow-md shadow-blue-500/20"
-        >
-          <Plus className="w-4 h-4" />
-          افزودن دوره
-        </Link>
+    <div className="space-y-6" dir="rtl">
+      <div className="flex justify-between items-center bg-white p-6 rounded-3xl shadow-sm">
+        <h1 className="text-2xl font-black flex items-center gap-2"><BookOpen className="w-6 h-6 text-blue-700" /> مدیریت دوره‌ها</h1>
+        <button onClick={() => setIsModalOpen(true)} className="px-4 py-2 bg-blue-600 text-white rounded-xl flex items-center gap-2"><Plus className="w-4 h-4"/> دوره جدید</button>
       </div>
-
-      {/* Search */}
-      <div className="relative max-w-md">
-        <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <input
-          type="search"
-          placeholder="جستجو در دوره‌ها..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full pr-10 pl-4 py-2.5 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 focus:border-blue-500 outline-none text-sm transition"
-        />
-      </div>
-
-      {/* Table */}
-      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 dark:bg-gray-950/50 text-gray-500 dark:text-gray-400">
-              <tr>
-                <th className="text-right px-5 py-3 font-medium">عنوان</th>
-                <th className="text-right px-5 py-3 font-medium">استاد</th>
-                <th className="text-right px-5 py-3 font-medium">نوع</th>
-                <th className="text-right px-5 py-3 font-medium">قیمت</th>
-                <th className="text-right px-5 py-3 font-medium">دانشجو</th>
-                <th className="text-right px-5 py-3 font-medium">وضعیت</th>
-                <th className="text-right px-5 py-3 font-medium">عملیات</th>
+      <div className="bg-white rounded-3xl overflow-hidden shadow-sm">
+        <table className="w-full text-right">
+          <thead className="bg-slate-50">
+            <tr><th className="px-6 py-4">عنوان دوره</th><th className="px-6 py-4">عملیات</th></tr>
+          </thead>
+          <tbody>
+            {courses.map(c => (
+              <tr key={c.id} className="border-t">
+                <td className="px-6 py-4 font-bold">{c.title}</td>
+                <td className="px-6 py-4">
+                  <button onClick={() => window.location.href = `/admin/courses/${c.id}`} className="px-3 py-1.5 text-xs font-bold text-blue-700 bg-blue-50 rounded-lg">مدیریت محتوا</button>
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-              {filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-5 py-16 text-center text-gray-500 dark:text-gray-400">
-                    <BookOpen className="w-10 h-10 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
-                    دوره‌ای یافت نشد
-                  </td>
-                </tr>
-              ) : (
-                filtered.map((course) => (
-                  <tr key={course.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition">
-                    <td className="px-5 py-4 font-medium text-gray-900 dark:text-white">{course.title}</td>
-                    <td className="px-5 py-4 text-gray-600 dark:text-gray-300">{course.instructor_name}</td>
-                    <td className="px-5 py-4 text-gray-600 dark:text-gray-300">{modeLabels[course.mode] || course.mode}</td>
-                    <td className="px-5 py-4 text-gray-900 dark:text-white">{getPrice(course).toLocaleString('fa-IR')} تومان</td>
-                    <td className="px-5 py-4 text-gray-600 dark:text-gray-300">{(course.students_count || 0).toLocaleString('fa-IR')}</td>
-                    <td className="px-5 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${course.is_active !== false ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400'}`}>
-                        {course.is_active !== false ? 'منتشر شده' : 'پیش‌نویس'}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-1">
-                        <Link href={`/courses/${course.slug}`} target="_blank" className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition">
-                          <Eye className="w-4 h-4" />
-                        </Link>
-                        <Link href={`/admin/courses/edit?id=${course.id}`} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition">
-                          <Edit className="w-4 h-4" />
-                        </Link>
-                        <button onClick={() => handleDelete(course.id, course.title)} disabled={deletingId === course.id} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition disabled:opacity-50">
-                          {deletingId === course.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </tbody>
+        </table>
       </div>
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <form onSubmit={handleCreate} className="bg-white p-6 rounded-3xl w-full max-w-md space-y-4">
+            <h3 className="font-bold">دوره جدید</h3>
+            <input required placeholder="عنوان دوره" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full p-2 border rounded-xl" />
+            <textarea placeholder="توضیحات کوتاه" value={formData.short_description} onChange={e => setFormData({...formData, short_description: e.target.value})} className="w-full p-2 border rounded-xl" />
+            <button type="submit" className="w-full py-2 bg-blue-600 text-white rounded-xl">ثبت</button>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

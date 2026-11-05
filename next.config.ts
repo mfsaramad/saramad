@@ -1,7 +1,7 @@
-import type { NextConfig } from 'next';
+﻿import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  output: 'export',
+  // output: 'export', // برای پنل ادمین پویا غیرفعال شد
   typescript: {
     ignoreBuildErrors: true,
   },

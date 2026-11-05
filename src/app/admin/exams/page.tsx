@@ -1,212 +1,71 @@
-'use client';
-
-import { useState, useEffect, useMemo } from 'react';
-import Link from 'next/link';
-import {
-  Plus,
-  Search,
-  Edit,
-  Trash2,
-  Eye,
-  FileText,
-  Loader2,
-  Star,
-} from 'lucide-react';
+﻿'use client';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { toPersianNumber, formatPrice } from '@/lib/format';
-
-interface Exam {
-  id: string;
-  slug: string;
-  title: string;
-  type_label: string;
-  duration: number;
-  questions_count: number;
-  price: number;
-  participants: number;
-  rating: number;
-  certificate: boolean;
-  is_active?: boolean;
-}
+import { Loader2, Plus, FileText } from 'lucide-react';
+import Link from 'next/link';
 
 export default function AdminExamsPage() {
-  const [search, setSearch] = useState('');
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [exams, setExams] = useState<Exam[]>([]);
+  const [exams, setExams] = useState<any[]>([]);
+  const [courses, setCourses] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [form, setForm] = useState({ title: '', course_id: '' });
 
-  // دریافت آزمون‌ها از دیتابیس
-  const fetchExams = async () => {
+  const fetchData = async () => {
     try {
-      setIsLoading(true);
-      const { data, error } = await supabase
-        .from('exams')
-        .select('*')
-        .order('created_at', { ascending: false });
-
+      const { data: e, error } = await supabase.from('exams').select('*, courses(title)').order('created_at', { ascending: false });
       if (error) throw error;
-      if (data) setExams(data);
-    } catch (error) {
-      console.error('خطا در دریافت آزمون‌ها:', error);
-    } finally {
-      setIsLoading(false);
-    }
+      const { data: c } = await supabase.from('courses').select('id, title');
+      setExams(e || []); setCourses(c || []); 
+    } catch (error) { console.error(error); } finally { setIsLoading(false); }
   };
 
-  useEffect(() => {
-    fetchExams();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
-  const filtered = useMemo(() => {
-    if (!search) return exams;
-    return exams.filter((e) =>
-      e.title?.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [exams, search]);
-
-  const handleDelete = async (id: string, title: string) => {
-    if (!confirm(`آیا از حذف «${title}» مطمئن هستی؟`)) return;
+  const handleCreate = async (e: any) => {
+    e.preventDefault();
+    if (!form.title.trim()) return alert('لطفاً نام آزمون را وارد کنید');
     
-    setDeletingId(id);
+    setIsSubmitting(true);
     try {
-      const { error } = await supabase
-        .from('exams')
-        .delete()
-        .eq('id', id);
-
+      const courseIdToSave = form.course_id === '' ? null : form.course_id;
+      const { error } = await supabase.from('exams').insert({ title: form.title, course_id: courseIdToSave, duration: 0 });
       if (error) throw error;
-      
-      // حذف از استیت پس از موفقیت در دیتابیس
-      setExams((prev) => prev.filter((e) => e.id !== id));
-    } catch (error) {
-      console.error('خطا در حذف آزمون:', error);
-      alert('خطا در حذف آزمون. ممکن است نتایجی برای این آزمون ثبت شده باشد.');
-    } finally {
-      setDeletingId(null);
-    }
+      setForm({ title: '', course_id: '' }); fetchData();
+    } catch (error: any) { 
+      alert('خطا در ساخت آزمون: ' + error.message); 
+    } finally { setIsSubmitting(false); }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-      </div>
-    );
-  }
+  if (isLoading) return <div className="flex justify-center py-20"><Loader2 className="animate-spin text-blue-600 w-10 h-10"/></div>;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            مدیریت آزمون‌ها
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {toPersianNumber(exams.length)} آزمون ثبت شده
-          </p>
-        </div>
-        <Link
-          href="/admin/exams/new"
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition shadow-md shadow-blue-500/20"
-        >
-          <Plus className="w-4 h-4" />
-          افزودن آزمون
-        </Link>
+    <div className="space-y-6" dir="rtl">
+      <h1 className="text-2xl font-black">مدیریت آزمون‌ها</h1>
+      <div className="bg-white p-4 rounded-xl shadow-sm">
+        <form onSubmit={handleCreate} className="flex gap-4 flex-wrap items-center">
+          <input placeholder="نام آزمون (مثلاً: آزمون تعیین سطح)" value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="border p-2 rounded-lg flex-1 outline-none" />
+          <select value={form.course_id} onChange={e => setForm({...form, course_id: e.target.value})} className="border p-2 rounded-lg outline-none">
+            <option value="">❌ بدون دوره (آزمون مستقل)</option>
+            {courses.map(c => <option key={c.id} value={c.id}>✅ {c.title}</option>)}
+          </select>
+          <button disabled={isSubmitting} type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-lg flex items-center gap-2">
+            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin"/> : <><Plus className="w-4 h-4"/> ساخت</>}
+          </button>
+        </form>
       </div>
-
-      <div className="relative max-w-md">
-        <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <input
-          type="search"
-          placeholder="جستجو در آزمون‌ها..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full pr-10 pl-4 py-2.5 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 focus:border-blue-500 outline-none text-sm transition"
-        />
-      </div>
-
-      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 dark:bg-gray-950/50 text-gray-500 dark:text-gray-400">
-              <tr>
-                <th className="text-right px-5 py-3 font-medium">عنوان</th>
-                <th className="text-right px-5 py-3 font-medium">نوع</th>
-                <th className="text-right px-5 py-3 font-medium">سوالات</th>
-                <th className="text-right px-5 py-3 font-medium">مدت</th>
-                <th className="text-right px-5 py-3 font-medium">قیمت</th>
-                <th className="text-right px-5 py-3 font-medium">شرکت‌کننده</th>
-                <th className="text-right px-5 py-3 font-medium">امتیاز</th>
-                <th className="text-right px-5 py-3 font-medium">مدرک</th>
-                <th className="text-right px-5 py-3 font-medium">عملیات</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-              {filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={9} className="px-5 py-16 text-center text-gray-500 dark:text-gray-400">
-                    <FileText className="w-10 h-10 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
-                    آزمونی یافت نشد
-                    {exams.length === 0 && (
-                      <div className="mt-3">
-                        <Link href="/admin/exams/new" className="text-blue-600 dark:text-blue-400 hover:underline">
-                          افزودن اولین آزمون
-                        </Link>
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              ) : (
-                filtered.map((exam) => (
-                  <tr key={exam.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition">
-                    <td className="px-5 py-4 font-medium text-gray-900 dark:text-white max-w-xs truncate">
-                      {exam.title}
-                    </td>
-                    <td className="px-5 py-4 text-gray-600 dark:text-gray-300">
-                      {exam.type_label}
-                    </td>
-                    <td className="px-5 py-4 text-gray-600 dark:text-gray-300">
-                      {toPersianNumber(exam.questions_count || 0)}
-                    </td>
-                    <td className="px-5 py-4 text-gray-600 dark:text-gray-300">
-                      {toPersianNumber(exam.duration || 0)} د
-                    </td>
-                    <td className="px-5 py-4 text-gray-900 dark:text-white">
-                      {exam.price === 0 ? 'رایگان' : formatPrice(exam.price)}
-                    </td>
-                    <td className="px-5 py-4 text-gray-600 dark:text-gray-300">
-                      {toPersianNumber(exam.participants || 0)}
-                    </td>
-                    <td className="px-5 py-4">
-                      <span className="inline-flex items-center gap-1 text-yellow-600 dark:text-yellow-400">
-                        <Star className="w-3.5 h-3.5 fill-current" />
-                        {exam.rating?.toLocaleString('fa-IR') || '۵'}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${exam.certificate ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400'}`}>
-                        {exam.certificate ? 'دارد' : 'ندارد'}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-1">
-                        <Link href={`/exams/${exam.slug}`} target="_blank" className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition" aria-label="مشاهده">
-                          <Eye className="w-4 h-4" />
-                        </Link>
-                        <Link href={`/admin/exams/edit?id=${exam.id}`} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition" aria-label="ویرایش">
-                          <Edit className="w-4 h-4" />
-                        </Link>
-                        <button onClick={() => handleDelete(exam.id, exam.title)} disabled={deletingId === exam.id} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition disabled:opacity-50" aria-label="حذف">
-                          {deletingId === exam.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+      <div className="grid gap-4">
+        {exams.map(exam => (
+          <div key={exam.id} className="bg-white p-4 rounded-xl shadow-sm flex justify-between items-center border border-slate-100">
+            <div>
+              <h3 className="font-bold text-slate-800">{exam.title}</h3>
+              <p className="text-xs text-slate-500 mt-1">{exam.courses?.title ? `متصل به: ${exam.courses.title}` : 'آزمون مستقل'}</p>
+            </div>
+            <Link href={`/admin/exams/${exam.id}`} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
+              <FileText className="w-4 h-4"/> سوالات
+            </Link>
+          </div>
+        ))}
       </div>
     </div>
   );
