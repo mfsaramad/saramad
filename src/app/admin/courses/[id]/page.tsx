@@ -1,4 +1,6 @@
-﻿'use client';
+export function generateStaticParams() { return [{ id: '1' }]; }
+
+'use client';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useParams, useRouter } from 'next/navigation';
