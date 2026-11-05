@@ -14,15 +14,26 @@ export default function NewCoursePage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    
-    // ساخت دوره جدید در دیتابیس
-    const { data, error } = await supabase.from('courses').insert([formData]).select().single();
-    
+
+    // تولید یک slug (شناسه یکتا) از روی عنوان دوره + یک عدد تصادفی برای جلوگیری از تکرار
+    const baseSlug = formData.title.trim().replace(/\s+/g, '-');
+    const randomSuffix = Math.floor(Math.random() * 10000);
+    const slug = `${baseSlug || 'course'}-${randomSuffix}`;
+
+    const courseData = {
+      ...formData,
+      slug: slug, // 👈 اضافه شدن فیلد اجباری slug
+    };
+
+    // ارسال به دیتابیس
+    const { data, error } = await supabase.from('courses').insert([courseData]).select().single();
+
     setIsSaving(false);
+    
     if (error) {
       alert('خطا در ذخیره: ' + error.message);
     } else if (data) {
-      // هدایت به صفحه ویرایش با استفاده از Query Param (رفع خطای 404)
+      // هدایت به صفحه ویرایش با استفاده از آیدی
       router.push(`/admin/courses/edit?id=${data.id}`);
     }
   };
