@@ -1,8 +1,7 @@
 ﻿/** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export', // 👈 خروجی استاتیک برای Cloudflare
   images: {
-    unoptimized: true, // در حالت استاتیک، تصاویر بهینه‌سازی نمی‌شوند
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
