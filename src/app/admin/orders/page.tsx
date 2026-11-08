@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -62,7 +62,7 @@ const ORDER_STATUS_OPTIONS = [
    ============================================================ */
 
 function formatPrice(price: number): string {
-  return price.toLocaleString('fa-IR') + ' تومان';
+  return (price || 0).toLocaleString('fa-IR') + ' تومان';
 }
 
 function formatNumber(n: number): string {

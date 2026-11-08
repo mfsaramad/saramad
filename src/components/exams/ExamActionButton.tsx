@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -135,7 +135,7 @@ export default function ExamActionButton({
       ) : (
         <>
           <ShoppingCart className="w-5 h-5" />
-          خرید آزمون — {exam.price.toLocaleString('fa-IR')} تومان
+          خرید آزمون — {exam.(price || 0).toLocaleString('fa-IR')} تومان
         </>
       )}
     </button>

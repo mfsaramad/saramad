@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { useState } from 'react';
@@ -20,7 +20,7 @@ function formatPrice(price: number | undefined | null): string {
   if (price === undefined || price === null || isNaN(price)) {
     return '۰';
   }
-  return price.toLocaleString('fa-IR');
+  return (price || 0).toLocaleString('fa-IR');
 }
 
 export interface OrderItem {

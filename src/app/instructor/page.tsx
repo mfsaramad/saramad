@@ -88,7 +88,7 @@ export default function InstructorDashboard() {
                   <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-100">
                     <span className="text-xs font-bold text-slate-400">مدیریت دوره</span>
                     {/* 👈 لینک به مسیر جدید پنل استاد */}
-                    <Link href={`/instructor/courses/${course.id}`} className="text-sm font-bold text-blue-700 hover:underline flex items-center gap-1">
+                    <Link href={`/instructor/courses/${course.id}/content`} className="text-sm font-bold text-blue-700 hover:underline flex items-center gap-1">
                       ورود <ArrowLeft className="w-4 h-4" />
                     </Link>
                   </div>

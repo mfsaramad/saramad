@@ -1,13 +1,18 @@
-'use client';
+﻿'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
+// تعریف دقیق ساختار آیتم سبد خرید بر اساس چیزی که CourseCard می‌فرستد
 interface CartItem {
   id: string;
+  slug?: string;
   title: string;
   price: number;
   type: string;
   quantity: number;
+  image?: string;
+  instructor?: string;
+  mode?: string;
 }
 
 interface CartContextType {
@@ -15,7 +20,7 @@ interface CartContextType {
   addToCart: (item: CartItem) => void;
   removeFromCart: (id: string) => void;
   clearCart: () => void;
-  isInCart: (id: string) => boolean; // 👈 اضافه شدن این تابع برای رفع خطا
+  isInCart: (id: string) => boolean;
   totalPrice: number;
 }
 
@@ -45,8 +50,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setCart((prev) => {
       const existing = prev.find((i) => i.id === item.id);
       if (existing) {
+        // اگر از قبل بود، فقط تعدادش را زیاد کن
         return prev.map((i) => i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i);
       }
+      // اگر نبود، اضافه کن
       return [...prev, { ...item, quantity: 1 }];
     });
   };
@@ -57,7 +64,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = () => setCart([]);
 
-  // 👈 پیاده‌سازی تابع بررسی وجود آیتم در سبد خرید
   const isInCart = (id: string) => {
     return cart.some((item) => item.id === id);
   };
