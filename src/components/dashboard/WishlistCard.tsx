@@ -76,7 +76,7 @@ export function WishlistCard({ item }: { item: WishlistItem }) {
           {item.rating && (
             <div className="flex items-center gap-1">
               <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
-              <span>{item.(rating || 0).toLocaleString('fa-IR')}</span>
+              <span>{(item.rating || 0).toLocaleString('fa-IR')}</span>
             </div>
           )}
           {item.duration && (
