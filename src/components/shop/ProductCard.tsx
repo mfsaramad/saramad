@@ -120,7 +120,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             <div className="flex items-center gap-1">
               <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
               <span className="font-bold text-slate-700 dark:text-slate-300">
-                {product.(rating || 0).toLocaleString('fa-IR')}
+                {(product.rating || 0).toLocaleString('fa-IR')}
               </span>
             </div>
             <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />

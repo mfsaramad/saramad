@@ -135,7 +135,7 @@ export default function ExamActionButton({
       ) : (
         <>
           <ShoppingCart className="w-5 h-5" />
-          خرید آزمون — {exam.(price || 0).toLocaleString('fa-IR')} تومان
+          خرید آزمون — {(exam.price || 0).toLocaleString('fa-IR')} تومان
         </>
       )}
     </button>

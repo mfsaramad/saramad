@@ -246,7 +246,7 @@ export default function WishlistPage() {
                     </button>
                     <div className="absolute bottom-4 left-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur rounded-full px-3 py-1.5 shadow-lg flex items-center gap-1">
                       <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
-                      <span className="text-xs font-black text-slate-700 dark:text-slate-300">{item.(rating || 0).toLocaleString('fa-IR')}</span>
+                      <span className="text-xs font-black text-slate-700 dark:text-slate-300">{(item.rating || 0).toLocaleString('fa-IR')}</span>
                     </div>
                   </div>
 
